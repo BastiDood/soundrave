@@ -1,0 +1,22 @@
+{
+  "name": "spotify-timeline",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "This is an app that plops down recent releases from your followed artists.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest --watchAll"
+  },
+  "author": "Basti Ortiz <ortizbasti16@gmail.com>",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "helmet": "^3.21.2",
+    "node-spotify-api": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^25.1.1",
+    "jest": "^25.1.0"
+  }
+}
