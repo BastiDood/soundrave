@@ -9,6 +9,10 @@ dotenv.config();
 const { PORT } = process.env;
 const app = express();
 
+// Set render engine
+app.set('view engine', 'ejs');
+app.set('views', 'src/views');
+
 // Enable security headers by Helmet
 app.use(helmet());
 app.use(helmet.permittedCrossDomainPolicies());
@@ -24,9 +28,12 @@ app.use(helmet.referrerPolicy({
   policy: 'no-referrer'
 }));
 
+// Set public files directory
+app.use(express.static('public', { index: false }));
+
 // Route endpoints
 app.get('/', (req, res) => {
-  res.send('Hello World');
+  res.render('index', { msg: 'Hello World' });
 });
 
 // Listen to the servers
