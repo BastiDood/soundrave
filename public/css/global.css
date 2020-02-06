@@ -1,0 +1,25 @@
+/* Global Variables */
+:root {
+  --main-bg-color: #ffffff;
+}
+
+/* Global Styles */
+* {
+  box-sizing: border-box;
+  font-family: Arial;
+}
+html, body {
+  margin: 0;
+  padding: 0;
+  cursor: default;
+  background-color: var(--main-bg-color);
+}
+html {
+  height: 100%;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 100%;
+}
