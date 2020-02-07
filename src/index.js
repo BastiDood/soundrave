@@ -13,7 +13,8 @@ const app = express();
 app.set('view engine', 'ejs');
 app.set('views', 'src/views');
 
-// Enable security headers by Helmet
+// Activate ecurity headers
+app.disable('x-powered-by');
 app.use(helmet());
 app.use(helmet.permittedCrossDomainPolicies());
 app.use(helmet.contentSecurityPolicy({
