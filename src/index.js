@@ -1,6 +1,10 @@
+// DEPENDENCIES
 import dotenv from 'dotenv';
 import express from 'express';
 import helmet from 'helmet';
+
+// ROUTES
+import { router } from './controllers/index.js';
 
 // Initializes .env
 dotenv.config();
@@ -32,10 +36,8 @@ app.use(helmet.referrerPolicy({
 // Set public files directory
 app.use(express.static('public', { index: false }));
 
-// Route endpoints
-app.get('/', (req, res) => {
-  res.render('index', { msg: 'Hello World' });
-});
+// Delegate endpoint logic to `Router` controllers
+app.get('/', router);
 
 // Listen to the servers
 app.listen(PORT, () => {
