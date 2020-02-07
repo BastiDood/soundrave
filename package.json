@@ -5,6 +5,7 @@
   "description": "This is an app that plops down recent releases from your followed artists.",
   "main": "src/index.js",
   "scripts": {
+    "start": "node .",
     "test": "jest --watchAll"
   },
   "author": "Basti Ortiz <ortizbasti16@gmail.com>",
