@@ -18,6 +18,7 @@ router
   })
   .get('/login', (req, res) => {
     const AUTHORIZATION_CODE = req.query['code'];
+    // TODO: Handle when authorization code has been given
     if (AUTHORIZATION_CODE)
       res.json(AUTHORIZATION_CODE);
     else {
