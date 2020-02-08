@@ -16,20 +16,21 @@ router
   .get('/', (req, res) => {
     res.render('index', { title: 'Spotify Timeline' });
   })
-  .get('/login', (req, res) => {
-    const AUTHORIZATION_CODE = req.query['code'];
+  .get('/callback', (req, res) => {
+    // TODO: Check if request is from Spotify accounts
     // TODO: Handle when authorization code has been given
-    if (AUTHORIZATION_CODE)
-      res.json(AUTHORIZATION_CODE);
-    else {
-      const PARAMS = {
-        client_id: CLIENT_ID,
-        response_type: 'code',
-        redirect_uri: 'http://localhost:3000/login',
-        scope: 'user-follow-read'
-      };
-      res.redirect(`https://accounts.spotify.com/authorize?${querystring.stringify(PARAMS)}`);
-    }
+    // const AUTHORIZATION_CODE = req.query['code'];
+    res.json(req);
+  })
+  .get('/login', (req, res) => {
+    // TODO: Check if user session already exists
+    const PARAMS = {
+      client_id: CLIENT_ID,
+      response_type: 'code',
+      redirect_uri: 'http://localhost:3000/login',
+      scope: 'user-follow-read'
+    };
+    res.redirect(`https://accounts.spotify.com/authorize?${querystring.stringify(PARAMS)}`);
   });
 
 export { router };
