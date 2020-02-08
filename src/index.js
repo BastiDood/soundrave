@@ -37,6 +37,7 @@ app.use(helmet.referrerPolicy({
 app.use(express.static('public', { index: false }));
 
 // Delegate endpoint logic to `Router` controllers
+// TODO: Add middleware that puts JWT into `req.token`
 app.use('/', router);
 
 // Listen to the servers
