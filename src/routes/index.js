@@ -21,13 +21,13 @@ router
     if (AUTHORIZATION_CODE)
       res.json(AUTHORIZATION_CODE);
     else {
-      const params = {
+      const PARAMS = {
         client_id: CLIENT_ID,
         response_type: 'code',
         redirect_uri: 'http://localhost:3000/login',
         scope: 'user-follow-read'
       };
-      res.redirect(`https://accounts.spotify.com/authorize?${querystring.stringify(params)}`);
+      res.redirect(`https://accounts.spotify.com/authorize?${querystring.stringify(PARAMS)}`);
     }
   });
 
