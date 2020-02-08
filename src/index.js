@@ -4,7 +4,7 @@ import express from 'express';
 import helmet from 'helmet';
 
 // ROUTES
-import { router } from './controllers/index.js';
+import { router } from './routes/index.js';
 
 // Initializes .env
 dotenv.config();
@@ -37,7 +37,7 @@ app.use(helmet.referrerPolicy({
 app.use(express.static('public', { index: false }));
 
 // Delegate endpoint logic to `Router` controllers
-app.get('/', router);
+app.use('/', router);
 
 // Listen to the servers
 app.listen(PORT, () => {
