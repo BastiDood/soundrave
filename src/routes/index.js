@@ -19,6 +19,7 @@ router
   .get('/callback', (req, res) => {
     // TODO: Check if request is from Spotify accounts
     // TODO: Handle when authorization code has been given
+    // TODO: Add new session to lookup table
     // const AUTHORIZATION_CODE = req.query['code'];
     res.json(req);
   })
