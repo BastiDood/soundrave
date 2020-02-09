@@ -40,8 +40,20 @@ router
     res.render('index', { title: 'Spotify Timeline' });
   })
   .get('/login', (req, res) => {
-    // TODO: Check if user session already exists
-    res.redirect(REQUEST_AUTHORIZATION_ENDPOINT);
+    // TODO: Check if user session is valid. Otherwise, clear cookies and go through login flow again.
+    const { signedCookies } = req;
+    const sessionAlreadyExists = Boolean(
+      signedCookies
+      && signedCookies.access_token
+      && signedCookies.token_type
+      && signedCookies.scope
+      && signedCookies.expires_in
+      && signedCookies.refresh_token
+    );
+    if (sessionAlreadyExists)
+      res.redirect(REQUEST_AUTHORIZATION_ENDPOINT);
+    else
+      res.redirect('/');
   })
   .get('/callback', async (req, res) => {
     // TODO: Handle when authorization code has been given
