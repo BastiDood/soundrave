@@ -1,4 +1,5 @@
 // DEPENDENCIES
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import express from 'express';
 import helmet from 'helmet';
@@ -10,13 +11,16 @@ import { router } from './routes/index.js';
 dotenv.config();
 
 // GLOBAL VARIABLES
-const { PORT } = process.env;
+const { PORT, COOKIE_SECRET } = process.env;
 const app = express();
 
 // Set render engine
 app
   .set('view engine', 'ejs')
   .set('views', 'src/views');
+
+// Enable `cookie-parser`
+app.use(cookieParser(COOKIE_SECRET));
 
 // Activate ecurity headers
 app
