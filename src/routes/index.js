@@ -79,8 +79,10 @@ router
       // TODO: Consider converting cookies to JSON cookies
       /** @type {AccessToken} */
       const json = await response.json();
+      const expires_at = new Date(Date.now() + json.expires_in * 1e3);
       for (const [ key, value ] of Object.entries(json))
         res.cookie(key, value, {
+          expires: expires_at,
           httpOnly: true,
           sameSite: 'strict',
           // secure: true,
