@@ -63,9 +63,18 @@ router
         method: 'POST',
         body: urlEncodedParams,
       });
-      // TODO: Alternatively, use signed and symmetrically encrypted cookies and `httpOnly` `sameSite` cookies (`res.cookie()`)
+      // TODO: Obscure `key` names
+      // TODO: Consider converting cookies to JSON cookies
       /** @type {AccessToken} */
       const json = await response.json();
+      for (const [ key, value ] of Object.entries(json))
+        res.cookie(key, value, {
+          httpOnly: true,
+          sameSite: 'strict',
+          // secure: true,
+          signed: true
+        });
+      // TODO: Remove this logger
       console.log(json);
     }
 
