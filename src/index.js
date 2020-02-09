@@ -1,4 +1,5 @@
 // DEPENDENCIES
+import cookieEncrypter from 'cookie-encrypter';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import express from 'express';
@@ -21,6 +22,7 @@ app
 
 // Enable `cookie-parser`
 app.use(cookieParser(COOKIE_SECRET));
+app.use(cookieEncrypter(COOKIE_SECRET, {}));
 
 // Activate ecurity headers
 app

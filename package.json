@@ -11,6 +11,7 @@
   "author": "Basti Ortiz <ortizbasti16@gmail.com>",
   "license": "GPL-3.0-or-later",
   "dependencies": {
+    "cookie-encrypter": "^1.0.1",
     "cookie-parser": "^1.4.4",
     "dotenv": "^8.2.0",
     "ejs": "^3.0.1",
