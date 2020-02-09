@@ -72,11 +72,9 @@ router
       res.redirect(REQUEST_AUTHORIZATION_ENDPOINT);
   })
   .get('/callback', async (req, res) => {
-    // TODO: Handle when authorization code has been given
     // TODO: Check if request is from Spotify accounts using `state` parameter
-    const AUTHORIZATION_CODE = req.query['code'];
-
     // Check if authorization code exists
+    const AUTHORIZATION_CODE = req.query['code'];
     if (AUTHORIZATION_CODE) {
       const urlEncodedParams = new URLSearchParams(
         querystring.stringify({
@@ -91,9 +89,6 @@ router
         method: 'POST',
         body: urlEncodedParams,
       });
-      // TODO: Obscure `key` names
-      // TODO: Put entire JSON cookie into a HS256-whitelisted JWT
-      // TODO: Consider converting cookies to JSON cookies
       // TODO: Use refresh tokens. Do not log user out after expiry.
       /** @type {AccessToken} */
       const json = await response.json();

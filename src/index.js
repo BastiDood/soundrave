@@ -22,7 +22,7 @@ app
 
 // Enable `cookie-parser`
 app.use(cookieParser(COOKIE_SECRET));
-app.use(cookieEncrypter(COOKIE_SECRET, {}));
+app.use(cookieEncrypter(COOKIE_SECRET, { algorithm: 'aes256' }));
 
 // Activate ecurity headers
 app
@@ -45,7 +45,6 @@ app
 app.use(express.static('public', { index: false }));
 
 // Delegate endpoint logic to `Router` controllers
-// TODO: Add middleware that puts JWT into `req.token`
 app.use('/', router);
 
 // Listen to the servers

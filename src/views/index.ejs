@@ -3,7 +3,7 @@
   <%- include('partials/head.ejs'); %> 
   <body>
     <main>
-      <% if (locals.artists.length > 0) { %>
+      <% if (locals.artists && locals.artists.length > 0) { %>
       <%- include('partials/followedArtists.ejs'); %>
       <% } else { %>
       <button>Sign in with Spotify</button>
