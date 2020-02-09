@@ -77,6 +77,7 @@ router
       });
       // TODO: Obscure `key` names
       // TODO: Consider converting cookies to JSON cookies
+      // TODO: Use refresh tokens. Do not log user out after expiry.
       /** @type {AccessToken} */
       const json = await response.json();
       const expires_at = new Date(Date.now() + json.expires_in * 1e3);
