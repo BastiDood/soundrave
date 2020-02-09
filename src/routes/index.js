@@ -20,6 +20,10 @@ import dotenv from 'dotenv';
 import express from 'express';
 import fetch from 'node-fetch';
 
+// MODULE IMPORTS
+import { signJWT } from '../util/signJWT.js';
+import { verifyJWT } from '../util/verifyJWT.js';
+
 // Initialize .env
 dotenv.config();
 
@@ -36,20 +40,34 @@ const REQUEST_AUTHORIZATION_ENDPOINT = `https://accounts.spotify.com/authorize?$
 })}`;
 
 router
-  .get('/', (req, res) => {
-    res.render('index', { title: 'Spotify Timeline' });
+  .get('/', async (req, res) => {
+    const { jwt } = req.signedCookies;
+    console.log(req.cookies);
+    console.log(req.signedCookies);
+    const sessionAlreadyExists = Boolean(jwt);
+    if (sessionAlreadyExists) {
+      /** @type {AccessToken} */
+      const decoded = await verifyJWT(jwt);
+      let artistNames = [];
+      let next = 'https://api.spotify.com/v1/me/following?type=artist&limit=50';
+      while (next) {
+        const response = await fetch(next, {
+          method: 'GET',
+          headers: { Authorization: `${decoded.token_type} ${decoded.access_token}` }
+        });
+        const json = await response.json();
+        const { items } = json.artists;
+        artistNames = [ ...artistNames, ...items.map(x => x.name) ];
+        next = json.next;
+      }
+      res.render('index', { artistNames });
+    } else
+      res.render('index');
   })
   .get('/login', (req, res) => {
     // TODO: Check if user session is valid. Otherwise, clear cookies and go through login flow again.
-    const { signedCookies } = req;
-    const sessionAlreadyExists = Boolean(
-      signedCookies
-      && signedCookies.access_token
-      && signedCookies.token_type
-      && signedCookies.scope
-      && signedCookies.expires_in
-      && signedCookies.refresh_token
-    );
+    const { jwt } = req.signedCookies;
+    const sessionAlreadyExists = Boolean(jwt);
     if (sessionAlreadyExists)
       res.redirect('/');
     else
@@ -76,21 +94,23 @@ router
         body: urlEncodedParams,
       });
       // TODO: Obscure `key` names
+      // TODO: Put entire JSON cookie into a HS256-whitelisted JWT
       // TODO: Consider converting cookies to JSON cookies
       // TODO: Use refresh tokens. Do not log user out after expiry.
       /** @type {AccessToken} */
       const json = await response.json();
-      const expires_at = new Date(Date.now() + json.expires_in * 1e3);
-      for (const [ key, value ] of Object.entries(json))
-        res.cookie(key, value, {
-          expires: expires_at,
-          httpOnly: true,
-          sameSite: 'strict',
-          // secure: true,
-          signed: true
-        });
-      // TODO: Remove this logger
-      console.log(json);
+
+      // Sign the data into JSON Web Token
+      const encoded = await signJWT(json, json.expires_in);
+
+      // Send off the signed cookie for cipher
+      res.cookie('jwt', encoded, {
+        expires: new Date(Date.now() + json.expires_in * 1e3),
+        httpOnly: true,
+        sameSite: 'strict',
+        // secure: true,
+        signed: true
+      });
     }
 
     res.redirect('/');
