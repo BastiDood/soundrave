@@ -10,6 +10,11 @@ PORT=3000
 JWT_SECRET=<your_secret_here>
 COOKIE_SECRET=<must_have_at_least_32_characters>
 
+# JSON Web Token Credentials
+JWT_ISSUER=<issuer>
+JWT_AUDIENCE=<audience>
+JWT_SUBJECT=<subject>
+
 # Spotify API Secrets
 CLIENT_ID=<Spotify_ID>
 CLIENT_SECRET=<Spotify_Secret>
@@ -23,19 +28,29 @@ type SpotifyImageObject = {
   url: string,
   width: number
 };
-interface Response = {
+type SpotifyArtistObject = {
   external_urls: SpotifyURLObject,
-  followers: {
-    href: null,
-    total: number
-  },
-  genres: string[],
-  href: string,
-  id: string,
-  images: SpotifyImageObject[],
-  name: string,
-  popularity: number,
-  type: 'artist',
-  uri: string
+    followers: {
+      href: null,
+      total: number
+    },
+    genres: string[],
+    href: string,
+    id: string,
+    images: SpotifyImageObject[],
+    name: string,
+    popularity: number,
+    type: 'artist',
+    uri: string
+};
+interface SpotifyResponse = {
+  artists: {
+    items: SpotifyArtistObject[],
+    next: string,
+    total: number,
+    cursors: { after: string },
+    limit: number,
+    href: string
+  }
 };
 ```
