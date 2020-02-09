@@ -63,7 +63,7 @@ router
         method: 'POST',
         body: urlEncodedParams,
       });
-      // TODO: Alternatively, use symmetrically encrypted cookies and `httpOnly` cookies (`res.cookie()`)
+      // TODO: Alternatively, use signed and symmetrically encrypted cookies and `httpOnly` `sameSite` cookies (`res.cookie()`)
       /** @type {AccessToken} */
       const json = await response.json();
       console.log(json);
