@@ -51,9 +51,9 @@ router
       && signedCookies.refresh_token
     );
     if (sessionAlreadyExists)
-      res.redirect(REQUEST_AUTHORIZATION_ENDPOINT);
-    else
       res.redirect('/');
+    else
+      res.redirect(REQUEST_AUTHORIZATION_ENDPOINT);
   })
   .get('/callback', async (req, res) => {
     // TODO: Handle when authorization code has been given
