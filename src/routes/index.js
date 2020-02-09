@@ -63,7 +63,7 @@ router
         method: 'POST',
         body: urlEncodedParams,
       });
-      // TODO: Add new session to lookup table (use ES6 Maps)
+      // TODO: Alternatively, use symmetrically encrypted cookies and `httpOnly` cookies (`res.cookie()`)
       /** @type {AccessToken} */
       const json = await response.json();
       console.log(json);
