@@ -1,6 +1,6 @@
 <h1>Your Followed Artists</h1>
 <ul>
-  <% for (const name of artistNames) { %>
-    <li><%= name %></li>
+  <% for (const artist of artists) { %>
+    <li><a href="<%= artist.url %>" target="_blank"><%= artist.name %></a></li>
   <% } %>
 </ul>

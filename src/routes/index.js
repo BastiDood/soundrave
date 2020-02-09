@@ -42,13 +42,11 @@ const REQUEST_AUTHORIZATION_ENDPOINT = `https://accounts.spotify.com/authorize?$
 router
   .get('/', async (req, res) => {
     const { jwt } = req.signedCookies;
-    console.log(req.cookies);
-    console.log(req.signedCookies);
     const sessionAlreadyExists = Boolean(jwt);
     if (sessionAlreadyExists) {
       /** @type {AccessToken} */
       const decoded = await verifyJWT(jwt);
-      let artistNames = [];
+      let artists = [];
       let next = 'https://api.spotify.com/v1/me/following?type=artist&limit=50';
       while (next) {
         const response = await fetch(next, {
@@ -57,10 +55,10 @@ router
         });
         const json = await response.json();
         const { items } = json.artists;
-        artistNames = [ ...artistNames, ...items.map(x => x.name) ];
+        artists = [ ...artists, ...items.map(x => ({ name: x.name, url: x.external_urls.spotify })) ];
         next = json.next;
       }
-      res.render('index', { artistNames });
+      res.render('index', { artists });
     } else
       res.render('index');
   })
