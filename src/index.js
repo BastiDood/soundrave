@@ -1,6 +1,7 @@
 // DEPENDENCIES
 import cookieEncrypter from 'cookie-encrypter';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import helmet from 'helmet';
@@ -24,7 +25,7 @@ app
 app.use(cookieParser(COOKIE_SECRET));
 app.use(cookieEncrypter(COOKIE_SECRET, { algorithm: 'aes256' }));
 
-// Activate ecurity headers
+// Activate security headers
 app
   .disable('x-powered-by')
   .use(helmet())
@@ -39,7 +40,8 @@ app
   .use(helmet.noCache())
   .use(helmet.referrerPolicy({
     policy: 'no-referrer'
-  }));
+  }))
+  .use(cors({ methods: 'GET' }));
 
 // Set public files directory
 app.use(express.static('public', { index: false }));
