@@ -37,10 +37,11 @@ app
       frameAncestors: ['\'none\'']
     }
   }))
+  .use(helmet.referrerPolicy({ policy: 'no-referrer' }))
   .use(helmet.noCache())
-  .use(helmet.referrerPolicy({
-    policy: 'no-referrer'
-  }))
+  .use(helmet.xssFilter())
+  .use(helmet.noSniff())
+  .use(helmet.ieNoOpen())
   .use(cors({ methods: 'GET' }));
 
 // Set public files directory
