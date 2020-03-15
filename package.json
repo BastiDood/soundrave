@@ -12,7 +12,7 @@
   "license": "GPL-3.0-or-later",
   "dependencies": {
     "cookie-encrypter": "^1.0.1",
-    "cookie-parser": "^1.4.4",
+    "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "ejs": "^3.0.1",
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@types/jest": "^25.1.4",
+    "@types/spotify-api": "0.0.2",
     "jest": "^25.1.0"
   }
 }
