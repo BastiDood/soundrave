@@ -7,13 +7,7 @@ NODE_ENV=development
 PORT=3000
 
 # Cryptography Secrets
-JWT_SECRET=<your_secret_here>
 COOKIE_SECRET=<must_have_at_least_32_characters>
-
-# JSON Web Token Credentials
-JWT_ISSUER=<issuer>
-JWT_AUDIENCE=<audience>
-JWT_SUBJECT=<subject>
 
 # Spotify API Secrets
 CLIENT_ID=<Spotify_ID>
