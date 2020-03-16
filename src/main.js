@@ -1,10 +1,9 @@
 // DEPENDENCIES
-import cookieEncrypter from 'cookie-encrypter';
-import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import helmet from 'helmet';
+import session from 'express-session';
 
 // ROUTES
 import { router } from './routes/index.js';
@@ -20,10 +19,6 @@ const app = express();
 app
   .set('view engine', 'ejs')
   .set('views', 'src/views');
-
-// Enable `cookie-parser`
-app.use(cookieParser(COOKIE_SECRET));
-app.use(cookieEncrypter(COOKIE_SECRET, { algorithm: 'aes256' }));
 
 // Activate security headers
 app
@@ -43,6 +38,19 @@ app
   .use(helmet.noSniff())
   .use(helmet.ieNoOpen())
   .use(cors({ methods: 'GET' }));
+
+// Activate `express-session`
+app.use(session({
+  name: 'sid',
+  secret: COOKIE_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  unset: 'destroy',
+  cookie: {
+    httpOnly: true,
+    sameSite: true
+  }
+}));
 
 // Set public files directory
 app.use(express.static('public', { index: false }));

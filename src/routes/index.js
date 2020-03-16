@@ -20,10 +20,6 @@ import dotenv from 'dotenv';
 import express from 'express';
 import fetch from 'node-fetch';
 
-// MODULE IMPORTS
-import { signJWT } from '../util/signJWT.js';
-import { verifyJWT } from '../util/verifyJWT.js';
-
 // Initialize .env
 dotenv.config();
 
@@ -40,33 +36,36 @@ const REQUEST_AUTHORIZATION_ENDPOINT = `https://accounts.spotify.com/authorize?$
 })}`;
 
 router
+  .use((req, res, next) => {
+    console.log(`${req.path}: ${req.session.token}`);
+    next();
+  })
   .get('/', async (req, res) => {
-    const { jwt } = req.signedCookies;
-    const sessionAlreadyExists = Boolean(jwt);
-    if (sessionAlreadyExists) {
-      /** @type {AccessToken} */
-      const decoded = await verifyJWT(jwt);
-      let artists = [];
-      let next = 'https://api.spotify.com/v1/me/following?type=artist&limit=50';
-      while (next) {
-        const response = await fetch(next, {
-          method: 'GET',
-          headers: { Authorization: `${decoded.token_type} ${decoded.access_token}` }
-        });
-        const json = await response.json();
-        const { items } = json.artists;
-        artists = [ ...artists, ...items.map(x => ({ name: x.name, url: x.external_urls.spotify })) ];
-        next = json.next;
-      }
-      res.render('index', { artists });
-    } else
+    if (!req.session.isLoggedIn) {
       res.render('index');
+      return;
+    }
+
+    // TODO: Cache the result of the artists and merge with previous results
+    /** @type {AccessToken} */
+    const token = req.session.token;
+    /** @type {SpotifyApi.ArtistObjectFull[]} */
+    let artists = [];
+    let next = 'https://api.spotify.com/v1/me/following?type=artist&limit=50';
+    while (next) {
+      const response = await fetch(next, {
+        method: 'GET',
+        headers: { Authorization: `${token.token_type} ${token.access_token}` }
+      });
+      const json = await response.json();
+      const { items } = json.artists;
+      artists = [ ...artists, ...items.map(x => ({ name: x.name, url: x.external_urls.spotify })) ];
+      next = json.next;
+    }
+    res.render('index', { artists });
   })
   .get('/login', (req, res) => {
-    // TODO: Check if user session is valid. Otherwise, clear cookies and go through login flow again.
-    const { jwt } = req.signedCookies;
-    const sessionAlreadyExists = Boolean(jwt);
-    if (sessionAlreadyExists)
+    if (req.session.isLoggedIn)
       res.redirect('/');
     else
       res.redirect(REQUEST_AUTHORIZATION_ENDPOINT);
@@ -89,21 +88,15 @@ router
         method: 'POST',
         body: urlEncodedParams,
       });
+
       // TODO: Use refresh tokens. Do not log user out after expiry.
+      // Set session data
       /** @type {AccessToken} */
-      const json = await response.json();
-
-      // Sign the data into JSON Web Token
-      const encoded = await signJWT(json, json.expires_in);
-
-      // Send off the signed cookie for cipher
-      res.cookie('jwt', encoded, {
-        expires: new Date(Date.now() + json.expires_in * 1e3),
-        httpOnly: true,
-        sameSite: 'strict',
-        // secure: true,
-        signed: true
-      });
+      const token = await response.json();
+      req.session.token = token;
+      req.session.cookie.maxAge = token.expires_in * 1e3;
+      req.session.isLoggedIn = true;
+      req.session.save(console.error);
     }
 
     res.redirect('/');
