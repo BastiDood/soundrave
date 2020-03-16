@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "This is an app that plops down recent releases from your followed artists.",
-  "main": "src/index.js",
+  "main": "src/main.js",
   "scripts": {
     "start": "node .",
     "test": "jest --watchAll"
@@ -11,14 +11,12 @@
   "author": "Basti Ortiz <ortizbasti16@gmail.com>",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "cookie-encrypter": "^1.0.1",
-    "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "ejs": "^3.0.1",
     "express": "^4.17.1",
+    "express-session": "^1.17.0",
     "helmet": "^3.21.3",
-    "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.6.0"
   },
   "devDependencies": {
