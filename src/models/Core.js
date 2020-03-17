@@ -1,5 +1,5 @@
 /**
- * @typedef {Object} Artist
+ * @typedef {Object} ArtistObject
  * @property {typeof mongoose.Schema.Types.ObjectId} _id - Spotify ID of the artist
  * @property {string} name
  * @property {string} url
@@ -9,14 +9,14 @@
  */
 
 /**
- * @typedef {Object} Release
+ * @typedef {Object} ReleaseObject
  * @property {typeof mongoose.Schema.Types.ObjectId} _id - Spotify ID of the artist
  * @property {string} title
  * @property {string} url
  * @property {string} releaseDate - Depends on the precision of the release date.
  * @property {'year'|'month'|'day'} datePrecision
  * @property {SpotifyApi.ImageObject[]} images
- * @property {Artist} artist
+ * @property {ArtistObject} artist
  */
 
 import mongoose from 'mongoose';
