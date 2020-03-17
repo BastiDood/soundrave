@@ -23,7 +23,6 @@ import fetch from 'node-fetch';
 
 // MODELS
 import * as CoreModels from '../models/Core.js';
-import mongoose from 'mongoose';
 
 export class DataFetcher {
   /** @param {CoreModels.ArtistObject[]} artists */
