@@ -18,7 +18,7 @@ const ReleaseSchema = new mongoose.Schema({
   _id: mongoose.Schema.Types.ObjectId,
   title: { type: String, required: true },
   releaseDate: { type: Date, required: true },
-  datePrecision: { type: String, enum: [ 'year', 'month', 'day' ] },
+  datePrecision: { type: String, enum: [ 'year', 'month', 'day' ], required: true },
   images: [ { type: ImageSchema, required: true } ],
   artist: { type: mongoose.Schema.Types.ObjectId, ref: 'Artist', required: true }
 });
