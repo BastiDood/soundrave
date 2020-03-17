@@ -6,6 +6,9 @@ This is an app that plops down recent releases from your followed artists.
 NODE_ENV=development
 PORT=3000
 
+# MongoDB Configuration
+MONGO_DB_URL=<MongoDB_URL>
+
 # Cryptography Secrets
 COOKIE_SECRET=<must_have_at_least_32_characters>
 
