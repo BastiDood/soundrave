@@ -1,6 +1,6 @@
 /**
  * @typedef {Object} ArtistObject
- * @property {mongoose.Types.ObjectId} _id - Spotify ID of the artist
+ * @property {string} _id - Spotify ID of the artist
  * @property {string} name
  * @property {string} url
  * @property {number} followers
@@ -10,7 +10,7 @@
 
 /**
  * @typedef {Object} ReleaseObject
- * @property {mongoose.Types.ObjectId} _id - Spotify ID of the artist
+ * @property {string} _id - Spotify ID of the artist
  * @property {string} title
  * @property {string} url
  * @property {string} releaseDate - Depends on the precision of the release date.
@@ -28,7 +28,7 @@ const ImageSchema = new mongoose.Schema({
 });
 
 const ArtistSchema = new mongoose.Schema({
-  _id: mongoose.Schema.Types.ObjectId,
+  _id: { type: String, required: true },
   name: { type: String, required: true },
   url: { type: String, required: true },
   followers: { type: Number, required: true },
@@ -37,7 +37,7 @@ const ArtistSchema = new mongoose.Schema({
 });
 
 const ReleaseSchema = new mongoose.Schema({
-  _id: mongoose.Schema.Types.ObjectId,
+  _id: { type: String, required: true },
   title: { type: String, required: true },
   url: { type: String, required: true },
   releaseDate: { type: String, required: true },
