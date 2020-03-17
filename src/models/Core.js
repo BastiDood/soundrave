@@ -1,6 +1,6 @@
 /**
  * @typedef {Object} ArtistObject
- * @property {typeof mongoose.Schema.Types.ObjectId} _id - Spotify ID of the artist
+ * @property {mongoose.Types.ObjectId} _id - Spotify ID of the artist
  * @property {string} name
  * @property {string} url
  * @property {number} followers
@@ -10,7 +10,7 @@
 
 /**
  * @typedef {Object} ReleaseObject
- * @property {typeof mongoose.Schema.Types.ObjectId} _id - Spotify ID of the artist
+ * @property {mongoose.Types.ObjectId} _id - Spotify ID of the artist
  * @property {string} title
  * @property {string} url
  * @property {string} releaseDate - Depends on the precision of the release date.
