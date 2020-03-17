@@ -1,3 +1,4 @@
+// TODO: Update to v0.2.0
 // DEPENDENCIES
 import cors from 'cors';
 import dotenv from 'dotenv';
