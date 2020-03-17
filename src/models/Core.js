@@ -1,3 +1,24 @@
+/**
+ * @typedef {Object} Artist
+ * @property {typeof mongoose.Schema.Types.ObjectId} _id - Spotify ID of the artist
+ * @property {string} name
+ * @property {string} url
+ * @property {number} followers
+ * @property {number} popularity - Number between `[0, 100]` that represents artist relevance/popularity
+ * @property {SpotifyApi.ImageObject[]} images
+ */
+
+/**
+ * @typedef {Object} Release
+ * @property {typeof mongoose.Schema.Types.ObjectId} _id - Spotify ID of the artist
+ * @property {string} title
+ * @property {string} url
+ * @property {string} releaseDate - Depends on the precision of the release date.
+ * @property {'year'|'month'|'day'} datePrecision
+ * @property {SpotifyApi.ImageObject[]} images
+ * @property {Artist} artist
+ */
+
 import mongoose from 'mongoose';
 
 const ImageSchema = new mongoose.Schema({
@@ -19,11 +40,11 @@ const ReleaseSchema = new mongoose.Schema({
   _id: mongoose.Schema.Types.ObjectId,
   title: { type: String, required: true },
   url: { type: String, required: true },
-  releaseDate: { type: Date, required: true },
+  releaseDate: { type: String, required: true },
   datePrecision: { type: String, enum: [ 'year', 'month', 'day' ], required: true },
   images: [ { type: ImageSchema, required: true } ],
-  artist: { type: mongoose.Schema.Types.ObjectId, ref: 'Artist', required: true }
+  artist: { type: [ mongoose.Schema.Types.ObjectId ], ref: 'Artist', required: true }
 });
 
-export const Release = mongoose.model('Release', ReleaseSchema);
 export const Artist = mongoose.model('Artist', ArtistSchema);
+export const Release = mongoose.model('Release', ReleaseSchema);
