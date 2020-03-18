@@ -14,7 +14,7 @@
  * @property {string} releaseDate - Depends on the precision of the release date.
  * @property {'year'|'month'|'day'} datePrecision
  * @property {SpotifyApi.ImageObject[]} images
- * @property {ArtistObject} artist
+ * @property {ArtistObject[]} artists
  */
 
 import mongoose from 'mongoose';
@@ -39,7 +39,7 @@ const ReleaseSchema = new mongoose.Schema({
   releaseDate: { type: String, required: true },
   datePrecision: { type: String, enum: [ 'year', 'month', 'day' ], required: true },
   images: [ { type: ImageSchema, required: true } ],
-  artist: { type: [ mongoose.Schema.Types.ObjectId ], ref: 'Artist', required: true }
+  artists: { type: [ { type: mongoose.Schema.Types.ObjectId, ref: 'Artist', required: true } ], required: true }
 });
 
 export const Artist = mongoose.model('Artist', ArtistSchema);
