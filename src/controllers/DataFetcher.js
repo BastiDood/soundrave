@@ -12,12 +12,6 @@
  * A new refresh token might be returned too.)
  */
 
-/**
- * Spotify API response to list of user's followed artists.
- * @typedef {Object} FollowedArtistsReponse
- * @property {SpotifyApi.CursorBasedPagingObject<SpotifyApi.ArtistObjectFull>} artists
- */
-
 // DEPENDENCIES
 import fetch from 'node-fetch';
 
@@ -49,7 +43,7 @@ export class DataFetcher {
     let followedArtists = [];
     let next = `https://api.spotify.com/v1/me/following?type=artist&limit=${limit}`;
     while (next) {
-      /** @type {FollowedArtistsReponse} */
+      /** @type {SpotifyApi.UsersFollowedArtistsResponse} */
       const { artists } = await fetch(next, FETCH_OPTIONS).then(res => res.json());
       const transformedArtistData = artists.items
         .map(artist => ({
