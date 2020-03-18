@@ -30,7 +30,7 @@ const ArtistSchema = new mongoose.Schema({
   name: { type: String, required: true },
   followers: { type: Number, required: true },
   popularity: { type: Number, required: true, min: 0, max: 100 },
-  images: [ ImageSchema ]
+  images: [ { type: ImageSchema, required: true } ]
 });
 
 const ReleaseSchema = new mongoose.Schema({
