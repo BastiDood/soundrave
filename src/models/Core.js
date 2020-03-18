@@ -1,6 +1,8 @@
+/** @typedef {string} ArtistID */
+
 /**
  * @typedef {Object} ArtistObject
- * @property {string} _id - Spotify ID of the artist
+ * @property {ArtistID} _id - Spotify ID of the artist
  * @property {string} name
  * @property {number} followers
  * @property {number} popularity - Number between `[0, 100]` that represents artist relevance/popularity
@@ -9,12 +11,11 @@
 
 /**
  * @typedef {Object} ReleaseObject
- * @property {string} _id - Spotify ID of the artist
+ * @property {string} _id - Spotify ID of the release
  * @property {string} title
  * @property {string} releaseDate - Depends on the precision of the release date.
- * @property {'year'|'month'|'day'} datePrecision
  * @property {SpotifyApi.ImageObject[]} images
- * @property {ArtistObject[]} artists
+ * @property {ArtistID[]} artists - Spotify IDs of artists
  */
 
 import mongoose from 'mongoose';
@@ -37,7 +38,6 @@ const ReleaseSchema = new mongoose.Schema({
   _id: { type: String, required: true },
   title: { type: String, required: true },
   releaseDate: { type: String, required: true },
-  datePrecision: { type: String, enum: [ 'year', 'month', 'day' ], required: true },
   images: [ { type: ImageSchema, required: true } ],
   artists: { type: [ { type: mongoose.Schema.Types.ObjectId, ref: 'Artist', required: true } ], required: true }
 });
