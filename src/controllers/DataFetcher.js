@@ -55,7 +55,6 @@ export class DataFetcher {
         .map(artist => ({
           _id: artist.id,
           name: artist.name,
-          url: artist.external_urls.spotify,
           followers: artist.followers.total,
           popularity: artist.popularity,
           images: artist.images
