@@ -1,6 +1,6 @@
 <h1>Your Followed Artists</h1>
 <ul>
   <% for (const artist of artists) { %>
-    <li><a href="<%= artist.url %>" target="_blank"><%= artist.name %></a></li>
+    <li><a href="https://open.spotify.com/artist/<%= artist._id %>" target="_blank"><%= artist.name %></a></li>
   <% } %>
 </ul>

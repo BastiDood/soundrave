@@ -31,10 +31,8 @@ router
       return;
     }
 
-    // TODO: Cache the result of the artists and merge with previous results
-    /** @type {import('../controllers/DataFetcher').AccessToken} */
-    const token = req.session.token;
-    const artists = await DataFetcher._fetchFollowedArtists(token, 50);
+    const dataFetcher = new DataFetcher(req.session.token);
+    const artists = await dataFetcher._fetchFollowedArtists(50);
     res.render('index', { artists });
   })
   .get('/login', (req, res) => {

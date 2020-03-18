@@ -19,8 +19,11 @@ import fetch from 'node-fetch';
 import * as CoreModels from '../models/Core.js';
 
 export class DataFetcher {
+  /** @param {AccessToken} token - Access token for the Spotify API */
+  constructor(token) { this._token = token; }
+
   /** @param {CoreModels.ArtistObject[]} artists */
-  static async _cacheFollowedArtists(artists) {
+  async _cacheFollowedArtists(artists) {
     const promises = artists.map(artist => {
       const doc = new CoreModels.Artist(artist);
       return doc.save();
@@ -29,15 +32,14 @@ export class DataFetcher {
   }
 
   /**
-   * @param {AccessToken} token - Access token for the Spotify API
    * @param {number} limit - Maximum number of artists to be fetched.
    * @returns {Promise<CoreModels.ArtistObject[]>}
    */
-  static async _fetchFollowedArtists(token, limit) {
+  async _fetchFollowedArtists(limit) {
     // TODO: Cache the session user's followed artists
     const FETCH_OPTIONS = {
       method: 'GET',
-      headers: { Authorization: `${token.token_type} ${token.access_token}` }
+      headers: { Authorization: `${this._token.token_type} ${this._token.access_token}` }
     };
     /** @type {CoreModels.ArtistObject[]} */
     let followedArtists = [];
