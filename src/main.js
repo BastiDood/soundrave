@@ -62,7 +62,7 @@ app.use(express.static('public', { index: false }));
 app.use('/', router);
 
 // Initialize Mongoose connection
-mongoose.connect(MONGO_DB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(MONGO_DB_URL, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false });
 mongoose.connection
   .on('error', console.error)
   .once('open', () => {
