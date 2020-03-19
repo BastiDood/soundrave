@@ -1,0 +1,12 @@
+<h1>Albums from Your Followed Artists (<%= releases.length %>)</h1>
+<% if (releases.length > 0) { %>
+  <ul>
+    <% for (const release of releases) { %>
+      <li>
+        <a href="https://open.spotify.com/album/<%= release._id %>" target="_blank"><%= release.title %></a>
+      </li>
+    <% } %>
+  </ul>
+<% } else { %>
+  <span>You currently follow no artists.</span>
+<% } %> 

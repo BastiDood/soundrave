@@ -3,10 +3,10 @@
   <%- include('partials/head.ejs'); %> 
   <body>
     <main>
-      <% if (locals.artists && locals.artists.length > 0) { %>
-      <%- include('partials/followedArtists.ejs'); %>
+      <% if (locals.releases && locals.releases.length > 0) { %>
+        <%- include('partials/releases.ejs'); %> 
       <% } else { %>
-      <button>Sign in with Spotify</button>
+        <button>Sign in with Spotify</button>
       <% } %>
     </main>
   </body>
