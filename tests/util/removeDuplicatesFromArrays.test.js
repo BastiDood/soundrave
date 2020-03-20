@@ -1,4 +1,5 @@
-const { removeDuplicatesFromArrays } = require('../../src/util/removeDuplicatesFromArrays');
+// TODO: Configure Babel to transform this
+import { removeDuplicatesFromArrays } from '../../src/util/removeDuplicatesFromArrays';
 
 describe('Two arrays', () => {
   test('Remove 3 of 5 strings from first array', () => {

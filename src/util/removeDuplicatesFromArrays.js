@@ -3,7 +3,7 @@
  * @param {string[][]} arrays
  * @returns {string[]} - All non-duplicate elements of all arrays
  */
-function removeDuplicatesFromArrays(...arrays) {
+export function removeDuplicatesFromArrays(...arrays) {
   // Initialize a lookup table for caching duplicates
   /** @type {{ [item: string]: string }} */
   const lookupTable = {};
@@ -24,5 +24,3 @@ function removeDuplicatesFromArrays(...arrays) {
       difference.push(key);
   return difference;
 }
-
-module.exports = { removeDuplicatesFromArrays };
