@@ -5,6 +5,7 @@ This is an app that plops down recent releases from your followed artists.
 # Server Configuration
 NODE_ENV=development
 PORT=3000
+DEFAULT_COUNTRY=<ISO_3166-1_alpha-2_Country_Code>
 
 # MongoDB Configuration
 MONGO_DB_CACHE_URL=<Mongo_DB_for_Local_Cache>

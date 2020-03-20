@@ -17,6 +17,7 @@
     "ejs": "^3.0.1",
     "express": "^4.17.1",
     "express-session": "^1.17.0",
+    "geoip-country": "^4.0.10",
     "helmet": "^3.21.3",
     "mongoose": "^5.9.5",
     "node-fetch": "^2.6.0"

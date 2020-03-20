@@ -7,13 +7,14 @@ import { URLSearchParams } from 'url';
 import dotenv from 'dotenv';
 import express from 'express';
 import fetch from 'node-fetch';
+import geoip from 'geoip-country';
 
 // CONTROLLERS
 import { DataFetcher } from '../controllers/DataFetcher.js';
 
 // Initialize .env
 dotenv.config();
-const { CLIENT_ID, CLIENT_SECRET } = process.env;
+const { DEFAULT_COUNTRY, CLIENT_ID, CLIENT_SECRET } = process.env;
 
 // GLOBAL VARIABLES
 const router = express.Router();
@@ -25,7 +26,7 @@ const REQUEST_AUTHORIZATION_ENDPOINT = `https://accounts.spotify.com/authorize?$
   redirect_uri: REDIRECT_URI,
   scope: 'user-follow-read'
 })}`;
-const ONE_WEEK = 1000 * 60 * 60 * 24 * 7;
+const ONE_WEEK = 60 * 60 * 24 * 7;
 
 router
   .get('/', async (req, res) => {
@@ -41,7 +42,7 @@ router
     const dataFetcher = new DataFetcher(session.token);
 
     // Check if there are no cached artists in the session
-    const TODAY = new Date().getTime();
+    const TODAY = Date.now();
     if (!(session.followedArtists && session.followedArtists.ids)
         || session.followedArtists.retrievalDate + ONE_WEEK > TODAY
     ) {
@@ -92,8 +93,15 @@ router
       // Set session data
       /** @type {import('../controllers/DataFetcher').AccessToken} */
       const token = await response.json();
-      req.session.token = token;
-      req.session.cookie.maxAge = token.expires_in * 1e3;
+      const ONE_HOUR = token.expires_in * 1e3;
+      req.session.token = {
+        accessToken: token.access_token,
+        refreshToken: token.refresh_token,
+        scope: token.scope,
+        expiresAt: Date.now() + ONE_HOUR,
+        countryCode: geoip.lookup(req.ip) || DEFAULT_COUNTRY
+      };
+      req.session.cookie.maxAge = ONE_HOUR;
       req.session.isLoggedIn = true;
       await promisify(req.session.save)();
     }

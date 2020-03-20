@@ -15,6 +15,7 @@ import { router } from './routes/index.js';
 dotenv.config();
 const {
   PORT,
+  DEFAULT_COUNTRY,
   MONGO_DB_CACHE_URL,
   MONGO_DB_SESSION_URL,
   MONGO_DB_SESSION_SECRET,

@@ -13,6 +13,8 @@
  */
 
 // TODO: Handle rate-limited fetches
+// NATIVE IMPORTS
+import querystring from 'querystring';
 
 // DEPENDENCIES
 import fetch from 'node-fetch';
@@ -24,11 +26,21 @@ import * as CoreModels from '../models/Core.js';
 import { removeDuplicatesFromArrays } from '../util/removeDuplicatesFromArrays.js';
 
 export class DataFetcher {
-  /** @param {AccessToken} token - Access token for the Spotify API */
+  /**
+   * @typedef {Object} Token
+   * @property {string} accessToken
+   * @property {string} refreshToken
+   * @property {string} scope
+   * @property {number} expiresAt - Expiry date (in milliseconds since Unix Epoch)
+   * @property {string} countryCode - ISO 3166-1 alpha-2 Country Code
+   * @param {Token} token
+   */
   constructor(token) {
+    // TODO: Check if API endpoints meet permission of scope
+    this._TOKEN = token;
     this._FETCH_OPTIONS = {
       method: 'GET',
-      headers: { Authorization: `${token.token_type} ${token.access_token}` }
+      headers: { Authorization: `Bearer ${token.accessToken}` }
     };
   }
 
@@ -49,6 +61,9 @@ export class DataFetcher {
 
   /** @returns {Promise<CoreModels.ArtistObject[]>} */
   async _fetchFollowedArtists() {
+    if (!this._TOKEN.scope.includes('user-follow-read'))
+      throw new Error('Access token does not have the permission to read list of followers.');
+
     /** @type {CoreModels.ArtistObject[]} */
     let followedArtists = [];
     let next = 'https://api.spotify.com/v1/me/following?type=artist&limit=50';
@@ -82,7 +97,11 @@ export class DataFetcher {
     // TODO: Get IP location and filter `market`. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Current_codes.
     /** @type {CoreModels.ReleaseObject[]} */
     let releases = [];
-    let next = `https://api.spotify.com/v1/artists/${id}/albums?include_groups=album,single&limit=50`;
+    let next = `https://api.spotify.com/v1/artists/${id}/albums?${querystring.stringify({
+      include_groups: 'album,single',
+      market: this._TOKEN.countryCode,
+      limit: 50
+    })}`;
 
     // Retrieve all releases by the artist
     while (next) {
@@ -119,7 +138,10 @@ export class DataFetcher {
     /** @type {CoreModels.PopulatedReleaseObject[]} */
     // @ts-ignore
     const cachedReleases = await CoreModels.Release
-      .find({ artists: { $in: ids } })
+      .find({
+        artists: { $in: ids },
+        availableCountries: this._TOKEN.countryCode
+      })
       .populate('artists')
       .exec();
     const artistIDsOfCachedReleases = cachedReleases
