@@ -83,6 +83,17 @@ router
         ),
       });
 
+      // Generate new session when the user logs in
+      await new Promise((resolve, reject) =>
+        req.session.regenerate(err => {
+          if (err) {
+            reject(err);
+            return;
+          } else
+            resolve();
+        })
+      );
+
       // TODO: Use refresh tokens. Do not log user out after expiry.
       // TODO: Take note of duplicate markets
       // Set session data
