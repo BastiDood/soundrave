@@ -21,6 +21,18 @@
  * @property {ArtistID[]} artists - Spotify IDs of artists
  */
 
+/**
+ * @typedef {Object} PopulatedReleaseObject
+ * @property {string} _id - Spotify ID of the release
+ * @property {string} title
+ * @property {'album'|'single'|'compilation'} albumType
+ * @property {number} releaseDate - Represented as milliseconds since Unix time (in milliseconds)
+ * @property {'year'|'month'|'day'} datePrecision - Determines precision of date
+ * @property {string[]} availableCountries
+ * @property {SpotifyApi.ImageObject[]} images
+ * @property {ArtistObject[]} artists
+ */
+
 import mongoose from 'mongoose';
 
 const ImageSchema = new mongoose.Schema({

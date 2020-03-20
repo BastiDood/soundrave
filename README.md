@@ -7,7 +7,9 @@ NODE_ENV=development
 PORT=3000
 
 # MongoDB Configuration
-MONGO_DB_URL=<MongoDB_URL>
+MONGO_DB_CACHE_URL=<Mongo_DB_for_Local_Cache>
+MONGO_DB_SESSION_URL=<Mongo_DB_for_Session_Storage>
+MONGO_DB_SESSION_SECRET=<Mongo_DB_Secret>
 
 # Cryptography Secrets
 COOKIE_SECRET=<must_have_at_least_32_characters>

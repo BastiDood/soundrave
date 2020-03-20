@@ -20,6 +20,9 @@ import fetch from 'node-fetch';
 // MODELS
 import * as CoreModels from '../models/Core.js';
 
+// UTILITY
+import { removeDuplicatesFromArrays } from '../util/removeDuplicatesFromArrays.js';
+
 export class DataFetcher {
   /** @param {AccessToken} token - Access token for the Spotify API */
   constructor(token) {
@@ -108,24 +111,22 @@ export class DataFetcher {
 
   /**
    * Retrieve releases of artists by cache or Spotify API
-   * @param {string} ids - Spotify Artist IDs
+   * @param {string[]} ids - Spotify Artist IDs
    * @returns {Promise<CoreModels.ReleaseObject[]>}
    */
   async getReleasesByArtistIDs(ids) {
     // Determine which releases (by artist IDs) are in the cache
-    // See https://2ality.com/2015/01/es6-set-operations.html#difference.
-    /** @type {CoreModels.ReleaseObject[]} */
+    /** @type {CoreModels.PopulatedReleaseObject[]} */
     // @ts-ignore
     const cachedReleases = await CoreModels.Release
       .find({ artists: { $in: ids } })
       .populate('artists')
       .exec();
-    const allSet = new Set(ids);
-    const cachedSet = new Set(cachedReleases.map(release => release._id));
-    const differenceSet = new Set([...allSet].filter(id => !cachedSet.has(id)));
+    const artistIDsOfCachedReleases = cachedReleases
+      .map(release => release.artists.map(artist => artist._id));
+    const remainingArtistIDs = removeDuplicatesFromArrays(ids, ...artistIDsOfCachedReleases);
 
     // Fetch Spotify API for those that have not been cached yet
-    const remainingArtistIDs = Array.from(differenceSet);
     const promises = remainingArtistIDs.map(id => this._fetchReleasesByArtistID(id));
     const settledPromises = await Promise.allSettled(promises);
 
