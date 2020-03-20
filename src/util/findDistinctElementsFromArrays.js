@@ -1,9 +1,9 @@
 /**
- * Finds all distinct elements given a list of string arrays
+ * Finds all distinct elements given a list of string arrays.
  * @param {string[][]} arrays
  * @returns {string[]} - All distinct elements of all arrays
  */
-function removeDuplicatesFromArrays(...arrays) {
+function findDistinctElementsFromArrays(...arrays) {
   // Initialize a lookup table for caching duplicates
   /** @type {{ [item: string]: string }} */
   const lookupTable = {};
@@ -25,4 +25,4 @@ function removeDuplicatesFromArrays(...arrays) {
   return difference;
 }
 
-module.exports = { removeDuplicatesFromArrays };
+module.exports = { findDistinctElementsFromArrays };
