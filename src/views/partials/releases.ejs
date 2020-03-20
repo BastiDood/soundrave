@@ -3,7 +3,7 @@
   <ul>
     <% for (const release of releases) { %>
       <li>
-        <a href="https://open.spotify.com/album/<%= release._id %>" target="_blank"><%= release.title %></a>
+        <a href="https://open.spotify.com/album/<%= release._id %>" target="_blank"><%= release.title %></a> by <a href="https://open.spotify.com/artist/<%= release.artists[0]._id %>" target="_blank"><%= release.artists[0].name %></a>
       </li>
     <% } %>
   </ul>
