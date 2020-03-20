@@ -52,7 +52,7 @@ app
   .use(cors({ methods: 'GET' }));
 
 // Activate `express-session`
-const ONE_WEEK = 60 * 24 * 7;
+const ONE_HOUR = 60;
 app.use(session({
   name: 'sid',
   secret: COOKIE_SECRET,
@@ -64,7 +64,7 @@ app.use(session({
     secret: MONGO_DB_SESSION_SECRET,
     // TODO: Address the expiration of tokens, sessions, and cookies
     // autoRemove: 'interval',
-    // autoRemoveInterval: ONE_WEEK
+    // autoRemoveInterval: ONE_HOUR
   }),
   cookie: {
     httpOnly: true,
@@ -79,7 +79,11 @@ app.use(express.static('public', { index: false }));
 app.use('/', router);
 
 // Initialize Mongoose connection
-mongoose.connect(MONGO_DB_CACHE_URL, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false });
+mongoose.connect(MONGO_DB_CACHE_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useFindAndModify: false
+});
 mongoose.connection
   .on('error', console.error)
   .once('open', () => {
