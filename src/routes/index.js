@@ -1,4 +1,5 @@
 // NATIVE IMPORTS
+import { promisify } from 'util';
 import querystring from 'querystring';
 import { URLSearchParams } from 'url';
 
@@ -84,15 +85,7 @@ router
       });
 
       // Generate new session when the user logs in
-      await new Promise((resolve, reject) =>
-        req.session.regenerate(err => {
-          if (err) {
-            reject(err);
-            return;
-          } else
-            resolve();
-        })
-      );
+      await promisify(req.session.regenerate)();
 
       // TODO: Use refresh tokens. Do not log user out after expiry.
       // TODO: Take note of duplicate markets
@@ -102,7 +95,7 @@ router
       req.session.token = token;
       req.session.cookie.maxAge = token.expires_in * 1e3;
       req.session.isLoggedIn = true;
-      req.session.save();
+      await promisify(req.session.save)();
     }
 
     res.redirect('/');
