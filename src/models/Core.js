@@ -53,7 +53,7 @@ const ReleaseSchema = new mongoose.Schema({
   _id: { type: String, required: true },
   title: { type: String, required: true },
   albumType: { type: String, enum: [ 'album', 'single', 'compilation' ], required: true },
-  releaseDate: { type: String, required: true },
+  releaseDate: { type: Number, required: true },
   datePrecision: { type: String, enum: [ 'year', 'month', 'day' ], required: true },
   availableCountries: { type: [ String ], required: true },
   images: [ { type: ImageSchema, required: true } ],

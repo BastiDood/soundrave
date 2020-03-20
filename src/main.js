@@ -15,7 +15,6 @@ import { router } from './routes/index.js';
 dotenv.config();
 const {
   PORT,
-  DEFAULT_COUNTRY,
   MONGO_DB_CACHE_URL,
   MONGO_DB_SESSION_URL,
   MONGO_DB_SESSION_SECRET,
@@ -64,8 +63,8 @@ app.use(session({
     url: MONGO_DB_SESSION_URL,
     secret: MONGO_DB_SESSION_SECRET,
     // TODO: Address the expiration of tokens, sessions, and cookies
-    // autoRemove: 'interval',
-    // autoRemoveInterval: ONE_HOUR
+    autoRemove: 'interval',
+    autoRemoveInterval: ONE_HOUR
   }),
   cookie: {
     httpOnly: true,

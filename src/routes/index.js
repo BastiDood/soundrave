@@ -89,7 +89,6 @@ router
       await promisify(req.session.regenerate.bind(req.session))();
 
       // TODO: Use refresh tokens. Do not log user out after expiry.
-      // TODO: Take note of duplicate markets
       // Set session data
       /** @type {import('../controllers/DataFetcher').AccessToken} */
       const token = await response.json();

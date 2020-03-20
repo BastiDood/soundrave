@@ -18,6 +18,7 @@ import querystring from 'querystring';
 
 // DEPENDENCIES
 import fetch from 'node-fetch';
+import sort from 'fast-sort';
 
 // MODELS
 import * as CoreModels from '../models/Core.js';
@@ -36,7 +37,6 @@ export class DataFetcher {
    * @param {Token} token
    */
   constructor(token) {
-    // TODO: Check if API endpoints meet permission of scope
     this._TOKEN = token;
     this._FETCH_OPTIONS = {
       method: 'GET',
@@ -94,7 +94,6 @@ export class DataFetcher {
    * @returns {Promise<CoreModels.ReleaseObject[]>}
    */
   async _fetchReleasesByArtistID(id) {
-    // TODO: Get IP location and filter `market`. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Current_codes.
     /** @type {CoreModels.ReleaseObject[]} */
     let releases = [];
     let next = `https://api.spotify.com/v1/artists/${id}/albums?${querystring.stringify({
@@ -142,6 +141,7 @@ export class DataFetcher {
         artists: { $in: ids },
         availableCountries: this._TOKEN.countryCode
       })
+      .sort({ releaseDate: -1 })
       .populate('artists')
       .exec();
     const artistIDsOfCachedReleases = cachedReleases
@@ -172,6 +172,10 @@ export class DataFetcher {
     const lookupObject = {};
     for (const release of [ ...cachedReleases, ...successfulReqs.flat() ])
       lookupObject[release._id] = release;
-    return Object.values(lookupObject);
+
+    // Sort all items together by date
+    const sorted = sort(Object.values(lookupObject))
+      .desc(release => release.releaseDate);
+    return sorted;
   }
 }
