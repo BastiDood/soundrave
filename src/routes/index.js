@@ -86,7 +86,7 @@ router
       });
 
       // Generate new session when the user logs in
-      await promisify(req.session.regenerate)();
+      await promisify(req.session.regenerate.bind(req.session))();
 
       // TODO: Use refresh tokens. Do not log user out after expiry.
       // TODO: Take note of duplicate markets
@@ -103,7 +103,7 @@ router
       };
       req.session.cookie.maxAge = ONE_HOUR;
       req.session.isLoggedIn = true;
-      await promisify(req.session.save)();
+      await promisify(req.session.save.bind(req.session))();
     }
 
     res.redirect('/');
