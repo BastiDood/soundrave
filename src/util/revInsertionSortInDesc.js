@@ -1,5 +1,8 @@
 /**
- * Sorts a partially sorted array via insertion sort.
+ * This function sorts a partially sorted array via insertion sort.
+ * It traverses the array in reverse (tail to head) under the assumption
+ * that the array must be sorted in descending order. In the context of
+ * dates, this means from "most recent" to "oldest".
  * @template T
  * @param {T[]} arr
  * @param {(obj: T) => any} transformFunc 
