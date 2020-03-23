@@ -18,13 +18,13 @@ import querystring from 'querystring';
 
 // DEPENDENCIES
 import fetch from 'node-fetch';
-import sort from 'fast-sort';
 
 // MODELS
 import * as CoreModels from '../models/Core.js';
 
 // UTILITY
 import { removeDuplicatesFromArrays } from '../util/removeDuplicatesFromArrays.js';
+import { revInsertionSortInDesc } from '../util/revInsertionSortInDesc.js';
 
 export class DataFetcher {
   /**
@@ -174,8 +174,6 @@ export class DataFetcher {
       lookupObject[release._id] = release;
 
     // Sort all items together by date
-    const sorted = sort(Object.values(lookupObject))
-      .desc(release => release.releaseDate);
-    return sorted;
+    return revInsertionSortInDesc(Object.values(lookupObject), release => release.releaseDate);
   }
 }
