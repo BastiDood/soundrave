@@ -1,3 +1,19 @@
+declare module 'geoip-country' {
+  type IPRanges = [ number, number ];
+  interface LookupResult {
+    /** [ <low IP range>, <high IP range> ] */
+    range: [ number, number ];
+    /** 2-letter ISO-3166-1 country code */
+    country: string;
+  }
+
+  /** @param ip - Valid IP address string */
+  function lookup(ip: string): LookupResult|null;
+
+  /** @param ip - Valid IP address string */
+  function pretty(ip: string): string;
+}
+
 declare interface OAuthToken {
   /** An access token that can be provided in subsequent calls, for example to Spotify Web API services. */
   access_token: string;
@@ -59,20 +75,4 @@ declare interface PopulatedReleaseObject {
   images: SpotifyApi.ImageObject[];
   /** Spotify IDs of artists */
   artists: ArtistObject[];
-}
-
-declare module 'geoip-country' {
-  type IPRanges = [ number, number ];
-  interface LookupResult {
-    /** [ <low IP range>, <high IP range> ] */
-    range: [ number, number ];
-    /** 2-letter ISO-3166-1 country code */
-    country: string;
-  }
-
-  /** @param ip - Valid IP address string */
-  function lookup(ip: string): LookupResult|null;
-
-  /** @param ip - Valid IP address string */
-  function pretty(ip: string): string;
 }
