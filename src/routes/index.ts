@@ -10,7 +10,7 @@ import fetch from 'node-fetch';
 import geoip from 'geoip-country';
 
 // CONTROLLERS
-import { DataFetcher } from '../controllers/DataFetcher.js';
+import { DataFetcher } from '../controllers/DataFetcher';
 
 // Initialize .env
 dotenv.config();
@@ -33,7 +33,7 @@ router
     // Shorthand for session object
     const { session } = req;
     // Reject all users that have not been logged in
-    if (!session.isLoggedIn) {
+    if (!session?.isLoggedIn) {
       res.render('index');
       return;
     }
@@ -62,7 +62,7 @@ router
     res.render('index', { releases });
   })
   .get('/login', (req, res) => {
-    if (req.session.isLoggedIn)
+    if (req.session?.isLoggedIn)
       res.redirect('/');
     else
       res.redirect(REQUEST_AUTHORIZATION_ENDPOINT);
@@ -86,23 +86,22 @@ router
       });
 
       // Generate new session when the user logs in
-      await promisify(req.session.regenerate.bind(req.session))();
+      await promisify(req.session!.regenerate.bind(req.session))();
 
       // TODO: Use refresh tokens. Do not log user out after expiry.
       // Set session data
-      /** @type {import('../controllers/DataFetcher').AccessToken} */
-      const token = await response.json();
+      const token: OAuthToken = await response.json();
       const ONE_HOUR = token.expires_in * 1e3;
-      req.session.token = {
+      req.session!.token = {
         accessToken: token.access_token,
         refreshToken: token.refresh_token,
         scope: token.scope,
         expiresAt: Date.now() + ONE_HOUR,
-        countryCode: geoip.lookup(req.ip) || DEFAULT_COUNTRY
+        countryCode: geoip.lookup(req.ip)?.country ?? DEFAULT_COUNTRY!
       };
-      req.session.cookie.maxAge = ONE_HOUR;
-      req.session.isLoggedIn = true;
-      await promisify(req.session.save.bind(req.session))();
+      req.session!.cookie.maxAge = ONE_HOUR;
+      req.session!.isLoggedIn = true;
+      await promisify(req.session!.save.bind(req.session))();
     }
 
     res.redirect('/');

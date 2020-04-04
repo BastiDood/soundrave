@@ -1,4 +1,3 @@
-// TODO: Configure Babel to transform this
 import { removeDuplicatesFromArrays } from '../../src/util/removeDuplicatesFromArrays';
 
 describe('Two arrays', () => {

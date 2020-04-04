@@ -6,10 +6,11 @@ import dotenv from 'dotenv';
 import express from 'express';
 import helmet from 'helmet';
 import mongoose from 'mongoose';
+import noCache from 'nocache';
 import session from 'express-session';
 
 // ROUTES
-import { router } from './routes/index.js';
+import { router } from './routes/index';
 
 // Initializes .env
 dotenv.config();
@@ -45,7 +46,7 @@ app
     }
   }))
   .use(helmet.referrerPolicy({ policy: 'no-referrer' }))
-  .use(helmet.noCache())
+  .use(noCache())
   .use(helmet.xssFilter())
   .use(helmet.noSniff())
   .use(helmet.ieNoOpen())
@@ -55,13 +56,13 @@ app
 const ONE_HOUR = 60;
 app.use(session({
   name: 'sid',
-  secret: COOKIE_SECRET,
+  secret: COOKIE_SECRET!,
   resave: false,
   saveUninitialized: false,
   unset: 'destroy',
   store: new MongoStore({
-    url: MONGO_DB_SESSION_URL,
-    secret: MONGO_DB_SESSION_SECRET,
+    url: MONGO_DB_SESSION_URL!,
+    secret: MONGO_DB_SESSION_SECRET!,
     // TODO: Address the expiration of tokens, sessions, and cookies
     autoRemove: 'interval',
     autoRemoveInterval: ONE_HOUR
@@ -79,7 +80,7 @@ app.use(express.static('public', { index: false }));
 app.use('/', router);
 
 // Initialize Mongoose connection
-mongoose.connect(MONGO_DB_CACHE_URL, {
+mongoose.connect(MONGO_DB_CACHE_URL!, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useFindAndModify: false
@@ -91,5 +92,5 @@ mongoose.connection
     console.log('Established database connection to cache.');
 
     // Listen to the assigned port for HTTP connections
-    app.listen(+PORT, () => console.log(`Server started at port ${PORT}`));
+    app.listen(+PORT!, () => console.log(`Server started at port ${PORT}`));
   });

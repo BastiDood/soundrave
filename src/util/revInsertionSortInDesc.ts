@@ -3,11 +3,8 @@
  * It traverses the array in reverse (tail to head) under the assumption
  * that the array must be sorted in descending order. In the context of
  * dates, this means from "most recent" to "oldest".
- * @template T
- * @param {T[]} arr
- * @param {(obj: T) => number} transformFunc 
  */
-export function revInsertionSortInDesc(arr, transformFunc = x => x) {
+export function revInsertionSortInDesc<T>(arr: T[], transformFunc: (obj: T) => number): T[] {
   const { length } = arr;
 
   for (let i = length - 2; i >= 0; --i) {

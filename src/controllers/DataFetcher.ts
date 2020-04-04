@@ -17,61 +17,60 @@
 import querystring from 'querystring';
 
 // DEPENDENCIES
-import fetch from 'node-fetch';
+import fetch, { RequestInit } from 'node-fetch';
 
 // MODELS
-import * as CoreModels from '../models/Core.js';
+import { Artist, Release } from '../models/Core';
 
 // UTILITY
-import { removeDuplicatesFromArrays } from '../util/removeDuplicatesFromArrays.js';
-import { revInsertionSortInDesc } from '../util/revInsertionSortInDesc.js';
+import { removeDuplicatesFromArrays } from '../util/removeDuplicatesFromArrays';
+import { revInsertionSortInDesc } from '../util/revInsertionSortInDesc';
+
+interface AccessToken {
+  accessToken: string;
+  refreshToken: string;
+  scope: string;
+  /** Expiry date (in milliseconds since Unix Epoch) */
+  expiresAt: number;
+  /** ISO 3166-1 alpha-2 Country Code */
+  countryCode: string;
+}
 
 export class DataFetcher {
-  /**
-   * @typedef {Object} Token
-   * @property {string} accessToken
-   * @property {string} refreshToken
-   * @property {string} scope
-   * @property {number} expiresAt - Expiry date (in milliseconds since Unix Epoch)
-   * @property {string} countryCode - ISO 3166-1 alpha-2 Country Code
-   * @param {Token} token
-   */
-  constructor(token) {
-    this._TOKEN = token;
-    this._FETCH_OPTIONS = {
+  #TOKEN: AccessToken;
+  #FETCH_OPTIONS: RequestInit;
+
+  constructor(token: AccessToken) {
+    this.#TOKEN = token;
+    this.#FETCH_OPTIONS = {
       method: 'GET',
       headers: { Authorization: `Bearer ${token.accessToken}` }
     };
   }
 
-  /** @param {CoreModels.ArtistObject[]} artists */
-  _cacheArtistObjects(artists) {
+  _cacheArtistObjects(artists: ArtistObject[]) {
     const promises = artists.map(artist =>
-      CoreModels.Artist.findByIdAndUpdate(artist._id, artist, { upsert: true }).exec());
+      Artist.findByIdAndUpdate(artist._id, artist, { upsert: true }).exec());
     return Promise.allSettled(promises);
   }
 
-  /** @param {CoreModels.ReleaseObject[]} releases */
-  _cacheReleaseObjects(releases) {
-    const promises = releases.map(release => CoreModels.Release
+  _cacheReleaseObjects(releases: ReleaseObject[]) {
+    const promises = releases.map(release => Release
       .findByIdAndUpdate(release._id, release, { upsert: true })
       .exec());
     return Promise.allSettled(promises);
   }
 
-  /** @returns {Promise<CoreModels.ArtistObject[]>} */
   async _fetchFollowedArtists() {
-    if (!this._TOKEN.scope.includes('user-follow-read'))
+    if (!this.#TOKEN.scope.includes('user-follow-read'))
       throw new Error('Access token does not have the permission to read list of followers.');
 
-    /** @type {CoreModels.ArtistObject[]} */
-    let followedArtists = [];
+    let followedArtists: ArtistObject[] = [];
     let next = 'https://api.spotify.com/v1/me/following?type=artist&limit=50';
 
     // Retrieve all followed artists
     while (next) {
-      /** @type {SpotifyApi.UsersFollowedArtistsResponse} */
-      const { artists } = await fetch(next, this._FETCH_OPTIONS).then(res => res.json());
+      const { artists }: SpotifyApi.UsersFollowedArtistsResponse = await fetch(next, this.#FETCH_OPTIONS).then(res => res.json());
       const transformedArtistData = artists.items
         .map(artist => ({
           _id: artist.id,
@@ -90,32 +89,29 @@ export class DataFetcher {
 
   /**
    * Invoke this method **sparingly**. It greatly contributes to the rate limit.
-   * @param {string} id - Spotify Artist ID
+   * @param id - Spotify Artist ID
    * @returns {Promise<CoreModels.ReleaseObject[]>}
    */
-  async _fetchReleasesByArtistID(id) {
-    /** @type {CoreModels.ReleaseObject[]} */
-    let releases = [];
+  async _fetchReleasesByArtistID(id: string) {
+    let releases: ReleaseObject[] = [];
     let next = `https://api.spotify.com/v1/artists/${id}/albums?${querystring.stringify({
       include_groups: 'album,single',
-      market: this._TOKEN.countryCode,
+      market: this.#TOKEN.countryCode,
       limit: 50
     })}`;
 
     // Retrieve all releases by the artist
     while (next) {
-      /** @type {SpotifyApi.ArtistsAlbumsResponse} */
-      const json = await fetch(next, this._FETCH_OPTIONS).then(res => res.json());
+      const json: SpotifyApi.ArtistsAlbumsResponse = await fetch(next, this.#FETCH_OPTIONS).then(res => res.json());
 
-      /** @type {CoreModels.ReleaseObject[]} */
-      const transformedReleaseData = json.items
+      const transformedReleaseData: ReleaseObject[] = json.items
         .map(release => ({
           _id: release.id,
           title: release.name,
-          albumType: release.album_type,
+          albumType: release.album_type as 'album'|'single'|'compilation',
           releaseDate: Number(Date.parse(release.release_date)),
-          datePrecision: /** @type {'year'|'month'|'day'} */ (release.release_date_precision),
-          availableCountries: release.available_markets,
+          datePrecision: release.release_date_precision as 'year'|'month'|'day',
+          availableCountries: release.available_markets!,
           images: release.images,
           artists: release.artists.map(artist => artist.id)
         }));
@@ -129,17 +125,15 @@ export class DataFetcher {
 
   /**
    * Retrieve releases of artists by cache or Spotify API
-   * @param {string[]} ids - Spotify Artist IDs
-   * @returns {Promise<CoreModels.ReleaseObject[]>}
+   * @param ids - Spotify Artist IDs
    */
-  async getReleasesByArtistIDs(ids) {
+  async getReleasesByArtistIDs(ids: string[]) {
     // Determine which releases (by artist IDs) are in the cache
-    /** @type {CoreModels.PopulatedReleaseObject[]} */
     // @ts-ignore
-    const cachedReleases = await CoreModels.Release
+    const cachedReleases: PopulatedReleaseObject[] = await CoreModels.Release
       .find({
         artists: { $in: ids },
-        availableCountries: this._TOKEN.countryCode
+        availableCountries: this.#TOKEN.countryCode
       })
       .sort({ releaseDate: -1 })
       .populate('artists')
@@ -153,8 +147,7 @@ export class DataFetcher {
     const settledPromises = await Promise.allSettled(promises);
 
     // Separate successful requests from failed requests
-    /** @type {CoreModels.ReleaseObject[][]} */
-    const successfulReqs = [];
+    const successfulReqs: ReleaseObject[][] = [];
     const failedReqs = [];
     for (const promise of settledPromises)
       if (promise.status === 'fulfilled')
@@ -168,9 +161,10 @@ export class DataFetcher {
     // Merge successful requests with the cached releases
     // by removing duplicate releases (by ID)
     // See https://reactgo.com/removeduplicateobjects/#here-is-my-implementation-to-remove-the-duplicate-objects-from-an-array.
-    /** @type {{ [string: string]: CoreModels.ReleaseObject }} */
-    const lookupObject = {};
+    const lookupObject: { [id: string]: PopulatedReleaseObject } = {};
     for (const release of [ ...cachedReleases, ...successfulReqs.flat() ])
+      // @ts-ignore
+      // FIXME: Resolve issue between populated and non-populated release objects
       lookupObject[release._id] = release;
 
     // Sort all items together by date
