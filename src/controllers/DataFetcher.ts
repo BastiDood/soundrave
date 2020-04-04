@@ -26,21 +26,11 @@ import { Artist, Release } from '../models/Core';
 import { removeDuplicatesFromArrays } from '../util/removeDuplicatesFromArrays';
 import { revInsertionSortInDesc } from '../util/revInsertionSortInDesc';
 
-interface AccessToken {
-  accessToken: string;
-  refreshToken: string;
-  scope: string;
-  /** Expiry date (in milliseconds since Unix Epoch) */
-  expiresAt: number;
-  /** ISO 3166-1 alpha-2 Country Code */
-  countryCode: string;
-}
-
 export class DataFetcher {
-  #TOKEN: AccessToken;
+  #TOKEN: SpotifyAccessToken;
   #FETCH_OPTIONS: RequestInit;
 
-  constructor(token: AccessToken) {
+  constructor(token: SpotifyAccessToken) {
     this.#TOKEN = token;
     this.#FETCH_OPTIONS = {
       method: 'GET',

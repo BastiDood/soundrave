@@ -11,6 +11,16 @@ declare interface OAuthToken {
   refresh_token: string;
 }
 
+interface SpotifyAccessToken {
+  accessToken: string;
+  refreshToken: string;
+  scope: string;
+  /** Expiry date (in milliseconds since Unix Epoch) */
+  expiresAt: number;
+  /** ISO 3166-1 alpha-2 Country Code */
+  countryCode: string;
+}
+
 declare interface ArtistObject {
   /** Spotify ID of the artist */
   _id: string;
