@@ -10,7 +10,8 @@
   "plugins": [ "@typescript-eslint" ],
   "parserOptions": {
     "ecmaVersion": 2020,
-    "sourceType": "module"
+    "sourceType": "module",
+    "project": "./tsconfig.json"
   },
   "overrides": [
     {
@@ -54,7 +55,7 @@
       "error",
       "single"
     ],
-    "semi": "off",
+    "semi": "error",
     "@typescript-eslint/semi": [ "error" ],
     "block-scoped-var": "warn",
     "prefer-const": "warn",
@@ -66,6 +67,9 @@
     "no-new-func": "error",
     "no-new-wrappers": "error",
     "no-use-before-define": "error",
-    "handle-callback-err": "error"
+    "handle-callback-err": "error",
+    "@typescript-eslint/camelcase": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/ban-ts-ignore": "off"
   }
 }
