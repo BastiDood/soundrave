@@ -39,7 +39,7 @@ router
     }
 
     // Initialize data fetcher
-    const dataFetcher = new DataFetcher(session.token);
+    const dataFetcher = new DataFetcher(session.token!);
 
     // Check if there are no cached artists in the session
     const TODAY = Date.now();
@@ -72,7 +72,7 @@ router
     // Check if authorization code exists
     const AUTHORIZATION_CODE = req.query['code'];
     if (AUTHORIZATION_CODE) {
-      const response = await fetch(REQUEST_TOKEN_ENDPOINT, {
+      const token: OAuthToken = await fetch(REQUEST_TOKEN_ENDPOINT, {
         method: 'POST',
         body: new URLSearchParams(
           querystring.stringify({
@@ -83,14 +83,14 @@ router
             client_secret: CLIENT_SECRET
           })
         ),
-      });
+      })
+        .then(res => res.json());
 
       // Generate new session when the user logs in
       await promisify(req.session!.regenerate.bind(req.session))();
 
       // TODO: Use refresh tokens. Do not log user out after expiry.
       // Set session data
-      const token: OAuthToken = await response.json();
       const ONE_HOUR = token.expires_in * 1e3;
       req.session!.token = {
         accessToken: token.access_token,
