@@ -14,18 +14,20 @@
     "connect-mongo": "^3.2.0",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
-    "ejs": "^3.0.1",
+    "ejs": "^3.0.2",
     "express": "^4.17.1",
     "express-session": "^1.17.0",
-    "geoip-country": "^4.0.10",
-    "helmet": "^3.21.3",
-    "mongoose": "^5.9.5",
+    "geoip-country": "^4.0.12",
+    "helmet": "^3.22.0",
+    "mongoose": "^5.9.7",
     "node-fetch": "^2.6.0"
   },
   "devDependencies": {
-    "@types/jest": "^25.1.4",
-    "@types/node": "^13.9.3",
+    "@types/jest": "^25.2.1",
+    "@types/node": "^13.11.0",
     "@types/spotify-api": "0.0.2",
-    "jest": "^25.1.0"
+    "jest": "^25.2.7",
+    "tslint": "^6.1.1",
+    "typescript": "^3.8.3"
   }
 }
