@@ -4,9 +4,9 @@
   "description": "This is an app that plops down recent releases from your followed artists.",
   "main": "build/src/main.js",
   "scripts": {
-    "build": "tsc",
-    "start": "tsc && node .",
-    "test": "tsc && jest"
+    "build": "tsc --build",
+    "start": "tsc --build && node .",
+    "test": "tsc --build && jest"
   },
   "author": "Basti Ortiz <ortizbasti16@gmail.com>",
   "license": "GPL-3.0-or-later",
