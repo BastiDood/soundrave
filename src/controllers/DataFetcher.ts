@@ -151,7 +151,7 @@ export class DataFetcher {
     // Merge successful requests with the cached releases
     // by removing duplicate releases (by ID)
     // See https://reactgo.com/removeduplicateobjects/#here-is-my-implementation-to-remove-the-duplicate-objects-from-an-array.
-    const lookupObject: { [id: string]: PopulatedReleaseObject } = {};
+    const lookupObject: { [id: string]: PopulatedReleaseObject } = Object.create(null);
     for (const release of [ ...cachedReleases, ...successfulReqs.flat() ])
       // @ts-ignore
       // FIXME: Resolve issue between populated and non-populated release objects

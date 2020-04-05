@@ -4,7 +4,7 @@
  */
 export function removeDuplicatesFromArrays(...arrays: string[][]): string[] {
   // Initialize a lookup table for caching duplicates
-  const lookupTable: { [item: string]: number } = { };
+  const lookupTable: { [item: string]: number } = Object.create(null);
 
   // Traverse the arrays and count occurrences
   for (const _ of arrays)
