@@ -84,13 +84,12 @@ mongoose.connect(MONGO_DB_CACHE_URL!, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useFindAndModify: false,
-});
-mongoose.connection
-  .on('error', console.error)
-  .once('open', () => {
+})
+  .then(() => {
     // Log successful connection
     console.log('Established database connection to cache.');
 
     // Listen to the assigned port for HTTP connections
     app.listen(Number(PORT!), () => console.log(`Server started at port ${PORT}`));
-  });
+  })
+  .catch(console.error);

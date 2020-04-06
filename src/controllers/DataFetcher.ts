@@ -38,20 +38,20 @@ export class DataFetcher {
     };
   }
 
-  _cacheArtistObjects(artists: ArtistObject[]) {
+  static _cacheArtistObjects(artists: ArtistObject[]) {
     const promises = artists.map(artist =>
       Artist.findByIdAndUpdate(artist._id, artist, { upsert: true }).exec());
     return Promise.allSettled(promises);
   }
 
-  _cacheReleaseObjects(releases: ReleaseObject[]) {
+  static _cacheReleaseObjects(releases: ReleaseObject[]) {
     const promises = releases.map(release => Release
       .findByIdAndUpdate(release._id, release, { upsert: true })
       .exec());
     return Promise.allSettled(promises);
   }
 
-  async _fetchFollowedArtists() {
+  async _fetchFollowedArtists(): Promise<ArtistObject[]> {
     if (!this.#TOKEN.scope.includes('user-follow-read'))
       throw new Error('Access token does not have the permission to read list of followers.');
 
@@ -73,16 +73,15 @@ export class DataFetcher {
       next = artists.next;
     }
 
-    this._cacheArtistObjects(followedArtists);
+    DataFetcher._cacheArtistObjects(followedArtists);
     return followedArtists;
   }
 
   /**
    * Invoke this method **sparingly**. It greatly contributes to the rate limit.
    * @param id - Spotify Artist ID
-   * @returns {Promise<CoreModels.ReleaseObject[]>}
    */
-  async _fetchReleasesByArtistID(id: string) {
+  async _fetchReleasesByArtistID(id: string): Promise<ReleaseObject[]> {
     let releases: ReleaseObject[] = [];
     let next = `https://api.spotify.com/v1/artists/${id}/albums?${querystring.stringify({
       include_groups: 'album,single',
@@ -109,7 +108,7 @@ export class DataFetcher {
       next = json.next;
     }
 
-    this._cacheReleaseObjects(releases);
+    DataFetcher._cacheReleaseObjects(releases);
     return releases;
   }
 
@@ -117,10 +116,10 @@ export class DataFetcher {
    * Retrieve releases of artists by cache or Spotify API
    * @param ids - Spotify Artist IDs
    */
-  async getReleasesByArtistIDs(ids: string[]) {
+  async getReleasesByArtistIDs(ids: string[]): Promise<PopulatedReleaseObject[]> {
     // Determine which releases (by artist IDs) are in the cache
     // @ts-ignore
-    const cachedReleases: PopulatedReleaseObject[] = await CoreModels.Release
+    const cachedReleases: PopulatedReleaseObject[] = await Release
       .find({
         artists: { $in: ids },
         availableCountries: this.#TOKEN.countryCode,

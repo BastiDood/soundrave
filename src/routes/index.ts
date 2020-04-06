@@ -70,14 +70,14 @@ router
   .get('/callback', async (req, res) => {
     // TODO: Check if request is from Spotify accounts using `state` parameter
     // Check if authorization code exists
-    const AUTHORIZATION_CODE = req.query['code'];
-    if (AUTHORIZATION_CODE) {
+    const authorization = req.query as AuthorizationResult;
+    if ('code' in authorization) {
       const token: OAuthToken = await fetch(REQUEST_TOKEN_ENDPOINT, {
         method: 'POST',
         body: new URLSearchParams(
           querystring.stringify({
             grant_type: 'authorization_code',
-            code: AUTHORIZATION_CODE,
+            code: authorization.code,
             redirect_uri: REDIRECT_URI,
             client_id: CLIENT_ID,
             client_secret: CLIENT_SECRET,
@@ -103,6 +103,8 @@ router
       req.session!.isLoggedIn = true;
       await promisify(req.session!.save.bind(req.session))();
     }
+
+    // TODO: Handle error if `error in authorization`
 
     res.redirect('/');
   });
