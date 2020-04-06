@@ -5,6 +5,8 @@
   "main": "build/src/main.js",
   "scripts": {
     "build": "tsc --build",
+    "lint": "eslint src/**/*.ts tests/**/*.test.ts",
+    "lint:fix": "eslint --fix src/**/*.ts tests/**/*.test.ts",
     "start": "tsc --build && node .",
     "test": "tsc --build && jest"
   },
