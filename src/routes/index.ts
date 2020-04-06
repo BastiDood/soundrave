@@ -24,7 +24,7 @@ const REQUEST_AUTHORIZATION_ENDPOINT = `https://accounts.spotify.com/authorize?$
   client_id: CLIENT_ID,
   response_type: 'code',
   redirect_uri: REDIRECT_URI,
-  scope: 'user-follow-read'
+  scope: 'user-follow-read',
 })}`;
 const ONE_WEEK = 60 * 60 * 24 * 7;
 
@@ -53,7 +53,7 @@ router
       // Cache artist IDs to current session to save on memory
       session.followedArtists = {
         ids: artistIDs,
-        retrievalDate: TODAY
+        retrievalDate: TODAY,
       };
     }
 
@@ -80,11 +80,11 @@ router
             code: AUTHORIZATION_CODE,
             redirect_uri: REDIRECT_URI,
             client_id: CLIENT_ID,
-            client_secret: CLIENT_SECRET
-          })
+            client_secret: CLIENT_SECRET,
+          }),
         ),
       })
-        .then(res => res.json());
+        .then(resp => resp.json());
 
       // Generate new session when the user logs in
       await promisify(req.session!.regenerate.bind(req.session))();
@@ -97,7 +97,7 @@ router
         refreshToken: token.refresh_token,
         scope: token.scope,
         expiresAt: Date.now() + ONE_HOUR,
-        countryCode: geoip.lookup(req.ip)?.country ?? DEFAULT_COUNTRY!
+        countryCode: geoip.lookup(req.ip)?.country ?? DEFAULT_COUNTRY!,
       };
       req.session!.cookie.maxAge = ONE_HOUR;
       req.session!.isLoggedIn = true;

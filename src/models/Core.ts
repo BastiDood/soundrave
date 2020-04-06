@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const ImageSchema = new mongoose.Schema({
   width: { type: Number, required: true },
   height: { type: Number, required: true },
-  url: { type: String, required: true }
+  url: { type: String, required: true },
 });
 
 const ArtistSchema = new mongoose.Schema({
@@ -11,7 +11,7 @@ const ArtistSchema = new mongoose.Schema({
   name: { type: String, required: true },
   followers: { type: Number, required: true },
   popularity: { type: Number, required: true, min: 0, max: 100 },
-  images: [ { type: ImageSchema, required: true } ]
+  images: [ { type: ImageSchema, required: true } ],
 });
 
 const ReleaseSchema = new mongoose.Schema({
@@ -22,7 +22,7 @@ const ReleaseSchema = new mongoose.Schema({
   datePrecision: { type: String, enum: [ 'year', 'month', 'day' ], required: true },
   availableCountries: { type: [ String ], required: true },
   images: [ { type: ImageSchema, required: true } ],
-  artists: { type: [ { type: String, ref: 'Artist', required: true } ], required: true }
+  artists: { type: [ { type: String, ref: 'Artist', required: true } ], required: true },
 });
 
 export const Artist = mongoose.model('Artist', ArtistSchema);

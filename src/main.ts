@@ -19,7 +19,7 @@ const {
   MONGO_DB_CACHE_URL,
   MONGO_DB_SESSION_URL,
   MONGO_DB_SESSION_SECRET,
-  COOKIE_SECRET
+  COOKIE_SECRET,
 } = process.env;
 
 // Initialize `MongoStore`
@@ -40,10 +40,10 @@ app
   .use(helmet.permittedCrossDomainPolicies())
   .use(helmet.contentSecurityPolicy({
     directives: {
-      formAction: ['\'self\''],
-      defaultSrc: ['\'self\''],
-      frameAncestors: ['\'none\'']
-    }
+      formAction: [ '\'self\'' ],
+      defaultSrc: [ '\'self\'' ],
+      frameAncestors: [ '\'none\'' ],
+    },
   }))
   .use(helmet.referrerPolicy({ policy: 'no-referrer' }))
   .use(noCache())
@@ -65,12 +65,12 @@ app.use(session({
     secret: MONGO_DB_SESSION_SECRET!,
     // TODO: Address the expiration of tokens, sessions, and cookies
     autoRemove: 'interval',
-    autoRemoveInterval: ONE_HOUR
+    autoRemoveInterval: ONE_HOUR,
   }),
   cookie: {
     httpOnly: true,
-    sameSite: true
-  }
+    sameSite: true,
+  },
 }));
 
 // Set public files directory
@@ -83,7 +83,7 @@ app.use('/', router);
 mongoose.connect(MONGO_DB_CACHE_URL!, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  useFindAndModify: false
+  useFindAndModify: false,
 });
 mongoose.connection
   .on('error', console.error)
@@ -92,5 +92,5 @@ mongoose.connection
     console.log('Established database connection to cache.');
 
     // Listen to the assigned port for HTTP connections
-    app.listen(+PORT!, () => console.log(`Server started at port ${PORT}`));
+    app.listen(Number(PORT!), () => console.log(`Server started at port ${PORT}`));
   });

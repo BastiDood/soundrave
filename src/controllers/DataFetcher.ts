@@ -34,7 +34,7 @@ export class DataFetcher {
     this.#TOKEN = token;
     this.#FETCH_OPTIONS = {
       method: 'GET',
-      headers: { Authorization: `Bearer ${token.accessToken}` }
+      headers: { Authorization: `Bearer ${token.accessToken}` },
     };
   }
 
@@ -67,7 +67,7 @@ export class DataFetcher {
           name: artist.name,
           followers: artist.followers.total,
           popularity: artist.popularity,
-          images: artist.images
+          images: artist.images,
         }));
       followedArtists = followedArtists.concat(transformedArtistData);
       next = artists.next;
@@ -87,7 +87,7 @@ export class DataFetcher {
     let next = `https://api.spotify.com/v1/artists/${id}/albums?${querystring.stringify({
       include_groups: 'album,single',
       market: this.#TOKEN.countryCode,
-      limit: 50
+      limit: 50,
     })}`;
 
     // Retrieve all releases by the artist
@@ -103,7 +103,7 @@ export class DataFetcher {
           datePrecision: release.release_date_precision as 'year'|'month'|'day',
           availableCountries: release.available_markets!,
           images: release.images,
-          artists: release.artists.map(artist => artist.id)
+          artists: release.artists.map(artist => artist.id),
         }));
       releases = releases.concat(transformedReleaseData);
       next = json.next;
@@ -123,7 +123,7 @@ export class DataFetcher {
     const cachedReleases: PopulatedReleaseObject[] = await CoreModels.Release
       .find({
         artists: { $in: ids },
-        availableCountries: this.#TOKEN.countryCode
+        availableCountries: this.#TOKEN.countryCode,
       })
       .sort({ releaseDate: -1 })
       .populate('artists')
