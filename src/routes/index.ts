@@ -44,7 +44,7 @@ router
     // Check if there are no cached artists in the session
     const TODAY = Date.now();
     if (!(session.followedArtists && session.followedArtists.ids)
-        || session.followedArtists.retrievalDate + ONE_WEEK > TODAY
+      || session.followedArtists.retrievalDate + ONE_WEEK > TODAY
     ) {
       // Fetch followed artists
       const artists = await dataFetcher._fetchFollowedArtists();
