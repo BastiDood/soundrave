@@ -26,7 +26,8 @@
     "helmet": "^3.22.0",
     "mongoose": "^5.9.7",
     "nocache": "^2.1.0",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.0",
+    "typescript": "^3.8.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.6",
@@ -41,7 +42,6 @@
     "@typescript-eslint/eslint-plugin": "^2.26.0",
     "@typescript-eslint/parser": "^2.26.0",
     "eslint": "^6.8.0",
-    "jest": "^25.2.7",
-    "typescript": "^3.8.3"
+    "jest": "^25.2.7"
   }
 }
