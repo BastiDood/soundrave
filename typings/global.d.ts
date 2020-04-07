@@ -24,7 +24,7 @@ declare interface OAuthToken {
   /** The time period (in seconds) for which the access token is valid. */
   expires_in: number;
   /** A token that can be sent to the Spotify Accounts service in place of an authorization code. */
-  refresh_token: string;
+  refresh_token?: string;
 }
 
 interface Authorization {
@@ -64,7 +64,7 @@ declare interface ArtistObject {
   images: SpotifyApi.ImageObject[];
 }
 
-declare interface ReleaseObject {
+interface ReleaseObject {
   /** Spotify ID of the release */
   _id: string;
   title: string;
@@ -73,23 +73,17 @@ declare interface ReleaseObject {
   releaseDate: number;
   /** Determines precision of date */
   datePrecision: 'year'|'month'|'day';
+  /** ISO 3166-1 alpha-2 Country Codes of countries in which the release is available */
   availableCountries: string[];
   images: SpotifyApi.ImageObject[];
+}
+
+declare interface NonPopulatedReleaseObject extends ReleaseObject {
   /** Spotify IDs of artists */
   artists: string[];
 }
 
-declare interface PopulatedReleaseObject {
-  /** Spotify ID of the release */
-  _id: string;
-  title: string;
-  albumType: 'album'|'single'|'compilation';
-  /** Represented as milliseconds since Unix time (in milliseconds) */
-  releaseDate: number;
-  /** Determines precision of date */
-  datePrecision: 'year'|'month'|'day';
-  availableCountries: string[];
-  images: SpotifyApi.ImageObject[];
-  /** Spotify IDs of artists */
+declare interface PopulatedReleaseObject extends ReleaseObject {
+  /** Spotify object representation of artists */
   artists: ArtistObject[];
 }

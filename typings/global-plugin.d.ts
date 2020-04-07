@@ -2,7 +2,7 @@ import 'express';
 declare global {
   namespace Express {
     interface Session {
-      token?: SpotifyAccessToken;
+      token?: { spotify?: SpotifyAccessToken };
       isLoggedIn?: boolean;
       followedArtists?: {
         ids: string[];
