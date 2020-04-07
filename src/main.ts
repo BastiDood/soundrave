@@ -1,4 +1,7 @@
 // TODO: Update to v0.2.0
+// NATIVE IMPORTS
+import assert from 'assert';
+
 // DEPENDENCIES
 import connectMongo from 'connect-mongo';
 import cors from 'cors';
@@ -21,6 +24,16 @@ const {
   MONGO_DB_SESSION_SECRET,
   COOKIE_SECRET,
 } = process.env;
+
+// TODO: Update `@types/node` for assertion guards.
+// Once removed, get rid of the unnecessary non-null
+// assertions on the environment variables.
+// Assert that environment variables exist
+assert(PORT);
+assert(MONGO_DB_CACHE_URL);
+assert(MONGO_DB_SESSION_URL);
+assert(MONGO_DB_SESSION_SECRET);
+assert(COOKIE_SECRET);
 
 // Initialize `MongoStore`
 const MongoStore = connectMongo(session);

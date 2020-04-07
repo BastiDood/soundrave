@@ -1,4 +1,5 @@
 // NATIVE IMPORTS
+import assert from 'assert';
 import { promisify } from 'util';
 import querystring from 'querystring';
 import { URLSearchParams } from 'url';
@@ -15,6 +16,14 @@ import { DataFetcher } from '../controllers/DataFetcher';
 // Initialize .env
 dotenv.config();
 const { DEFAULT_COUNTRY, CLIENT_ID, CLIENT_SECRET } = process.env;
+
+// TODO: Update `@types/node` for assertion guards.
+// Once removed, get rid of the unnecessary non-null
+// assertions on the environment variables.
+// Assert that environment variables exist
+assert(DEFAULT_COUNTRY);
+assert(CLIENT_ID);
+assert(CLIENT_SECRET);
 
 // GLOBAL VARIABLES
 const router = express.Router();
