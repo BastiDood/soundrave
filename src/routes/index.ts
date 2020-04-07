@@ -48,7 +48,7 @@ router
     }
 
     // Initialize data fetcher
-    const dataFetcher = new DataFetcher(session.token!);
+    const dataFetcher = new DataFetcher(session.token!.spotify!);
 
     // Check if there are no cached artists in the session
     const TODAY = Date.now();
@@ -101,9 +101,9 @@ router
       // TODO: Use refresh tokens. Do not log user out after expiry.
       // Set session data
       const ONE_HOUR = token.expires_in * 1e3;
-      req.session!.token = {
+      req.session!.token!.spotify = {
         accessToken: token.access_token,
-        refreshToken: token.refresh_token,
+        refreshToken: token.refresh_token!,
         scope: token.scope,
         expiresAt: Date.now() + ONE_HOUR,
         countryCode: geoip.lookup(req.ip)?.country ?? DEFAULT_COUNTRY!,
