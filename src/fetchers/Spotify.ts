@@ -23,6 +23,7 @@ export class SpotifyAPI {
   static readonly API_VERSION = 'v1';
   static readonly BASE_ENDPOINT = 'https://api.spotify.com';
   static readonly ACCOUNTS_ENDPOINT = 'https://accounts.spotify.com';
+  static readonly RESOURCE_ENDPOINT = 'https://open.spotify.com';
   static readonly AUTH_ENDPOINT = SpotifyAPI.formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/authorize', {
     client_id: env.CLIENT_ID,
     response_type: 'code',
@@ -172,6 +173,16 @@ export class SpotifyAPI {
     return token;
   }
 
+  // TODO: Move this into a Mongoose virtual
+  static getURLfromArtist(artist: ArtistObject): string {
+    return SpotifyAPI.formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/artist/${artist._id}`);
+  }
+
+  // TODO: Move this into a Mongoose virtual
+  static getURLfromRelease(release: ReleaseObject): string {
+    return SpotifyAPI.formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/album/${release._id}`);
+  }
+
   /**
    * Format a full URL to the Spotify API given an endpoint and
    * some query parameters.
@@ -220,4 +231,6 @@ export class SpotifyAPI {
       headers: { Authorization: `Bearer ${this.#token.accessToken}` },
     };
   }
+
+  get applicableCountry(): string { return this.#token.countryCode; }
 }
