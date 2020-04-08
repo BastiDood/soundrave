@@ -25,7 +25,10 @@ export class SpotifyAPI {
   });
   static readonly TOKEN_ENDPOINT = SpotifyAPI.formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/api/token');
 
-  private static failedFetchHandler = (err: SpotifyApi.ErrorObject): never => { throw new Error(err.message); }
+  private static failedFetchHandler = ({ status, message }: SpotifyApi.ErrorObject): never => {
+    throw new Error(`${status}: ${message}`);
+  };
+
   #token: SpotifyAccessToken;
 
   constructor(token: SpotifyAccessToken) { this.#token = token; }
