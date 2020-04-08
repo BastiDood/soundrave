@@ -1,40 +1,19 @@
 // NATIVE IMPORTS
-import assert from 'assert';
 import { promisify } from 'util';
-import querystring from 'querystring';
-import { URLSearchParams } from 'url';
 
 // DEPENDENCIES
-import dotenv from 'dotenv';
 import express from 'express';
-import fetch from 'node-fetch';
 import geoip from 'geoip-country';
+
+// LOADERS
+import { env } from '../loaders/env';
 
 // CONTROLLERS
 import { DataFetcher } from '../controllers/DataFetcher';
-
-// Initialize .env
-dotenv.config();
-const { DEFAULT_COUNTRY, CLIENT_ID, CLIENT_SECRET } = process.env;
-
-// TODO: Update `@types/node` for assertion guards.
-// Once removed, get rid of the unnecessary non-null
-// assertions on the environment variables.
-// Assert that environment variables exist
-assert(DEFAULT_COUNTRY);
-assert(CLIENT_ID);
-assert(CLIENT_SECRET);
+import { SpotifyAPI } from '../fetchers/Spotify';
 
 // GLOBAL VARIABLES
 const router = express.Router();
-const REDIRECT_URI = 'http://localhost/callback';
-const REQUEST_TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token';
-const REQUEST_AUTHORIZATION_ENDPOINT = `https://accounts.spotify.com/authorize?${querystring.stringify({
-  client_id: CLIENT_ID,
-  response_type: 'code',
-  redirect_uri: REDIRECT_URI,
-  scope: 'user-follow-read',
-})}`;
 const ONE_WEEK = 60 * 60 * 24 * 7;
 
 router
@@ -46,6 +25,9 @@ router
       res.render('index');
       return;
     }
+
+    // Initialize Spotify fetcher
+    const spotifyFetcher = new SpotifyAPI(req.session!.token!.spotify!);
 
     // Initialize data fetcher
     const dataFetcher = new DataFetcher(session.token!.spotify!);
@@ -74,26 +56,14 @@ router
     if (req.session?.isLoggedIn)
       res.redirect('/');
     else
-      res.redirect(REQUEST_AUTHORIZATION_ENDPOINT);
+      res.redirect(SpotifyAPI.AUTH_ENDPOINT);
   })
   .get('/callback', async (req, res) => {
     // TODO: Check if request is from Spotify accounts using `state` parameter
     // Check if authorization code exists
     const authorization = req.query as AuthorizationResult;
     if ('code' in authorization) {
-      const token: OAuthToken = await fetch(REQUEST_TOKEN_ENDPOINT, {
-        method: 'POST',
-        body: new URLSearchParams(
-          querystring.stringify({
-            grant_type: 'authorization_code',
-            code: authorization.code,
-            redirect_uri: REDIRECT_URI,
-            client_id: CLIENT_ID,
-            client_secret: CLIENT_SECRET,
-          }),
-        ),
-      })
-        .then(resp => resp.json());
+      const token = await SpotifyAPI.exchangeCodeForAccessToken(authorization.code);
 
       // Generate new session when the user logs in
       await promisify(req.session!.regenerate.bind(req.session))();
@@ -106,7 +76,7 @@ router
         refreshToken: token.refresh_token!,
         scope: token.scope,
         expiresAt: Date.now() + ONE_HOUR,
-        countryCode: geoip.lookup(req.ip)?.country ?? DEFAULT_COUNTRY!,
+        countryCode: geoip.lookup(req.ip)?.country ?? env.DEFAULT_COUNTRY,
       };
       req.session!.cookie.maxAge = ONE_HOUR;
       req.session!.isLoggedIn = true;
