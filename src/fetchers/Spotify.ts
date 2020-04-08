@@ -33,30 +33,6 @@ export class SpotifyAPI {
 
   constructor(token: SpotifyAccessToken) { this.#token = token; }
 
-  /** Refresh the token associated with this instance. */
-  async refreshAccessToken(): Promise<SpotifyAccessToken> {
-    // Retrieve new access token
-    const credentials = Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64');
-    const newToken: OAuthToken = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
-      method: 'POST',
-      headers: { Authorization: `Basic ${credentials}` },
-      body: new url.URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: this.#token.refreshToken,
-      }),
-    })
-      .then(res => res.json())
-      .catch(SpotifyAPI.failedFetchHandler);
-
-    // Update token
-    this.#token.accessToken = newToken.access_token;
-    this.#token.scope = newToken.scope;
-    this.#token.expiresAt = Date.now() + newToken.expires_in * 1e3;
-
-    // Use spread operator in order to clone the object
-    return { ...this.#token };
-  }
-
   async fetchFollowedArtists(): Promise<ArtistObject[]> {
     if (this.isExpired)
       await this.refreshAccessToken();
@@ -98,7 +74,7 @@ export class SpotifyAPI {
     if (this.isExpired)
       await this.refreshAccessToken();
 
-    let releases: NonPopulatedReleaseObject[] = [];
+    const releases: NonPopulatedReleaseObject[] = [];
     let next = SpotifyAPI.formatEndpoint(SpotifyAPI.BASE_ENDPOINT, `/artists/${id}/albums`, {
       include_groups: 'album,single',
       market: this.#token.countryCode,
@@ -110,18 +86,21 @@ export class SpotifyAPI {
       const json: SpotifyApi.ArtistsAlbumsResponse = await fetch(next, this.fetchOptionsForGet)
         .then(res => res.json())
         .catch(SpotifyAPI.failedFetchHandler);
-      const transformedReleaseData: NonPopulatedReleaseObject[] = json.items
-        .map(release => ({
-          _id: release.id,
-          title: release.name,
-          albumType: release.album_type as 'album'|'single'|'compilation',
-          releaseDate: Number(Date.parse(release.release_date)),
-          datePrecision: release.release_date_precision as 'year'|'month'|'day',
-          availableCountries: release.available_markets!,
-          images: release.images,
-          artists: release.artists.map(artist => artist.id),
-        }));
-      releases = releases.concat(transformedReleaseData);
+
+      for (const release of json.items)
+        // Only include releases that are available in at least one country
+        if (release.available_markets)
+          releases.push({
+            _id: release.id,
+            title: release.name,
+            albumType: release.album_type as 'album'|'single'|'compilation',
+            releaseDate: Number(Date.parse(release.release_date)),
+            datePrecision: release.release_date_precision as 'year'|'month'|'day',
+            availableCountries: release.available_markets,
+            images: release.images,
+            artists: release.artists.map(artist => artist.id),
+          });
+
       next = json.next;
     }
 
@@ -159,6 +138,30 @@ export class SpotifyAPI {
     const relative = path.join(SpotifyAPI.API_VERSION, endpoint);
     const queryStr = stringify(query);
     return url.resolve(base, relative) + (queryStr ? `?${queryStr}` : '');
+  }
+
+  /** Refresh the token associated with this instance. */
+  private async refreshAccessToken(): Promise<SpotifyAccessToken> {
+    // Retrieve new access token
+    const credentials = Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64');
+    const newToken: OAuthToken = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
+      method: 'POST',
+      headers: { Authorization: `Basic ${credentials}` },
+      body: new url.URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: this.#token.refreshToken,
+      }),
+    })
+      .then(res => res.json())
+      .catch(SpotifyAPI.failedFetchHandler);
+
+    // Update token
+    this.#token.accessToken = newToken.access_token;
+    this.#token.scope = newToken.scope;
+    this.#token.expiresAt = Date.now() + newToken.expires_in * 1e3;
+
+    // Use spread operator in order to clone the object
+    return { ...this.#token };
   }
 
   get isExpired(): boolean { return Date.now() > this.#token.expiresAt; }
