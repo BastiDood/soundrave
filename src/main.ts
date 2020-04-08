@@ -1,39 +1,18 @@
 // TODO: Update to v0.2.0
-// NATIVE IMPORTS
-import assert from 'assert';
-
 // DEPENDENCIES
 import connectMongo from 'connect-mongo';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import express from 'express';
 import helmet from 'helmet';
 import mongoose from 'mongoose';
 import noCache from 'nocache';
 import session from 'express-session';
 
+// LOADERS
+import { env } from './loaders/env';
+
 // ROUTES
 import { router } from './routes/index';
-
-// Initializes .env
-dotenv.config();
-const {
-  PORT,
-  MONGO_DB_CACHE_URL,
-  MONGO_DB_SESSION_URL,
-  MONGO_DB_SESSION_SECRET,
-  COOKIE_SECRET,
-} = process.env;
-
-// TODO: Update `@types/node` for assertion guards.
-// Once removed, get rid of the unnecessary non-null
-// assertions on the environment variables.
-// Assert that environment variables exist
-assert(PORT);
-assert(MONGO_DB_CACHE_URL);
-assert(MONGO_DB_SESSION_URL);
-assert(MONGO_DB_SESSION_SECRET);
-assert(COOKIE_SECRET);
 
 // Initialize `MongoStore`
 const MongoStore = connectMongo(session);
@@ -69,13 +48,13 @@ app
 const ONE_HOUR = 60;
 app.use(session({
   name: 'sid',
-  secret: COOKIE_SECRET!,
+  secret: env.COOKIE_SECRET,
   resave: false,
   saveUninitialized: false,
   unset: 'destroy',
   store: new MongoStore({
-    url: MONGO_DB_SESSION_URL!,
-    secret: MONGO_DB_SESSION_SECRET!,
+    url: env.MONGO_DB_SESSION_URL,
+    secret: env.MONGO_DB_SESSION_SECRET,
     // TODO: Address the expiration of tokens, sessions, and cookies
     autoRemove: 'interval',
     autoRemoveInterval: ONE_HOUR,
@@ -87,13 +66,17 @@ app.use(session({
 }));
 
 // Set public files directory
-app.use(express.static('public', { index: false }));
+app.use(express.static('public', {
+  cacheControl: false,
+  dotfiles: 'ignore',
+  index: false,
+}));
 
 // Delegate endpoint logic to `Router` controllers
 app.use('/', router);
 
 // Initialize Mongoose connection
-mongoose.connect(MONGO_DB_CACHE_URL!, {
+mongoose.connect(env.MONGO_DB_CACHE_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useFindAndModify: false,
@@ -103,6 +86,6 @@ mongoose.connect(MONGO_DB_CACHE_URL!, {
     console.log('Established database connection to cache.');
 
     // Listen to the assigned port for HTTP connections
-    app.listen(Number(PORT!), () => console.log(`Server started at port ${PORT}`));
+    app.listen(Number(env.PORT), () => console.log(`Server started at port ${env.PORT}`));
   })
   .catch(console.error);
