@@ -9,6 +9,9 @@ import fetch from 'node-fetch';
 // LOADERS
 import { env } from '../loaders/env';
 
+// UTILITY FUNCTIONS
+import { subdivideArray } from '../util/subdivideArray';
+
 // TYPE ALIASES
 type RequestInit = import('node-fetch').RequestInit;
 
@@ -25,6 +28,13 @@ export class SpotifyAPI {
   });
   static readonly TOKEN_ENDPOINT = SpotifyAPI.formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/api/token');
 
+  private static transformToArtistObject = (artists: SpotifyApi.ArtistObjectFull[]): ArtistObject[] => artists.map(artist => ({
+    _id: artist.id,
+    name: artist.name,
+    followers: artist.followers.total,
+    popularity: artist.popularity,
+    images: artist.images,
+  }));
   private static failedFetchHandler = ({ status, message }: SpotifyApi.ErrorObject): never => {
     throw new Error(`${status}: ${message}`);
   };
@@ -51,19 +61,49 @@ export class SpotifyAPI {
       const { artists }: SpotifyApi.UsersFollowedArtistsResponse = await fetch(next, this.fetchOptionsForGet)
         .then(res => res.json())
         .catch(SpotifyAPI.failedFetchHandler);
-      const transformedArtistData: ArtistObject[] = artists.items
-        .map(artist => ({
-          _id: artist.id,
-          name: artist.name,
-          followers: artist.followers.total,
-          popularity: artist.popularity,
-          images: artist.images,
-        }));
+      const transformedArtistData: ArtistObject[] = SpotifyAPI.transformToArtistObject(artists.items);
       followedArtists = followedArtists.concat(transformedArtistData);
       next = artists.next;
     }
 
     return followedArtists;
+  }
+
+  /**
+   * Fetch the API for several artists. This concurrently retrieves
+   * the data in batches of `50` (Spotify's maximum limit) in order to
+   * minimize the number of actual requests to the API.
+   * @param ids - List of Spotify artist IDs
+   */
+  async fetchSeveralArtists(ids: string[]): Promise<ArtistObject[]> {
+    if (this.isExpired)
+      await this.refreshAccessToken();
+
+    // Divide the array into sub-arrays with maximum length of 50
+    const batches = await Promise.allSettled(
+      subdivideArray(ids, 50)
+        .map(batch => {
+          const endpoint = SpotifyAPI.formatEndpoint(SpotifyAPI.BASE_ENDPOINT, '/artists', {
+            ids: batch.join(','),
+          });
+          return fetch(endpoint, this.fetchOptionsForGet)
+            .then(res => res.json() as Promise<SpotifyApi.MultipleArtistsResponse>)
+            .catch(SpotifyAPI.failedFetchHandler);
+        }),
+    );
+
+    let artists: ArtistObject[] = [];
+    for (const batch of batches)
+      if (batch.status === 'fulfilled') {
+        const transformedArtists = SpotifyAPI.transformToArtistObject(batch.value.artists);
+        artists = artists.concat(transformedArtists);
+      } else {
+        // TODO: Properly handle failed requests (i.e. in case of rate-limited)
+        const { message }: SpotifyApi.ErrorObject = batch.reason;
+        throw new Error(message);
+      }
+
+    return artists;
   }
 
   /**
