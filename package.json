@@ -24,7 +24,7 @@
     "ejs": "^3.0.2",
     "express": "^4.17.1",
     "express-session": "^1.17.0",
-    "geoip-country": "^4.0.12",
+    "geoip-country": "^4.0.13",
     "helmet": "^3.22.0",
     "mongoose": "^5.9.7",
     "nocache": "^2.1.0",
