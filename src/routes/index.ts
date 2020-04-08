@@ -9,47 +9,34 @@ import geoip from 'geoip-country';
 import { env } from '../loaders/env';
 
 // CONTROLLERS
-import { DataFetcher } from '../controllers/DataFetcher';
+import { DataRetriever } from '../controllers/DataRetriever';
 import { SpotifyAPI } from '../fetchers/Spotify';
 
 // GLOBAL VARIABLES
 const router = express.Router();
-const ONE_WEEK = 60 * 60 * 24 * 7;
 
 router
   .get('/', async (req, res) => {
     // Shorthand for session object
     const { session } = req;
+
     // Reject all users that have not been logged in
-    if (!session?.isLoggedIn) {
+    if (!session?.isLoggedIn || !session?.token) {
       res.render('index');
       return;
     }
 
+    // Initialize followed artists cache if not already
+    session.followedArtists = session.followedArtists ?? {
+      ids: [],
+      retrievalDate: -Infinity,
+    };
+
     // Initialize Spotify fetcher
-    const spotifyFetcher = new SpotifyAPI(req.session!.token!.spotify!);
-
-    // Initialize data fetcher
-    const dataFetcher = new DataFetcher(session.token!.spotify!);
-
-    // Check if there are no cached artists in the session
-    const TODAY = Date.now();
-    if (!(session.followedArtists && session.followedArtists.ids)
-      || session.followedArtists.retrievalDate + ONE_WEEK > TODAY
-    ) {
-      // Fetch followed artists
-      const artists = await dataFetcher._fetchFollowedArtists();
-      const artistIDs = artists.map(artist => artist._id);
-
-      // Cache artist IDs to current session to save on memory
-      session.followedArtists = {
-        ids: artistIDs,
-        retrievalDate: TODAY,
-      };
-    }
+    const retriever = new DataRetriever(new SpotifyAPI(session.token.spotify), session.followedArtists);
 
     // Get releases
-    const releases = await dataFetcher.getReleasesByArtistIDs(session.followedArtists.ids);
+    const releases = await retriever.followedArtists;
     res.render('index', { releases });
   })
   .get('/login', (req, res) => {
@@ -58,10 +45,10 @@ router
     else
       res.redirect(SpotifyAPI.AUTH_ENDPOINT);
   })
-  .get('/callback', async (req, res) => {
+  .get('/callback', async (req: express.Request<{}, {}, {}, AuthorizationResult>, res) => {
     // TODO: Check if request is from Spotify accounts using `state` parameter
     // Check if authorization code exists
-    const authorization = req.query as AuthorizationResult;
+    const authorization = req.query;
     if ('code' in authorization) {
       const token = await SpotifyAPI.exchangeCodeForAccessToken(authorization.code);
 

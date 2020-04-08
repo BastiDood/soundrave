@@ -1,23 +1,9 @@
-/**
- * Source: https://developer.spotify.com/documentation/general/guides/authorization-guide/
- * @typedef {Object} AccessToken
- * @property {string} access_token - An access token that can be provided in subsequent calls,
- * for example to Spotify Web API services.
- * @property {'Bearer'} token_type - How the access token may be used: always “Bearer”.
- * @property {string} scope - A space-separated list of scopes which have been granted for this `access_token`.
- * @property {number} expires_in - The time period (in seconds) for which the access token is valid.
- * @property {string} refresh_token - A token that can be sent to the Spotify Accounts service in place
- * of an authorization code. (When the access code expires, send a POST request to the Accounts service
- * `/api/token` endpoint, but use this code in place of an authorization code. A new access token will be returned.
- * A new refresh token might be returned too.)
- */
-
 // TODO: Handle rate-limited fetches
 // NATIVE IMPORTS
 import querystring from 'querystring';
 
 // DEPENDENCIES
-import fetch, { RequestInit } from 'node-fetch';
+import fetch from 'node-fetch';
 
 // MODELS
 import { Artist, Release } from '../models/Core';
@@ -28,7 +14,7 @@ import { revInsertionSortInDesc } from '../util/revInsertionSortInDesc';
 
 export class DataFetcher {
   #TOKEN: SpotifyAccessToken;
-  #FETCH_OPTIONS: RequestInit;
+  #FETCH_OPTIONS: import('node-fetch').RequestInit;
 
   constructor(token: SpotifyAccessToken) {
     this.#TOKEN = token;
@@ -44,7 +30,7 @@ export class DataFetcher {
     return Promise.allSettled(promises);
   }
 
-  static _cacheReleaseObjects(releases: ReleaseObject[]) {
+  static _cacheReleaseObjects(releases: NonPopulatedReleaseObject[]) {
     const promises = releases.map(release => Release
       .findByIdAndUpdate(release._id, release, { upsert: true })
       .exec());
@@ -60,7 +46,8 @@ export class DataFetcher {
 
     // Retrieve all followed artists
     while (next) {
-      const { artists }: SpotifyApi.UsersFollowedArtistsResponse = await fetch(next, this.#FETCH_OPTIONS).then(res => res.json());
+      const { artists }: SpotifyApi.UsersFollowedArtistsResponse = await fetch(next, this.#FETCH_OPTIONS)
+        .then(res => res.json());
       const transformedArtistData = artists.items
         .map(artist => ({
           _id: artist.id,
@@ -81,8 +68,8 @@ export class DataFetcher {
    * Invoke this method **sparingly**. It greatly contributes to the rate limit.
    * @param id - Spotify Artist ID
    */
-  async _fetchReleasesByArtistID(id: string): Promise<ReleaseObject[]> {
-    let releases: ReleaseObject[] = [];
+  async _fetchReleasesByArtistID(id: string): Promise<NonPopulatedReleaseObject[]> {
+    let releases: NonPopulatedReleaseObject[] = [];
     let next = `https://api.spotify.com/v1/artists/${id}/albums?${querystring.stringify({
       include_groups: 'album,single',
       market: this.#TOKEN.countryCode,
@@ -91,9 +78,10 @@ export class DataFetcher {
 
     // Retrieve all releases by the artist
     while (next) {
-      const json: SpotifyApi.ArtistsAlbumsResponse = await fetch(next, this.#FETCH_OPTIONS).then(res => res.json());
+      const json: SpotifyApi.ArtistsAlbumsResponse = await fetch(next, this.#FETCH_OPTIONS)
+        .then(res => res.json());
 
-      const transformedReleaseData: ReleaseObject[] = json.items
+      const transformedReleaseData: NonPopulatedReleaseObject[] = json.items
         .map(release => ({
           _id: release.id,
           title: release.name,
@@ -136,7 +124,7 @@ export class DataFetcher {
     const settledPromises = await Promise.allSettled(promises);
 
     // Separate successful requests from failed requests
-    const successfulReqs: ReleaseObject[][] = [];
+    const successfulReqs: NonPopulatedReleaseObject[][] = [];
     const failedReqs = [];
     for (const promise of settledPromises)
       if (promise.status === 'fulfilled')
