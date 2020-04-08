@@ -55,7 +55,6 @@ export class SpotifyAPI {
   }
 
   async fetchFollowedArtists(): Promise<ArtistObject[]> {
-    // Check if the token is indeed expired
     if (this.isExpired)
       await this.refreshAccessToken();
 
@@ -93,7 +92,6 @@ export class SpotifyAPI {
    * @param id - Spotify ID of artist
    */
   async fetchReleasesByArtistID(id: string): Promise<NonPopulatedReleaseObject[]> {
-    // Check if the token is indeed expired
     if (this.isExpired)
       await this.refreshAccessToken();
 
