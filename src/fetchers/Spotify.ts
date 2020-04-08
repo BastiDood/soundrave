@@ -15,6 +15,9 @@ import { subdivideArray } from '../util/subdivideArray';
 // TYPE ALIASES
 type RequestInit = import('node-fetch').RequestInit;
 
+// Global Variables
+const FIVE_MINUTES = 5 * 60 * 1e3;
+
 export class SpotifyAPI {
   static readonly REDIRECT_URI = 'http://localhost/callback';
   static readonly API_VERSION = 'v1';
@@ -99,6 +102,7 @@ export class SpotifyAPI {
         artists = artists.concat(transformedArtists);
       } else {
         // TODO: Properly handle failed requests (i.e. in case of rate-limited)
+        // by caching successful requests and throwing failures
         const { message }: SpotifyApi.ErrorObject = batch.reason;
         throw new Error(message);
       }
@@ -204,7 +208,11 @@ export class SpotifyAPI {
     return { ...this.#token };
   }
 
-  get isExpired(): boolean { return Date.now() > this.#token.expiresAt; }
+  /**
+   * Consider tokens that are 5 minutes to expiry as "expired"
+   * and thus eligible to be refreshed.
+   */
+  get isExpired(): boolean { return Date.now() > this.#token.expiresAt - FIVE_MINUTES; }
 
   get fetchOptionsForGet(): RequestInit {
     return {
