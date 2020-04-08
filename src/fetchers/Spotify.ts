@@ -56,7 +56,7 @@ export class SpotifyAPI {
 
   async fetchFollowedArtists(): Promise<ArtistObject[]> {
     // Check if the token is indeed expired
-    if (Date.now() > this.#token.expiresAt)
+    if (this.isExpired)
       await this.refreshAccessToken();
 
     if (!this.#token.scope.includes('user-follow-read'))
@@ -94,7 +94,7 @@ export class SpotifyAPI {
    */
   async fetchReleasesByArtistID(id: string): Promise<NonPopulatedReleaseObject[]> {
     // Check if the token is indeed expired
-    if (Date.now() > this.#token.expiresAt)
+    if (this.isExpired)
       await this.refreshAccessToken();
 
     let releases: NonPopulatedReleaseObject[] = [];
@@ -159,6 +159,8 @@ export class SpotifyAPI {
     const queryStr = stringify(query);
     return url.resolve(base, relative) + (queryStr ? `?${queryStr}` : '');
   }
+
+  get isExpired(): boolean { return Date.now() > this.#token.expiresAt; }
 
   get fetchOptionsForGet(): RequestInit {
     return {
