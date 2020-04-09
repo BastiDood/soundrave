@@ -36,8 +36,14 @@ router
     const retriever = new DataRetriever(new SpotifyAPI(session.token.spotify), session.followedArtists);
 
     // Get releases
-    const releases = await retriever.followedArtists;
-    res.render('index', { releases });
+    const artists = await retriever.followedArtists;
+
+    // TODO: Test if this is still a necessary step
+    // Update session cache
+    session.followedArtists = retriever.followedArtistsCache;
+    session.token.spotify = retriever.tokenCache;
+
+    res.render('index', { artists });
   })
   .get('/login', (req, res) => {
     if (req.session?.isLoggedIn)

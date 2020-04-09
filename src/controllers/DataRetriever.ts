@@ -44,4 +44,7 @@ export class DataRetriever {
       return artists;
     })();
   }
+
+  get followedArtistsCache(): FollowedArtistsCache { return { ...this.#followedArtists }; }
+  get tokenCache(): SpotifyAccessToken { return this.#api.tokenInfo; }
 }

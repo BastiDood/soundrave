@@ -233,4 +233,6 @@ export class SpotifyAPI {
   }
 
   get applicableCountry(): string { return this.#token.countryCode; }
+
+  get tokenInfo(): SpotifyAccessToken { return { ...this.#token }; }
 }
