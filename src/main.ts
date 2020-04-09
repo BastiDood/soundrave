@@ -1,4 +1,7 @@
 // TODO: Update to v0.2.0
+// NATIVE IMPORT
+import path from 'path';
+
 // DEPENDENCIES
 import connectMongo from 'connect-mongo';
 import cors from 'cors';
@@ -66,7 +69,7 @@ app.use(session({
 }));
 
 // Set public files directory
-app.use(express.static('public', {
+app.use(express.static(path.join(__dirname, 'public'), {
   cacheControl: false,
   dotfiles: 'ignore',
   index: false,
