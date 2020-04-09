@@ -1,7 +1,5 @@
 // NATIVE IMPORTS
-import { posix as path } from 'path';
-import { stringify } from 'querystring';
-import url from 'url';
+import { URLSearchParams } from 'url';
 
 // DEPENDENCIES
 import fetch from 'node-fetch';
@@ -10,6 +8,7 @@ import fetch from 'node-fetch';
 import { env } from '../loaders/env';
 
 // UTILITY FUNCTIONS
+import { formatEndpoint } from '../util/formatEndpoint';
 import { subdivideArray } from '../util/subdivideArray';
 
 // TYPE ALIASES
@@ -22,15 +21,16 @@ export class SpotifyAPI {
   static readonly REDIRECT_URI = 'http://localhost/callback';
   static readonly API_VERSION = 'v1';
   static readonly BASE_ENDPOINT = 'https://api.spotify.com';
+  static readonly MAIN_API_ENDPOINT = formatEndpoint(SpotifyAPI.BASE_ENDPOINT, SpotifyAPI.API_VERSION);
   static readonly ACCOUNTS_ENDPOINT = 'https://accounts.spotify.com';
   static readonly RESOURCE_ENDPOINT = 'https://open.spotify.com';
-  static readonly AUTH_ENDPOINT = SpotifyAPI.formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/authorize', {
+  static readonly AUTH_ENDPOINT = formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/authorize', {
     client_id: env.CLIENT_ID,
     response_type: 'code',
     redirect_uri: SpotifyAPI.REDIRECT_URI,
     scope: 'user-follow-read',
   });
-  static readonly TOKEN_ENDPOINT = SpotifyAPI.formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/api/token');
+  static readonly TOKEN_ENDPOINT = formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/api/token');
 
   private static transformToArtistObject = (artists: SpotifyApi.ArtistObjectFull[]): ArtistObject[] => artists.map(artist => ({
     _id: artist.id,
@@ -55,7 +55,7 @@ export class SpotifyAPI {
       throw new Error('Access token does not have the permission to read list of followers.');
 
     let followedArtists: ArtistObject[] = [];
-    let next = SpotifyAPI.formatEndpoint(SpotifyAPI.BASE_ENDPOINT, '/me/following', {
+    let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/me/following', {
       type: 'artist',
       limit: '50',
     });
@@ -87,7 +87,7 @@ export class SpotifyAPI {
     const batches = await Promise.allSettled(
       subdivideArray(ids, 50)
         .map(batch => {
-          const endpoint = SpotifyAPI.formatEndpoint(SpotifyAPI.BASE_ENDPOINT, '/artists', {
+          const endpoint = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/artists', {
             ids: batch.join(','),
           });
           return fetch(endpoint, this.fetchOptionsForGet)
@@ -120,7 +120,7 @@ export class SpotifyAPI {
       await this.refreshAccessToken();
 
     const releases: NonPopulatedReleaseObject[] = [];
-    let next = SpotifyAPI.formatEndpoint(SpotifyAPI.BASE_ENDPOINT, `/artists/${id}/albums`, {
+    let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
       include_groups: 'album,single',
       market: this.#token.countryCode,
       limit: '50',
@@ -160,7 +160,7 @@ export class SpotifyAPI {
   static async exchangeCodeForAccessToken(code: string): Promise<OAuthToken> {
     const token = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
       method: 'POST',
-      body: new url.URLSearchParams({
+      body: new URLSearchParams({
         code,
         grant_type: 'authorization_code',
         redirect_uri: SpotifyAPI.REDIRECT_URI,
@@ -175,24 +175,12 @@ export class SpotifyAPI {
 
   // TODO: Move this into a Mongoose virtual
   static getURLfromArtist(artist: ArtistObject): string {
-    return SpotifyAPI.formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/artist/${artist._id}`);
+    return formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/artist/${artist._id}`);
   }
 
   // TODO: Move this into a Mongoose virtual
   static getURLfromRelease(release: ReleaseObject): string {
-    return SpotifyAPI.formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/album/${release._id}`);
-  }
-
-  /**
-   * Format a full URL to the Spotify API given an endpoint and
-   * some query parameters.
-   * @param endpoint - Spotify endpoint to be accessed
-   * @param query - Record representing the query parameters of the request
-   */
-  private static formatEndpoint(base: string, endpoint: string, query?: Record<string, string>): string {
-    const relative = path.join(SpotifyAPI.API_VERSION, endpoint);
-    const queryStr = stringify(query);
-    return url.resolve(base, relative) + (queryStr ? `?${queryStr}` : '');
+    return formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/album/${release._id}`);
   }
 
   /** Refresh the token associated with this instance. */
@@ -202,7 +190,7 @@ export class SpotifyAPI {
     const newToken: OAuthToken = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
       method: 'POST',
       headers: { Authorization: `Basic ${credentials}` },
-      body: new url.URLSearchParams({
+      body: new URLSearchParams({
         grant_type: 'refresh_token',
         refresh_token: this.#token.refreshToken,
       }),
