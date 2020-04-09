@@ -26,7 +26,7 @@ const app = express();
 // Set render engine
 app
   .set('view engine', 'ejs')
-  .set('views', 'src/views');
+  .set('views', path.join(__dirname, 'src/views'));
 
 // Activate security headers
 app
