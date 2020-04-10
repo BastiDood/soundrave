@@ -85,6 +85,7 @@ mongoose.connect(env.MONGO_DB_CACHE_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useFindAndModify: false,
+  useCreateIndex: true,
 })
   .then(() => {
     // Log successful connection
