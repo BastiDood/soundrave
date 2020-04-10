@@ -17,7 +17,6 @@ export class Cache {
   }
 
   static async retrieveArtists(ids: string[]): Promise<ArtistObject[]> {
-    // @ts-ignore
     const artists: ArtistObject[] = await Artist
       .find({ _id: { $in: ids } })
       .lean()

@@ -54,7 +54,9 @@ declare interface SpotifyAccessToken {
   countryCode: string;
 }
 
-declare interface ArtistObject {
+type MongoDocument = import('mongoose').Document;
+
+declare interface MongoArtistObject extends MongoDocument {
   /** Spotify ID of the artist */
   _id: string;
   name: string;
@@ -64,7 +66,9 @@ declare interface ArtistObject {
   images: SpotifyApi.ImageObject[];
 }
 
-interface ReleaseObject {
+type ArtistObject = Pick<MongoArtistObject, '_id'|'name'|'followers'|'popularity'|'images'>;
+
+interface MongoReleaseObject extends MongoDocument {
   /** Spotify ID of the release */
   _id: string;
   title: string;
@@ -78,15 +82,20 @@ interface ReleaseObject {
   images: SpotifyApi.ImageObject[];
 }
 
-declare interface NonPopulatedReleaseObject extends ReleaseObject {
+declare interface MongoNonPopulatedReleaseObject extends MongoReleaseObject {
   /** Spotify IDs of artists */
   artists: string[];
 }
 
-declare interface PopulatedReleaseObject extends ReleaseObject {
+type ReleaseObjectKeys = '_id'|'title'|'albumType'|'releaseDate'|'datePrecision'|'availableCountries'|'images'|'artists';
+type NonPopulatedReleaseObject = Pick<MongoNonPopulatedReleaseObject, ReleaseObjectKeys>;
+
+declare interface MongoPopulatedReleaseObject extends MongoReleaseObject {
   /** Spotify object representation of artists */
   artists: ArtistObject[];
 }
+
+type PopulatedReleaseObject = Pick<MongoPopulatedReleaseObject, ReleaseObjectKeys>;
 
 declare interface FollowedArtistsCache {
   /** List of cached Spotify artist IDs. */

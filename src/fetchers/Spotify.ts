@@ -179,7 +179,7 @@ export class SpotifyAPI {
   }
 
   // TODO: Move this into a Mongoose virtual
-  static getURLfromRelease(release: ReleaseObject): string {
+  static getURLfromRelease(release: PopulatedReleaseObject|NonPopulatedReleaseObject): string {
     return formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/album/${release._id}`);
   }
 

@@ -25,5 +25,5 @@ const ReleaseSchema = new mongoose.Schema({
   artists: { type: [ { type: String, ref: 'Artist', required: true } ], required: true },
 });
 
-export const Artist = mongoose.model('Artist', ArtistSchema);
-export const Release = mongoose.model('Release', ReleaseSchema);
+export const Artist = mongoose.model<MongoArtistObject>('Artist', ArtistSchema);
+export const Release = mongoose.model<MongoNonPopulatedReleaseObject>('Release', ReleaseSchema);
