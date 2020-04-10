@@ -56,11 +56,6 @@ const node = {
         use: 'eslint-loader',
         exclude: nodeModulesPattern,
       },
-      // {
-      //   test: /\.test\.tsx?$/,
-      //   use: [ 'mocha-loader', 'ts-loader' ],
-      //   exclude: nodeModulesPattern,
-      // },
       {
         test: /(?<!\.test)\.tsx?$/,
         use: 'ts-loader',
@@ -69,10 +64,6 @@ const node = {
     ],
   },
   resolve: {
-    alias: {
-      public: path.resolve(__dirname, 'public'),
-      views: path.resolve(__dirname, 'src/views/'),
-    },
     extensions: [ '.tsx', '.ts', '.js', '.css', '.hbs' ],
   },
   plugins: [
