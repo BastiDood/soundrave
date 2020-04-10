@@ -6,6 +6,7 @@ import path from 'path';
 import connectMongo from 'connect-mongo';
 import cors from 'cors';
 import express from 'express';
+import exphbs from 'express-handlebars';
 import helmet from 'helmet';
 import mongoose from 'mongoose';
 import noCache from 'nocache';
@@ -25,8 +26,9 @@ const app = express();
 
 // Set render engine
 app
-  .set('view engine', 'ejs')
-  .set('views', path.join(__dirname, 'src/views'));
+  .engine('hbs', exphbs({ extname: '.hbs', defaultLayout: 'main' }))
+  .set('view engine', 'hbs')
+  .set('views', path.join(__dirname, 'views'));
 
 // Activate security headers
 app
@@ -69,7 +71,7 @@ app.use(session({
 }));
 
 // Set public files directory
-app.use(express.static(path.join(__dirname, 'public'), {
+app.use(express.static(path.join(__dirname, '../public'), {
   cacheControl: false,
   dotfiles: 'ignore',
   index: false,
