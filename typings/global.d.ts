@@ -24,7 +24,7 @@ declare interface OAuthToken {
   /** The time period (in seconds) for which the access token is valid. */
   expires_in: number;
   /** A token that can be sent to the Spotify Accounts service in place of an authorization code. */
-  refresh_token?: string;
+  refresh_token: string;
 }
 
 interface Authorization {

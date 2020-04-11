@@ -187,7 +187,7 @@ export class SpotifyAPI {
   private async refreshAccessToken(): Promise<SpotifyAccessToken> {
     // Retrieve new access token
     const credentials = Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64');
-    const newToken: OAuthToken = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
+    const newToken: Omit<OAuthToken, 'refresh_token'> = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
       method: 'POST',
       headers: { Authorization: `Basic ${credentials}` },
       body: new URLSearchParams({
