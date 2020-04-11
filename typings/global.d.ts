@@ -82,12 +82,13 @@ interface MongoReleaseObject extends MongoDocument {
   images: SpotifyApi.ImageObject[];
 }
 
+type ReleaseObjectKeys = '_id'|'title'|'albumType'|'releaseDate'|'datePrecision'|'availableCountries'|'images'|'artists';
+
 declare interface MongoNonPopulatedReleaseObject extends MongoReleaseObject {
   /** Spotify IDs of artists */
   artists: string[];
 }
 
-type ReleaseObjectKeys = '_id'|'title'|'albumType'|'releaseDate'|'datePrecision'|'availableCountries'|'images'|'artists';
 type NonPopulatedReleaseObject = Pick<MongoNonPopulatedReleaseObject, ReleaseObjectKeys>;
 
 declare interface MongoPopulatedReleaseObject extends MongoReleaseObject {
