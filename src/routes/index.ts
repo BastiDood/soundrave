@@ -66,7 +66,7 @@ router
       const ONE_HOUR = token.expires_in * 1e3;
       req.session!.token!.spotify = {
         accessToken: token.access_token,
-        refreshToken: token.refresh_token!,
+        refreshToken: token.refresh_token,
         scope: token.scope,
         expiresAt: Date.now() + ONE_HOUR,
         countryCode: geoip.lookup(req.ip)?.country ?? env.DEFAULT_COUNTRY,
