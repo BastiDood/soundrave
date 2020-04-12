@@ -6,6 +6,13 @@ const ImageSchema = new mongoose.Schema({
   url: { type: String, required: true },
 });
 
+const UserSchema = new mongoose.Schema({
+  _id: { type: String, required: true },
+  name: { type: String, required: true },
+  country: { type: String, required: true },
+  images: [ { type: ImageSchema, required: true } ],
+});
+
 const ArtistSchema = new mongoose.Schema({
   _id: { type: String, required: true },
   name: { type: String, required: true },
@@ -25,5 +32,6 @@ const ReleaseSchema = new mongoose.Schema({
   artists: { type: [ { type: String, ref: 'Artist', required: true } ], required: true },
 });
 
+export const User = mongoose.model<MongoUserObject>('User', UserSchema);
 export const Artist = mongoose.model<MongoArtistObject>('Artist', ArtistSchema);
 export const Release = mongoose.model<MongoNonPopulatedReleaseObject>('Release', ReleaseSchema);

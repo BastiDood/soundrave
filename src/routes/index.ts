@@ -1,16 +1,14 @@
 // NATIVE IMPORTS
+import assert from 'assert';
 import { promisify } from 'util';
 
 // DEPENDENCIES
 import express from 'express';
-import geoip from 'geoip-country';
-
-// LOADERS
-import { env } from '../loaders/env';
 
 // CONTROLLERS
 import { DataRetriever } from '../controllers/DataRetriever';
 import { SpotifyAPI } from '../fetchers/Spotify';
+import { SessionCache } from '../../typings/global-plugin';
 
 // GLOBAL VARIABLES
 const router = express.Router();
@@ -21,29 +19,22 @@ router
     const { session } = req;
 
     // Reject all users that have not been logged in
-    if (!session?.isLoggedIn || !session?.token) {
+    if (!session?.isLoggedIn
+      || !session?.token
+      || !session?.cache?.followedArtists
+      || !session?.cache?.user
+    ) {
       res.render('index');
       return;
     }
 
-    // Initialize followed artists cache if not already
-    session.followedArtists = session.followedArtists ?? {
-      ids: [],
-      retrievalDate: -Infinity,
-    };
-
     // Initialize Spotify fetcher
-    const retriever = new DataRetriever(new SpotifyAPI(session.token.spotify), session.followedArtists);
+    const retriever = new DataRetriever(new SpotifyAPI(session.token.spotify), session.cache as Required<SessionCache>);
+    const artistObjects = await retriever.getFollowedArtists();
 
-    // Get releases
-    const artists = await retriever.followedArtists;
+    // TODO: Get releases
 
-    // TODO: Test if this is still a necessary step
-    // Update session cache
-    session.followedArtists = retriever.followedArtistsCache;
-    session.token.spotify = retriever.tokenCache;
-
-    res.render('index', { artists });
+    res.render('index', { artists: artistObjects.artists });
   })
   .get('/login', (req, res) => {
     if (req.session?.isLoggedIn)
@@ -54,26 +45,54 @@ router
   .get('/callback', async (req: express.Request<{}, {}, {}, AuthorizationResult>, res) => {
     // TODO: Check if request is from Spotify accounts using `state` parameter
     // Check if authorization code exists
+    const { session } = req;
     const authorization = req.query;
-    if ('code' in authorization) {
+    if (session && 'code' in authorization) {
+      // Exchange the authorization code for an access token
       const token = await SpotifyAPI.exchangeCodeForAccessToken(authorization.code);
 
       // Generate new session when the user logs in
-      await promisify(req.session!.regenerate.bind(req.session))();
+      await promisify(session.regenerate.bind(req.session))();
 
       // TODO: Use refresh tokens. Do not log user out after expiry.
-      // Set session data
+      // Initialize session data
       const ONE_HOUR = token.expires_in * 1e3;
-      req.session!.token!.spotify = {
+      session.token = Object.create(null);
+      assert(session.token);
+      session.token.spotify = {
         accessToken: token.access_token,
         refreshToken: token.refresh_token,
         scope: token.scope,
         expiresAt: Date.now() + ONE_HOUR,
-        countryCode: geoip.lookup(req.ip)?.country ?? env.DEFAULT_COUNTRY,
+        // This country code is an initial guess to the country.
+        // The real country code shall be determined by Spotify's API.
+        // countryCode: geoip.lookup(req.ip)?.country ?? env.DEFAULT_COUNTRY,
       };
-      req.session!.cookie.maxAge = ONE_HOUR;
-      req.session!.isLoggedIn = true;
-      await promisify(req.session!.save.bind(req.session))();
+      session.cookie.maxAge = ONE_HOUR;
+      session.isLoggedIn = true;
+
+      // Initialize session cache
+      session.cache = Object.create(null);
+      assert(session.cache);
+      session.cache.followedArtists = {
+        ids: [],
+        retrievalDate: -Infinity,
+      };
+      assert(session.cache.followedArtists);
+      session.cache.user = Object.create(null);
+      assert(session.cache.user);
+
+      // Retrieve the real country code
+      const api = new SpotifyAPI(session.token.spotify);
+      const user = await api.fetchUserProfile();
+      session.cache.user.country = user.country;
+
+      // Retrieve followed artists
+      const retriever = new DataRetriever(new SpotifyAPI(session.token.spotify), session.cache as Required<SessionCache>);
+      session.cache.followedArtists = await retriever.getFollowedArtistIDs();
+
+      // Explicitly save session data due to redirect
+      await promisify(session.save.bind(req.session))();
     }
 
     // TODO: Handle error if `error in authorization`

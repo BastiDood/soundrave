@@ -50,11 +50,21 @@ declare interface SpotifyAccessToken {
   scope: string;
   /** Expiry date (in milliseconds since Unix Epoch) */
   expiresAt: number;
-  /** ISO 3166-1 alpha-2 Country Code */
-  countryCode: string;
 }
 
 type MongoDocument = import('mongoose').Document;
+
+declare interface MongoUserObject extends MongoDocument {
+  /** Spotify ID of the user */
+  _id: string;
+  /** Display name in Spotify */
+  name: string;
+  /** ISO 3166-1 alpha-2 country code in which the user registered from */
+  country: string;
+  images: SpotifyApi.ImageObject[];
+}
+
+type UserObject = Pick<MongoUserObject, '_id'|'name'|'country'|'images'>;
 
 declare interface MongoArtistObject extends MongoDocument {
   /** Spotify ID of the artist */
@@ -77,7 +87,7 @@ interface MongoReleaseObject extends MongoDocument {
   releaseDate: number;
   /** Determines precision of date */
   datePrecision: 'year'|'month'|'day';
-  /** ISO 3166-1 alpha-2 Country Codes of countries in which the release is available */
+  /** ISO 3166-1 alpha-2 country codes of countries in which the release is available */
   availableCountries: string[];
   images: SpotifyApi.ImageObject[];
 }
@@ -97,10 +107,3 @@ declare interface MongoPopulatedReleaseObject extends MongoReleaseObject {
 }
 
 type PopulatedReleaseObject = Pick<MongoPopulatedReleaseObject, ReleaseObjectKeys>;
-
-declare interface FollowedArtistsCache {
-  /** List of cached Spotify artist IDs. */
-  ids: string[];
-  /** Last retrieval date (in milliseconds since UNIX epoch). */
-  retrievalDate: number;
-}

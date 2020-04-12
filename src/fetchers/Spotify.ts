@@ -28,7 +28,7 @@ export class SpotifyAPI {
     client_id: env.CLIENT_ID,
     response_type: 'code',
     redirect_uri: SpotifyAPI.REDIRECT_URI,
-    scope: 'user-follow-read',
+    scope: 'user-follow-read user-read-email user-read-private',
   });
   static readonly TOKEN_ENDPOINT = formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/api/token');
 
@@ -74,6 +74,48 @@ export class SpotifyAPI {
   }
 
   /**
+   * Get all the releases from a specific artist.
+   * @param id - Spotify ID of artist
+   * @param market - ISO 3166-1 alpha-2 country code
+   */
+  async fetchReleasesByArtistID(id: string, market: string): Promise<NonPopulatedReleaseObject[]> {
+    if (this.isExpired)
+      await this.refreshAccessToken();
+
+    const releases: NonPopulatedReleaseObject[] = [];
+    let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
+      market,
+      include_groups: 'album,single',
+      limit: '50',
+    });
+
+    // Keep retrieving until pagination stops
+    while (next) {
+      const json: SpotifyApi.ArtistsAlbumsResponse = await fetch(next, this.fetchOptionsForGet)
+        .then(res => res.json())
+        .catch(SpotifyAPI.failedFetchHandler);
+
+      for (const release of json.items)
+        // Only include releases that are available in at least one country
+        if (release.available_markets)
+          releases.push({
+            _id: release.id,
+            title: release.name,
+            albumType: release.album_type as 'album'|'single'|'compilation',
+            releaseDate: Number(Date.parse(release.release_date)),
+            datePrecision: release.release_date_precision as 'year'|'month'|'day',
+            availableCountries: release.available_markets,
+            images: release.images,
+            artists: release.artists.map(artist => artist.id),
+          });
+
+      next = json.next;
+    }
+
+    return releases;
+  }
+
+  /**
    * Fetch the API for several artists. This concurrently retrieves
    * the data in batches of `50` (Spotify's maximum limit) in order to
    * minimize the number of actual requests to the API.
@@ -111,45 +153,23 @@ export class SpotifyAPI {
     return artists;
   }
 
-  /**
-   * Get all the releases from a specific artist.
-   * @param id - Spotify ID of artist
-   */
-  async fetchReleasesByArtistID(id: string): Promise<NonPopulatedReleaseObject[]> {
-    if (this.isExpired)
-      await this.refreshAccessToken();
+  async fetchUserProfile(): Promise<UserObject> {
+    const scopePermissions = this.#token.scope.split(' ');
+    if (!scopePermissions.includes('user-read-private') || !scopePermissions.includes('user-read-email'))
+      throw new Error('Access token does not have the permission to read the user\'s profile.');
 
-    const releases: NonPopulatedReleaseObject[] = [];
-    let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
-      include_groups: 'album,single',
-      market: this.#token.countryCode,
-      limit: '50',
-    });
+    const endpoint = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/me');
+    const user: SpotifyApi.UserObjectPrivate = await fetch(endpoint, this.fetchOptionsForGet)
+      .then(res => res.json())
+      .catch(SpotifyAPI.failedFetchHandler);
 
-    // Keep retrieving until pagination stops
-    while (next) {
-      const json: SpotifyApi.ArtistsAlbumsResponse = await fetch(next, this.fetchOptionsForGet)
-        .then(res => res.json())
-        .catch(SpotifyAPI.failedFetchHandler);
-
-      for (const release of json.items)
-        // Only include releases that are available in at least one country
-        if (release.available_markets)
-          releases.push({
-            _id: release.id,
-            title: release.name,
-            albumType: release.album_type as 'album'|'single'|'compilation',
-            releaseDate: Number(Date.parse(release.release_date)),
-            datePrecision: release.release_date_precision as 'year'|'month'|'day',
-            availableCountries: release.available_markets,
-            images: release.images,
-            artists: release.artists.map(artist => artist.id),
-          });
-
-      next = json.next;
-    }
-
-    return releases;
+    return {
+      _id: user.id,
+      name: user.display_name ?? 'User',
+      country: user.country,
+      // TODO: Add a default profile picture
+      images: user.images ?? [],
+    };
   }
 
   /**
@@ -219,8 +239,6 @@ export class SpotifyAPI {
       headers: { Authorization: `Bearer ${this.#token.accessToken}` },
     };
   }
-
-  get applicableCountry(): string { return this.#token.countryCode; }
 
   get tokenInfo(): SpotifyAccessToken { return { ...this.#token }; }
 }
