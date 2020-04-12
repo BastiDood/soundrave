@@ -8,7 +8,6 @@ import express from 'express';
 // CONTROLLERS
 import { DataRetriever } from '../controllers/DataRetriever';
 import { SpotifyAPI } from '../fetchers/Spotify';
-import { SessionCache } from '../../typings/global-plugin';
 
 // GLOBAL VARIABLES
 const router = express.Router();
@@ -64,9 +63,6 @@ router
         refreshToken: token.refresh_token,
         scope: token.scope,
         expiresAt: Date.now() + ONE_HOUR,
-        // This country code is an initial guess to the country.
-        // The real country code shall be determined by Spotify's API.
-        // countryCode: geoip.lookup(req.ip)?.country ?? env.DEFAULT_COUNTRY,
       };
       session.cookie.maxAge = ONE_HOUR;
       session.isLoggedIn = true;

@@ -1,17 +1,11 @@
-declare module 'geoip-country' {
-  type IPRanges = [ number, number ];
-  interface LookupResult {
-    /** [ <low IP range>, <high IP range> ] */
-    range: [ number, number ];
-    /** 2-letter ISO-3166-1 country code */
-    country: string;
-  }
-
-  /** @param ip - Valid IP address string */
-  function lookup(ip: string): LookupResult|null;
-
-  /** @param ip - Valid IP address string */
-  function pretty(ip: string): string;
+interface SessionCache {
+  user?: UserObject;
+  followedArtists?: {
+    /** List of cached Spotify artist IDs. */
+    ids: string[];
+  /** Last retrieval date (in milliseconds since UNIX epoch). */
+    retrievalDate: number;
+  };
 }
 
 declare interface OAuthToken {
