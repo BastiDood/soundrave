@@ -53,7 +53,7 @@ router
       // Generate new session when the user logs in
       await promisify(session.regenerate.bind(req.session))();
 
-      // TODO: Use refresh tokens. Do not log user out after expiry.
+      // TODO: Notify route-scope if the token has been refreshed
       // Initialize session data
       const ONE_HOUR = token.expires_in * 1e3;
       session.token = Object.create(null);

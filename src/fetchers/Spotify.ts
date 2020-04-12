@@ -32,25 +32,11 @@ export class SpotifyAPI {
   });
   static readonly TOKEN_ENDPOINT = formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/api/token');
 
-  private static transformToArtistObject = (artists: SpotifyApi.ArtistObjectFull[]): ArtistObject[] => artists.map(artist => ({
-    _id: artist.id,
-    name: artist.name,
-    followers: artist.followers.total,
-    popularity: artist.popularity,
-    images: artist.images,
-  }));
-  private static failedFetchHandler = ({ status, message }: SpotifyApi.ErrorObject): never => {
-    throw new Error(`${status}: ${message}`);
-  };
-
   #token: SpotifyAccessToken;
 
   constructor(token: SpotifyAccessToken) { this.#token = token; }
 
   async fetchFollowedArtists(): Promise<ArtistObject[]> {
-    if (this.isExpired)
-      await this.refreshAccessToken();
-
     if (!this.#token.scope.includes('user-follow-read'))
       throw new Error('Access token does not have the permission to read list of followers.');
 
@@ -79,9 +65,6 @@ export class SpotifyAPI {
    * @param market - ISO 3166-1 alpha-2 country code
    */
   async fetchReleasesByArtistID(id: string, market: string): Promise<NonPopulatedReleaseObject[]> {
-    if (this.isExpired)
-      await this.refreshAccessToken();
-
     const releases: NonPopulatedReleaseObject[] = [];
     let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
       market,
@@ -122,9 +105,6 @@ export class SpotifyAPI {
    * @param ids - List of Spotify artist IDs
    */
   async fetchSeveralArtists(ids: string[]): Promise<ArtistObject[]> {
-    if (this.isExpired)
-      await this.refreshAccessToken();
-
     // Divide the array into sub-arrays with maximum length of 50
     const batches = await Promise.allSettled(
       subdivideArray(ids, 50)
@@ -172,6 +152,30 @@ export class SpotifyAPI {
     };
   }
 
+  /** Refresh the token associated with this instance. */
+  async refreshAccessToken(): Promise<SpotifyAccessToken> {
+    // Retrieve new access token
+    const credentials = Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64');
+    const newToken: Omit<OAuthToken, 'refresh_token'> = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
+      method: 'POST',
+      headers: { Authorization: `Basic ${credentials}` },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: this.#token.refreshToken,
+      }),
+    })
+      .then(res => res.json())
+      .catch(SpotifyAPI.failedFetchHandler);
+
+    // Update token
+    this.#token.accessToken = newToken.access_token;
+    this.#token.scope = newToken.scope;
+    this.#token.expiresAt = Date.now() + newToken.expires_in * 1e3;
+
+    // Use spread operator in order to clone the object
+    return { ...this.#token };
+  }
+
   /**
    * Utility function for exchanging an authorization code for
    * an access token.
@@ -203,29 +207,18 @@ export class SpotifyAPI {
     return formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/album/${release._id}`);
   }
 
-  /** Refresh the token associated with this instance. */
-  private async refreshAccessToken(): Promise<SpotifyAccessToken> {
-    // Retrieve new access token
-    const credentials = Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64');
-    const newToken: Omit<OAuthToken, 'refresh_token'> = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
-      method: 'POST',
-      headers: { Authorization: `Basic ${credentials}` },
-      body: new URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: this.#token.refreshToken,
-      }),
-    })
-      .then(res => res.json())
-      .catch(SpotifyAPI.failedFetchHandler);
+  private static transformToArtistObject = (artists: SpotifyApi.ArtistObjectFull[]): ArtistObject[] => artists.map(artist => ({
+    _id: artist.id,
+    name: artist.name,
+    followers: artist.followers.total,
+    popularity: artist.popularity,
+    images: artist.images,
+  }));
 
-    // Update token
-    this.#token.accessToken = newToken.access_token;
-    this.#token.scope = newToken.scope;
-    this.#token.expiresAt = Date.now() + newToken.expires_in * 1e3;
-
-    // Use spread operator in order to clone the object
-    return { ...this.#token };
-  }
+  // TODO: Ensure that the error is indeed bubbled up to route-level
+  private static failedFetchHandler = ({ status, message }: SpotifyApi.ErrorObject): never => {
+    throw new Error(`${status}: ${message}`);
+  };
 
   /**
    * Consider tokens that are 5 minutes to expiry as "expired"
