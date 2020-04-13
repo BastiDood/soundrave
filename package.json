@@ -1,8 +1,17 @@
 {
   "name": "spotify-timeline",
   "version": "0.1.0",
+  "homepage": "https://github.com/Some-Dood/spotify-timeline",
   "description": "This is an app that plops down recent releases from your followed artists.",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Some-Dood/spotify-timeline.git"
+  },
   "main": "build/server/main.js",
+  "bugs": {
+    "url": "https://github.com/Some-Dood/spotify-timeline/issues"
+  },
   "scripts": {
     "build": "webpack --config webpack.prod.js",
     "lint": "eslint src/**/*.ts tests/**/*.test.ts",
