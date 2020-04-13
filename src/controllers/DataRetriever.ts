@@ -1,7 +1,6 @@
 // CACHE
 import { Cache } from '../db/Cache';
 import { SpotifyAPI } from '../fetchers/Spotify';
-import { SessionCache } from '../../typings/global-plugin';
 
 // GLOBAL VARIABLES
 const THREE_DAYS = 3 * 24 * 60 * 60 * 1e3;
