@@ -12,6 +12,8 @@ import { SpotifyAPI } from '../fetchers/Spotify';
 // GLOBAL VARIABLES
 const router = express.Router();
 
+// TODO: Catch and handle bubbled events
+
 router
   .get('/', async (req, res) => {
     // Shorthand for session object

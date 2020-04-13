@@ -49,8 +49,7 @@ export class SpotifyAPI {
     // Keep retrieving until pagination stops
     while (next) {
       const { artists }: SpotifyApi.UsersFollowedArtistsResponse = await fetch(next, this.fetchOptionsForGet)
-        .then(res => res.json())
-        .catch(SpotifyAPI.failedFetchHandler);
+        .then(res => res.json());
       const transformedArtistData: ArtistObject[] = SpotifyAPI.transformToArtistObject(artists.items);
       followedArtists = followedArtists.concat(transformedArtistData);
       next = artists.next;
@@ -75,8 +74,7 @@ export class SpotifyAPI {
     // Keep retrieving until pagination stops
     while (next) {
       const json: SpotifyApi.ArtistsAlbumsResponse = await fetch(next, this.fetchOptionsForGet)
-        .then(res => res.json())
-        .catch(SpotifyAPI.failedFetchHandler);
+        .then(res => res.json());
 
       for (const release of json.items)
         // Only include releases that are available in at least one country
@@ -113,8 +111,7 @@ export class SpotifyAPI {
             ids: batch.join(','),
           });
           return fetch(endpoint, this.fetchOptionsForGet)
-            .then(res => res.json() as Promise<SpotifyApi.MultipleArtistsResponse>)
-            .catch(SpotifyAPI.failedFetchHandler);
+            .then(res => res.json() as Promise<SpotifyApi.MultipleArtistsResponse>);
         }),
     );
 
@@ -140,8 +137,7 @@ export class SpotifyAPI {
 
     const endpoint = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/me');
     const user: SpotifyApi.UserObjectPrivate = await fetch(endpoint, this.fetchOptionsForGet)
-      .then(res => res.json())
-      .catch(SpotifyAPI.failedFetchHandler);
+      .then(res => res.json());
 
     return {
       _id: user.id,
@@ -164,8 +160,7 @@ export class SpotifyAPI {
         refresh_token: this.#token.refreshToken,
       }),
     })
-      .then(res => res.json())
-      .catch(SpotifyAPI.failedFetchHandler);
+      .then(res => res.json());
 
     // Update token
     this.#token.accessToken = newToken.access_token;
@@ -192,8 +187,7 @@ export class SpotifyAPI {
         client_secret: env.CLIENT_SECRET,
       }),
     })
-      .then(res => res.json() as Promise<OAuthToken>)
-      .catch(SpotifyAPI.failedFetchHandler);
+      .then(res => res.json() as Promise<OAuthToken>);
     return token;
   }
 
@@ -214,11 +208,6 @@ export class SpotifyAPI {
     popularity: artist.popularity,
     images: artist.images,
   }));
-
-  // TODO: Ensure that the error is indeed bubbled up to route-level
-  private static failedFetchHandler = ({ status, message }: SpotifyApi.ErrorObject): never => {
-    throw new Error(`${status}: ${message}`);
-  };
 
   /**
    * Consider tokens that are 5 minutes to expiry as "expired"
