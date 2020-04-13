@@ -1,6 +1,8 @@
 // MODELS
 import { User, Artist, Release } from '../models/Core';
 
+// TODO: Handle `ETag` headers for caching
+
 export class Cache {
   static async writeUserObject(user: UserObject): Promise<void> {
     await User

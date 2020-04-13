@@ -33,7 +33,7 @@ router
     const retriever = new DataRetriever(new SpotifyAPI(session.token.spotify), session.cache as Required<SessionCache>);
     const artistObjects = await retriever.getFollowedArtists();
 
-    // TODO: Get releases
+    // TODO: Get releases from artists
 
     res.render('index', { artists: artistObjects.artists });
   })

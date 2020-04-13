@@ -1,4 +1,3 @@
-// TODO: Add tests for array subdivision
 import { subdivideArray } from '../../src/util/subdivideArray';
 
 describe('Divide into equal partitions', () => {
