@@ -201,6 +201,11 @@ export class SpotifyAPI {
     return formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/album/${release._id}`);
   }
 
+  // TODO: Move this into a Mongoose virtual
+  static getURLfromUser(user: UserObject): string {
+    return formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/user/${user._id}`);
+  }
+
   private static transformToArtistObject = (artists: SpotifyApi.ArtistObjectFull[]): ArtistObject[] => artists.map(artist => ({
     _id: artist.id,
     name: artist.name,
