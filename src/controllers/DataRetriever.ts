@@ -71,10 +71,19 @@ export class DataRetriever {
   }
 
   async getReleases(): Promise<PopulatedReleaseObject[]> {
-    // TODO: Fetch from API if needed
     // TODO: Check to see if any of the artists are not in the database
+
+    const { country } = this.#sessionCache.user;
+
+    if (!this.isStale) {
+      const ids = this.#sessionCache.followedArtists.ids;
+      return Cache.retrieveReleasesFromArtists(ids, country);
+    }
+
     const { artists } = await this.getFollowedArtists();
     const ids = artists.map(artist => artist._id);
-    return Cache.retrieveReleasesFromArtists(ids, this.#sessionCache.user.country);
+
+    // TODO: Fetch from API if needed
+    return Cache.retrieveReleasesFromArtists(ids, country);
   }
 }
