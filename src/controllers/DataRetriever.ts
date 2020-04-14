@@ -72,6 +72,7 @@ export class DataRetriever {
 
   async getReleases(): Promise<PopulatedReleaseObject[]> {
     // TODO: Fetch from API if needed
+    // TODO: Check to see if any of the artists are not in the database
     const { artists } = await this.getFollowedArtists();
     const ids = artists.map(artist => artist._id);
     return Cache.retrieveReleasesFromArtists(ids, this.#sessionCache.user.country);

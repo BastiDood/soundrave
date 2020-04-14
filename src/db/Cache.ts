@@ -1,5 +1,5 @@
 // MODELS
-import { User, Artist, Release } from '../models/Core';
+import { User, Artist, Release } from './models';
 
 // TODO: Handle `ETag` headers for caching
 
