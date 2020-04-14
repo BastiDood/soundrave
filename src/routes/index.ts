@@ -48,15 +48,19 @@ router
     // Check if authorization code exists
     const { session } = req;
     const authorization = req.query;
+    // TODO: Return 404 instead of redirecting to home
     if (session && 'code' in authorization) {
       // Exchange the authorization code for an access token
-      const token = await SpotifyAPI.exchangeCodeForAccessToken(authorization.code);
+      const tokenResult = await SpotifyAPI.exchangeCodeForAccessToken(authorization.code);
+
+      // TODO: Handle any authorization errors
+      assert(tokenResult.ok);
 
       // Generate new session when the user logs in
       await promisify(session.regenerate.bind(session))();
 
-      // TODO: Notify route-scope if the token has been refreshed
       // Initialize session data
+      const { value: token } = tokenResult;
       const ONE_HOUR = token.expires_in * 1e3;
       session.token = Object.create(null);
       assert(session.token);
@@ -94,6 +98,7 @@ router
       };
 
       // TODO: Handle any error from `followedArtists.error`
+      assert(!followedArtists.error);
 
       // Explicitly save session data due to redirect
       await promisify(session.save.bind(session))();

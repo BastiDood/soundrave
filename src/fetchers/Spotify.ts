@@ -70,40 +70,13 @@ export class SpotifyAPI {
       const { artists } = json as SpotifyApi.UsersFollowedArtistsResponse;
 
       yield {
-        ok: true,
+        ok: response.ok,
         value: SpotifyAPI.transformToArtistObject(artists.items),
       };
 
       next = artists.next;
     }
   }
-
-  /*
-  async fetchFollowedArtists(): Promise<ArtistObject[]> {
-    if (!this.#token.scope.includes('user-follow-read'))
-      throw new SpotifyAPIError({
-        status: 401,
-        message: 'Access token does not have the permission to read list of followers.',
-      });
-
-    let followedArtists: ArtistObject[] = [];
-    let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/me/following', {
-      type: 'artist',
-      limit: '50',
-    });
-
-    // Keep retrieving until pagination stops
-    while (next) {
-      const { artists }: SpotifyApi.UsersFollowedArtistsResponse = await fetch(next, this.fetchOptionsForGet)
-        .then(res => res.json());
-      const transformedArtistData: ArtistObject[] = SpotifyAPI.transformToArtistObject(artists.items);
-      followedArtists = followedArtists.concat(transformedArtistData);
-      next = artists.next;
-    }
-
-    return followedArtists;
-  }
-  */
 
   /**
    * Get all the releases from a specific artist.
@@ -196,6 +169,7 @@ export class SpotifyAPI {
     };
   }
 
+  // TODO: Notify route-scope if the token has been refreshed
   /** Refresh the token associated with this instance. */
   async refreshAccessToken(): Promise<SpotifyAccessToken> {
     // Retrieve new access token
@@ -224,8 +198,8 @@ export class SpotifyAPI {
    * an access token.
    * @param code - Valid authorization code sent to the callback URI
    */
-  static async exchangeCodeForAccessToken(code: string): Promise<OAuthToken> {
-    const token = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
+  static async exchangeCodeForAccessToken(code: string): Promise<Result<OAuthToken, SpotifyAPIError>> {
+    const response = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
       method: 'POST',
       body: new URLSearchParams({
         code,
@@ -234,9 +208,19 @@ export class SpotifyAPI {
         client_id: env.CLIENT_ID,
         client_secret: env.CLIENT_SECRET,
       }),
-    })
-      .then(res => res.json() as Promise<OAuthToken>);
-    return token;
+    });
+    const json = await response.json();
+
+    if (!response.ok)
+      return {
+        ok: response.ok,
+        error: new SpotifyAPIError(json as SpotifyApi.ErrorObject),
+      };
+
+    return {
+      ok: response.ok,
+      value: json as OAuthToken,
+    };
   }
 
   // TODO: Move this into a Mongoose virtual
