@@ -206,10 +206,10 @@ export class SpotifyAPI {
       };
 
     // Update token
-    const newToken = json as Omit<OAuthToken, 'refresh_token'>;
-    this.#token.accessToken = newToken.access_token;
-    this.#token.scope = newToken.scope;
-    this.#token.expiresAt = Date.now() + newToken.expires_in * 1e3;
+    const { access_token, scope, expires_in } = json as Omit<OAuthToken, 'refresh_token'>;
+    this.#token.accessToken = access_token;
+    this.#token.scope = scope;
+    this.#token.expiresAt = Date.now() + expires_in * 1e3;
 
     // Use spread operator in order to clone the object
     return {
