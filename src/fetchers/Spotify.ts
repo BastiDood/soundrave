@@ -82,9 +82,9 @@ export class SpotifyAPI {
           releases.push({
             _id: release.id,
             title: release.name,
-            albumType: release.album_type as 'album'|'single'|'compilation',
+            albumType: release.album_type,
             releaseDate: Number(Date.parse(release.release_date)),
-            datePrecision: release.release_date_precision as 'year'|'month'|'day',
+            datePrecision: release.release_date_precision,
             availableCountries: release.available_markets,
             images: release.images,
             artists: release.artists.map(artist => artist.id),
