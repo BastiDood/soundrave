@@ -166,41 +166,56 @@ export class SpotifyAPI {
         error: new SpotifyAPIError(json),
       };
 
-    const user = json as SpotifyApi.UserObjectPrivate;
+    const {
+      id: _id,
+      display_name,
+      country,
+      images,
+    } = json as SpotifyApi.UserObjectPrivate;
     return {
       ok: response.ok,
       value: {
-        _id: user.id,
-        name: user.display_name ?? 'User',
-        country: user.country,
+        _id,
+        name: display_name ?? 'User',
+        country,
         // TODO: Add a default profile picture
-        images: user.images ?? [],
+        images: images ?? [],
       },
     };
   }
 
   // TODO: Notify route-scope if the token has been refreshed
   /** Refresh the token associated with this instance. */
-  async refreshAccessToken(): Promise<SpotifyAccessToken> {
+  async refreshAccessToken(): Promise<Result<SpotifyAccessToken, SpotifyAPIError>> {
     // Retrieve new access token
     const credentials = Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64');
-    const newToken: Omit<OAuthToken, 'refresh_token'> = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
+    const response = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
       method: 'POST',
       headers: { Authorization: `Basic ${credentials}` },
       body: new URLSearchParams({
         grant_type: 'refresh_token',
         refresh_token: this.#token.refreshToken,
       }),
-    })
-      .then(res => res.json());
+    });
+    const json = await response.json();
+
+    if (!response.ok)
+      return {
+        ok: response.ok,
+        error: new SpotifyAPIError(json as SpotifyApi.ErrorObject),
+      };
 
     // Update token
+    const newToken = json as Omit<OAuthToken, 'refresh_token'>;
     this.#token.accessToken = newToken.access_token;
     this.#token.scope = newToken.scope;
     this.#token.expiresAt = Date.now() + newToken.expires_in * 1e3;
 
     // Use spread operator in order to clone the object
-    return { ...this.#token };
+    return {
+      ok: response.ok,
+      value: { ...this.#token },
+    };
   }
 
   /**
