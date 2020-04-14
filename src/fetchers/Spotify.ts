@@ -10,7 +10,7 @@ import { env } from '../loaders/env';
 // UTILITY FUNCTIONS
 import { formatEndpoint, subdivideArray } from '../util';
 
-// S
+// ERRORS
 import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
 // TYPE ALIASES
@@ -122,30 +122,38 @@ export class SpotifyAPI {
    * minimize the number of actual requests to the API.
    * @param ids - List of Spotify artist IDs
    */
-  async fetchSeveralArtists(ids: string[]): Promise<ArtistObject[]> {
-    // Divide the array into sub-arrays with maximum length of 50
-    const batches = await Promise.allSettled(
-      subdivideArray(ids, 50)
-        .map(batch => {
-          const endpoint = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/artists', {
-            ids: batch.join(','),
-          });
-          return fetch(endpoint, this.fetchOptionsForGet)
-            .then(res => res.json() as Promise<SpotifyApi.MultipleArtistsResponse>);
-        }),
-    );
+  async fetchSeveralArtists(ids: string[]): Promise<{
+    artists: ArtistObject[];
+    errors: SpotifyAPIError[];
+  }> {
+    // Batch the requests concurrently with 50 artists each
+    const batches = subdivideArray(ids, 50);
+    const promises = batches
+      .map(async batch => {
+        const endpoint = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/artists', {
+          ids: batch.join(','),
+        });
+        const response = await fetch(endpoint, this.fetchOptionsForGet);
+        const json = await response.json();
 
+        if (!response.ok)
+          throw new SpotifyAPIError(json as SpotifyApi.ErrorObject);
+
+        const { artists } = json as SpotifyApi.MultipleArtistsResponse;
+        return SpotifyAPI.transformToArtistObject(artists);
+      });
+    const results = await Promise.allSettled(promises);
+
+    // Separate the successful requests from those with errors
+    const errors: SpotifyAPIError[] = [];
     let artists: ArtistObject[] = [];
-    for (const batch of batches)
-      if (batch.status === 'fulfilled') {
-        const transformedArtists = SpotifyAPI.transformToArtistObject(batch.value.artists);
-        artists = artists.concat(transformedArtists);
-      } else
-        // TODO: Properly handle failed requests (i.e. in case of rate-limited)
-        // by caching successful requests and throwing failures
-        throw new SpotifyAPIError(batch.reason as SpotifyApi.ErrorObject);
+    for (const result of results)
+      if (result.status === 'fulfilled')
+        artists = artists.concat(result.value);
+      else
+        errors.push(result.reason as SpotifyAPIError);
 
-    return artists;
+    return { artists, errors };
   }
 
   async fetchUserProfile(): Promise<Result<UserObject, SpotifyAPIError>> {
