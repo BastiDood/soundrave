@@ -53,7 +53,7 @@ router
       const token = await SpotifyAPI.exchangeCodeForAccessToken(authorization.code);
 
       // Generate new session when the user logs in
-      await promisify(session.regenerate.bind(req.session))();
+      await promisify(session.regenerate.bind(session))();
 
       // TODO: Notify route-scope if the token has been refreshed
       // Initialize session data
@@ -90,7 +90,7 @@ router
       session.cache.followedArtists = await retriever.getFollowedArtistIDs();
 
       // Explicitly save session data due to redirect
-      await promisify(session.save.bind(req.session))();
+      await promisify(session.save.bind(session))();
     }
 
     // TODO: Handle error if `error in authorization`
