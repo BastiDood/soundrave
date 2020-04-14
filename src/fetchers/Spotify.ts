@@ -10,6 +10,9 @@ import { env } from '../loaders/env';
 // UTILITY FUNCTIONS
 import { formatEndpoint, subdivideArray } from '../util';
 
+// S
+import { SpotifyAPIError } from '../errors/SpotifyAPIError';
+
 // TYPE ALIASES
 type RequestInit = import('node-fetch').RequestInit;
 
@@ -35,9 +38,53 @@ export class SpotifyAPI {
 
   constructor(token: SpotifyAccessToken) { this.#token = token; }
 
+  /**
+   * This generates an array of artist objects. If a request in unsuccessful,
+   * it throws an error containing the error details in the request.
+   * @throws {SpotifyAPIError}
+   */
+  async *fetchFollowedArtists(): AsyncIterable<Result<ArtistObject[], SpotifyAPIError>> {
+    if (!this.#token.scope.includes('user-follow-read'))
+      throw new SpotifyAPIError({
+        status: 401,
+        message: 'Access token does not have the permission to read list of followers.',
+      });
+
+    let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/me/following', {
+      type: 'artist',
+      limit: '50',
+    });
+
+    while (next) {
+      const response = await fetch(next, this.fetchOptionsForGet);
+      const json = await response.json();
+
+      if (!response.ok) {
+        yield {
+          ok: response.ok,
+          error: new SpotifyAPIError(json as SpotifyApi.ErrorObject),
+        };
+        break;
+      }
+
+      const { artists } = json as SpotifyApi.UsersFollowedArtistsResponse;
+
+      yield {
+        ok: true,
+        value: SpotifyAPI.transformToArtistObject(artists.items),
+      };
+
+      next = artists.next;
+    }
+  }
+
+  /*
   async fetchFollowedArtists(): Promise<ArtistObject[]> {
     if (!this.#token.scope.includes('user-follow-read'))
-      throw new Error('Access token does not have the permission to read list of followers.');
+      throw new SpotifyAPIError({
+        status: 401,
+        message: 'Access token does not have the permission to read list of followers.',
+      });
 
     let followedArtists: ArtistObject[] = [];
     let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/me/following', {
@@ -56,6 +103,7 @@ export class SpotifyAPI {
 
     return followedArtists;
   }
+  */
 
   /**
    * Get all the releases from a specific artist.
@@ -77,7 +125,7 @@ export class SpotifyAPI {
 
       for (const release of json.items)
         // Only include releases that are available in at least one country
-        if (release.available_markets)
+        if (release.available_markets && release.available_markets.length > 0)
           releases.push({
             _id: release.id,
             title: release.name,
@@ -119,12 +167,10 @@ export class SpotifyAPI {
       if (batch.status === 'fulfilled') {
         const transformedArtists = SpotifyAPI.transformToArtistObject(batch.value.artists);
         artists = artists.concat(transformedArtists);
-      } else {
+      } else
         // TODO: Properly handle failed requests (i.e. in case of rate-limited)
         // by caching successful requests and throwing failures
-        const { message }: SpotifyApi.ErrorObject = batch.reason;
-        throw new Error(message);
-      }
+        throw new SpotifyAPIError(batch.reason as SpotifyApi.ErrorObject);
 
     return artists;
   }
@@ -132,7 +178,10 @@ export class SpotifyAPI {
   async fetchUserProfile(): Promise<UserObject> {
     const scopePermissions = this.#token.scope.split(' ');
     if (!scopePermissions.includes('user-read-private') || !scopePermissions.includes('user-read-email'))
-      throw new Error('Access token does not have the permission to read the user\'s profile.');
+      throw new SpotifyAPIError({
+        status: 401,
+        message: 'Access token does not have the permission to read the user\'s profile.',
+      });
 
     const endpoint = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/me');
     const user: SpotifyApi.UserObjectPrivate = await fetch(endpoint, this.fetchOptionsForGet)

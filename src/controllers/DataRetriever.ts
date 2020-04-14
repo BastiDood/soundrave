@@ -2,6 +2,9 @@
 import { Cache } from '../db/Cache';
 import { SpotifyAPI } from '../fetchers/Spotify';
 
+// ERRORS
+import { SpotifyAPIError } from '../errors/SpotifyAPIError';
+
 // GLOBAL VARIABLES
 const THREE_DAYS = 3 * 24 * 60 * 60 * 1e3;
 
@@ -24,6 +27,7 @@ export class DataRetriever {
   async getFollowedArtists(): Promise<{
     artists: ArtistObject[];
     retrievalDate: number;
+    error?: SpotifyAPIError;
   }> {
     // Return from cache if it is still warm
     if (!this.isStale)
@@ -32,14 +36,27 @@ export class DataRetriever {
         retrievalDate: this.#sessionCache.followedArtists.retrievalDate,
       };
 
-    // Fetch data from Spotify API
-    const artists = await this.#api.fetchFollowedArtists();
+    // Concurrently fetch data from Spotify API
+    let artists: ArtistObject[] = [];
+    for await (const result of this.#api.fetchFollowedArtists()) {
+      // Keep track of all errors coming in
+      if (!result.ok)
+        return {
+          artists,
+          retrievalDate: Date.now(),
+          error: result.error,
+        };
 
-    // Write updated artist data to database cache
-    await Promise.all(artists.map(Cache.writeArtistObject.bind(Cache)));
+      // Write updated artist data to database cache
+      const cacheToDatabase = Cache.writeArtistObject.bind(Cache);
+      await Promise.all(result.value.map(cacheToDatabase));
+      artists = artists.concat(result.value);
+    }
 
     // Finish operation by updating the retrieval date of the cache
     const retrievalDate = Date.now();
+    const ids = artists.map(artist => artist._id);
+    this.#sessionCache.followedArtists.ids = ids;
     this.#sessionCache.followedArtists.retrievalDate = retrievalDate;
 
     return { artists, retrievalDate };
@@ -48,6 +65,7 @@ export class DataRetriever {
   async getFollowedArtistIDs(): Promise<{
     ids: string[];
     retrievalDate: number;
+    error?: SpotifyAPIError;
   }> {
     // Return from cache if it is still warm
     if (!this.isStale)
@@ -56,15 +74,27 @@ export class DataRetriever {
         retrievalDate: this.#sessionCache.followedArtists.retrievalDate,
       };
 
-    // Fetch data from Spotify API
-    const artists = await this.#api.fetchFollowedArtists();
+    // Concurrently fetch data from Spotify API
+    let artists: ArtistObject[] = [];
+    for await (const result of this.#api.fetchFollowedArtists()) {
+      // Keep track of all errors coming in
+      if (!result.ok)
+        return {
+          ids: artists.map(artist => artist._id),
+          retrievalDate: Date.now(),
+          error: result.error,
+        };
 
-    // Write updated artist data to database cache
-    await Promise.all(artists.map(Cache.writeArtistObject.bind(Cache)));
+      // Write updated artist data to database cache
+      const cacheToDatabase = Cache.writeArtistObject.bind(Cache);
+      await Promise.all(result.value.map(cacheToDatabase));
+      artists = artists.concat(result.value);
+    }
 
     // Finish operation by updating the retrieval date of the cache
-    const ids = artists.map(artist => artist._id);
     const retrievalDate = Date.now();
+    const ids = artists.map(artist => artist._id);
+    this.#sessionCache.followedArtists.ids = ids;
     this.#sessionCache.followedArtists.retrievalDate = retrievalDate;
 
     return { ids, retrievalDate };

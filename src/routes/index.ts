@@ -87,7 +87,13 @@ router
 
       // Retrieve followed artists
       const retriever = new DataRetriever(new SpotifyAPI(session.token.spotify), session.cache as Required<SessionCache>);
-      session.cache.followedArtists = await retriever.getFollowedArtistIDs();
+      const followedArtists = await retriever.getFollowedArtistIDs();
+      session.cache.followedArtists = {
+        ids: followedArtists.ids,
+        retrievalDate: followedArtists.retrievalDate,
+      };
+
+      // TODO: Handle any error from `followedArtists.error`
 
       // Explicitly save session data due to redirect
       await promisify(session.save.bind(session))();
