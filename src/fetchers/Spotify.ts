@@ -148,7 +148,7 @@ export class SpotifyAPI {
     return artists;
   }
 
-  async fetchUserProfile(): Promise<UserObject> {
+  async fetchUserProfile(): Promise<Result<UserObject, SpotifyAPIError>> {
     const scopePermissions = this.#token.scope.split(' ');
     if (!scopePermissions.includes('user-read-private') || !scopePermissions.includes('user-read-email'))
       throw new SpotifyAPIError({
@@ -157,15 +157,25 @@ export class SpotifyAPI {
       });
 
     const endpoint = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/me');
-    const user: SpotifyApi.UserObjectPrivate = await fetch(endpoint, this.fetchOptionsForGet)
-      .then(res => res.json());
+    const response = await fetch(endpoint, this.fetchOptionsForGet);
+    const json = await response.json();
 
+    if (!response.ok)
+      return {
+        ok: response.ok,
+        error: new SpotifyAPIError(json),
+      };
+
+    const user = json as SpotifyApi.UserObjectPrivate;
     return {
-      _id: user.id,
-      name: user.display_name ?? 'User',
-      country: user.country,
-      // TODO: Add a default profile picture
-      images: user.images ?? [],
+      ok: response.ok,
+      value: {
+        _id: user.id,
+        name: user.display_name ?? 'User',
+        country: user.country,
+        // TODO: Add a default profile picture
+        images: user.images ?? [],
+      },
     };
   }
 

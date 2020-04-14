@@ -86,8 +86,10 @@ router
 
       // Retrieve the real country code
       const api = new SpotifyAPI(session.token.spotify);
-      const user = await api.fetchUserProfile();
-      session.cache.user.country = user.country;
+      const userResult = await api.fetchUserProfile();
+      // TODO: Handle any errors during the fetch
+      assert(userResult.ok);
+      session.cache.user.country = userResult.value.country;
 
       // Retrieve followed artists
       const retriever = new DataRetriever(new SpotifyAPI(session.token.spotify), session.cache as Required<SessionCache>);
