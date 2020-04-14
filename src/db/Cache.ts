@@ -2,6 +2,7 @@
 import { User, Artist, Release } from './models';
 
 // TODO: Handle `ETag` headers for caching
+// TODO: Ensure that IDs are indexed in MongoDB
 
 export class Cache {
   static async writeUserObject(user: UserObject): Promise<void> {

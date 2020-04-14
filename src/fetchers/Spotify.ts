@@ -8,8 +8,7 @@ import fetch from 'node-fetch';
 import { env } from '../loaders/env';
 
 // UTILITY FUNCTIONS
-import { formatEndpoint } from '../util/formatEndpoint';
-import { subdivideArray } from '../util/subdivideArray';
+import { formatEndpoint, subdivideArray } from '../util';
 
 // TYPE ALIASES
 type RequestInit = import('node-fetch').RequestInit;
