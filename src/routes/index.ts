@@ -31,11 +31,11 @@ router
 
     // Initialize Spotify fetcher
     const retriever = new DataRetriever(new SpotifyAPI(session.token.spotify), session.cache as Required<SessionCache>);
-    const artistObjects = await retriever.getFollowedArtists();
+    const { artists } = await retriever.getFollowedArtists();
 
     // TODO: Get releases from artists
 
-    res.render('index', { artists: artistObjects.artists });
+    res.render('index', { artists });
   })
   .get('/login', (req, res) => {
     if (req.session?.isLoggedIn)
