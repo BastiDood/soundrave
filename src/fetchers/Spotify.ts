@@ -83,8 +83,7 @@ export class SpotifyAPI {
    * @param id - Spotify ID of artist
    * @param market - ISO 3166-1 alpha-2 country code
    */
-  async fetchReleasesByArtistID(id: string, market: string): Promise<NonPopulatedReleaseObject[]> {
-    const releases: NonPopulatedReleaseObject[] = [];
+  async *fetchReleasesByArtistID(id: string, market: string): AsyncIterable<Result<NonPopulatedReleaseObject[], SpotifyAPIError>> {
     let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
       market,
       include_groups: 'album,single',
@@ -93,10 +92,20 @@ export class SpotifyAPI {
 
     // Keep retrieving until pagination stops
     while (next) {
-      const json: SpotifyApi.ArtistsAlbumsResponse = await fetch(next, this.fetchOptionsForGet)
-        .then(res => res.json());
+      const response = await fetch(next, this.fetchOptionsForGet);
+      const json = await response.json();
 
-      for (const release of json.items)
+      if (!response.ok) {
+        yield {
+          ok: response.ok,
+          error: new SpotifyAPIError(json as SpotifyApi.ErrorObject),
+        };
+        break;
+      }
+
+      const releases: NonPopulatedReleaseObject[] = [];
+      const { items, next: nextURL } = json as SpotifyApi.ArtistsAlbumsResponse;
+      for (const release of items)
         // Only include releases that are available in at least one country
         if (release.available_markets && release.available_markets.length > 0)
           releases.push({
@@ -110,10 +119,13 @@ export class SpotifyAPI {
             artists: release.artists.map(artist => artist.id),
           });
 
-      next = json.next;
-    }
+      yield {
+        ok: response.ok,
+        value: releases,
+      };
 
-    return releases;
+      next = nextURL;
+    }
   }
 
   /**
