@@ -27,14 +27,21 @@ export class DataRetriever {
   async getFollowedArtists(): Promise<{
     artists: ArtistObject[];
     retrievalDate: number;
+    token: SpotifyAccessToken|null;
     error?: SpotifyAPIError;
   }> {
-    // Return from cache if it is still warm
     if (!this.isStale)
       return {
         artists: await Cache.retrieveArtists(this.#sessionCache.followedArtists.ids),
         retrievalDate: this.#sessionCache.followedArtists.retrievalDate,
+        token: null,
       };
+
+    const isTokenExpired = this.#api.isExpired;
+    if (isTokenExpired)
+      await this.#api.refreshAccessToken();
+
+    const token = isTokenExpired ? this.#api.tokenInfo : null;
 
     // Concurrently fetch data from Spotify API
     const pendingOperations: Promise<void>[] = [];
@@ -45,6 +52,7 @@ export class DataRetriever {
         return {
           artists,
           retrievalDate: Date.now(),
+          token,
           error: result.error,
         };
 
@@ -62,20 +70,27 @@ export class DataRetriever {
 
     await Promise.all(pendingOperations);
 
-    return { artists, retrievalDate };
+    return { artists, retrievalDate, token };
   }
 
   async getFollowedArtistIDs(): Promise<{
     ids: string[];
     retrievalDate: number;
+    token: SpotifyAccessToken|null;
     error?: SpotifyAPIError;
   }> {
-    // Return from cache if it is still warm
     if (!this.isStale)
       return {
         ids: this.#sessionCache.followedArtists.ids,
         retrievalDate: this.#sessionCache.followedArtists.retrievalDate,
+        token: null,
       };
+
+    const isTokenExpired = this.#api.isExpired;
+    if (isTokenExpired)
+      await this.#api.refreshAccessToken();
+
+    const token = isTokenExpired ? this.#api.tokenInfo : null;
 
     // Concurrently fetch data from Spotify API
     const pendingOperations: Promise<void>[] = [];
@@ -86,6 +101,7 @@ export class DataRetriever {
         return {
           ids: artists.map(artist => artist._id),
           retrievalDate: Date.now(),
+          token,
           error: result.error,
         };
 
@@ -103,23 +119,36 @@ export class DataRetriever {
 
     await Promise.all(pendingOperations);
 
-    return { ids, retrievalDate };
+    return { ids, retrievalDate, token };
   }
 
-  async getReleases(): Promise<PopulatedReleaseObject[]> {
+  async getReleases(): Promise<{
+    releases: PopulatedReleaseObject[];
+    token: SpotifyAccessToken|null;
+  }> {
     // TODO: Check to see if any of the artists are not in the database
 
     const { country } = this.#sessionCache.user;
 
     if (!this.isStale) {
       const ids = this.#sessionCache.followedArtists.ids;
-      return Cache.retrieveReleasesFromArtists(ids, country);
+      return {
+        releases: await Cache.retrieveReleasesFromArtists(ids, country),
+        token: null,
+      };
     }
+
+    const isTokenExpired = this.#api.isExpired;
+    if (isTokenExpired)
+      await this.#api.refreshAccessToken();
 
     const { artists } = await this.getFollowedArtists();
     const ids = artists.map(artist => artist._id);
 
-    // TODO: Fetch from API if needed
-    return Cache.retrieveReleasesFromArtists(ids, country);
+    return {
+      // TODO: Fetch from API instead
+      releases: await Cache.retrieveReleasesFromArtists(ids, country),
+      token: isTokenExpired ? this.#api.tokenInfo : null,
+    };
   }
 }

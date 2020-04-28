@@ -1,4 +1,5 @@
 // NATIVE IMPORTS
+import assert from 'assert';
 import { URLSearchParams } from 'url';
 
 // DEPENDENCIES
@@ -204,9 +205,8 @@ export class SpotifyAPI {
     };
   }
 
-  // TODO: Notify route-scope if the token has been refreshed
   /** Refresh the token associated with this instance. */
-  async refreshAccessToken(): Promise<Result<SpotifyAccessToken, SpotifyAPIError>> {
+  async refreshAccessToken(): Promise<void> {
     // Retrieve new access token
     const credentials = Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64');
     const response = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
@@ -219,23 +219,13 @@ export class SpotifyAPI {
     });
     const json = await response.json();
 
-    if (!response.ok)
-      return {
-        ok: response.ok,
-        error: new SpotifyAPIError(json as SpotifyApi.ErrorObject),
-      };
+    assert(response.ok, 'Unexpected error when refreshing an access token.');
 
     // Update token
     const { access_token, scope, expires_in } = json as Omit<OAuthToken, 'refresh_token'>;
     this.#token.accessToken = access_token;
     this.#token.scope = scope;
     this.#token.expiresAt = Date.now() + expires_in * 1e3;
-
-    // Use spread operator in order to clone the object
-    return {
-      ok: response.ok,
-      value: { ...this.#token },
-    };
   }
 
   /**

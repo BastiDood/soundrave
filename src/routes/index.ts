@@ -31,11 +31,12 @@ router
 
     // Initialize Spotify fetcher
     const retriever = new DataRetriever(new SpotifyAPI(session.token.spotify), session.cache as Required<SessionCache>);
-    const { artists } = await retriever.getFollowedArtists();
+    const releasesInfo = await retriever.getReleases();
+    session.token.spotify = releasesInfo.token ?? session.token.spotify;
 
     // TODO: Get releases from artists
 
-    res.render('index', { artists });
+    res.render('index', { releases: releasesInfo.releases });
   })
   .get('/login', (req, res) => {
     if (req.session?.isLoggedIn)
@@ -96,8 +97,9 @@ router
     session.cache.user.country = userResult.value.country;
 
     // Retrieve followed artists
-    const retriever = new DataRetriever(new SpotifyAPI(session.token.spotify), session.cache as Required<SessionCache>);
+    const retriever = new DataRetriever(api, session.cache as Required<SessionCache>);
     const followedArtists = await retriever.getFollowedArtistIDs();
+    session.token.spotify = followedArtists.token ?? session.token.spotify;
     session.cache.followedArtists = {
       ids: followedArtists.ids,
       retrievalDate: followedArtists.retrievalDate,
