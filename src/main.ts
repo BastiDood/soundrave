@@ -18,6 +18,11 @@ import { env } from './loaders/env';
 // ROUTES
 import { router } from './routes/index';
 
+// GLOBAL VARIABLES
+const ONE_HOUR = 60;
+const PORT = process.env.PORT ?? 3000;
+const PUBLIC_DIRECTORY = path.join(__dirname, '../public');
+
 // Initialize `MongoStore`
 const MongoStore = connectMongo(session);
 
@@ -50,7 +55,6 @@ app
   .use(cors({ methods: 'GET' }));
 
 // Activate `express-session`
-const ONE_HOUR = 60;
 app.use(session({
   name: 'sid',
   secret: env.COOKIE_SECRET,
@@ -71,7 +75,6 @@ app.use(session({
 }));
 
 // Set public files directory
-const PUBLIC_DIRECTORY = path.join(__dirname, '../public');
 app.use(express.static(PUBLIC_DIRECTORY, {
   cacheControl: false,
   dotfiles: 'ignore',
@@ -94,6 +97,6 @@ mongoose.connect(env.MONGO_DB_CACHE_URL, {
     console.log(`Serving public directory from: ${PUBLIC_DIRECTORY}`);
 
     // Listen to the assigned port for HTTP connections
-    app.listen(Number(env.PORT), () => console.log(`Server started at port ${env.PORT}`));
+    app.listen(Number(PORT), () => console.log(`Server started at port ${PORT}`));
   })
   .catch(console.error);

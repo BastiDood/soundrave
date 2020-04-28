@@ -8,7 +8,6 @@ dotenv.config();
 
 const {
   NODE_ENV,
-  PORT,
   MONGO_DB_CACHE_URL,
   MONGO_DB_SESSION_URL,
   MONGO_DB_SESSION_SECRET,
@@ -18,7 +17,6 @@ const {
 } = process.env;
 
 assert(NODE_ENV);
-assert(PORT);
 assert(MONGO_DB_CACHE_URL);
 assert(MONGO_DB_SESSION_URL);
 assert(MONGO_DB_SESSION_SECRET);
@@ -28,7 +26,6 @@ assert(CLIENT_SECRET);
 
 const env = {
   NODE_ENV,
-  PORT,
   MONGO_DB_CACHE_URL,
   MONGO_DB_SESSION_URL,
   MONGO_DB_SESSION_SECRET,
