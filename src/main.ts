@@ -70,7 +70,7 @@ app.use(session({
   }),
   cookie: {
     httpOnly: true,
-    sameSite: true,
+    sameSite: 'lax',
   },
 }));
 
