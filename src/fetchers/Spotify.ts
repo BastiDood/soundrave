@@ -183,7 +183,7 @@ export class SpotifyAPI {
     if (!response.ok)
       return {
         ok: response.ok,
-        error: new SpotifyAPIError(json),
+        error: new SpotifyAPIError(json as SpotifyApi.ErrorObject),
       };
 
     const {
