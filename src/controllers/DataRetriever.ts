@@ -37,6 +37,7 @@ export class DataRetriever {
       };
 
     // Concurrently fetch data from Spotify API
+    const pendingOperations: Promise<void>[] = [];
     let artists: ArtistObject[] = [];
     for await (const result of this.#api.fetchFollowedArtists()) {
       // Keep track of all errors coming in
@@ -48,8 +49,8 @@ export class DataRetriever {
         };
 
       // Write updated artist data to database cache
-      const cacheToDatabase = Cache.writeArtistObject.bind(Cache);
-      await Promise.all(result.value.map(cacheToDatabase));
+      const operation = Cache.upsertManyArtistObjects(result.value);
+      pendingOperations.push(operation);
       artists = artists.concat(result.value);
     }
 
@@ -58,6 +59,8 @@ export class DataRetriever {
     const ids = artists.map(artist => artist._id);
     this.#sessionCache.followedArtists.ids = ids;
     this.#sessionCache.followedArtists.retrievalDate = retrievalDate;
+
+    await Promise.all(pendingOperations);
 
     return { artists, retrievalDate };
   }
@@ -75,7 +78,7 @@ export class DataRetriever {
       };
 
     // Concurrently fetch data from Spotify API
-    const pendingOperations: Promise<void[]>[] = [];
+    const pendingOperations: Promise<void>[] = [];
     let artists: ArtistObject[] = [];
     for await (const result of this.#api.fetchFollowedArtists()) {
       // Keep track of all errors coming in
@@ -87,19 +90,18 @@ export class DataRetriever {
         };
 
       // Write updated artist data to database cache
-      const cacheToDatabase = Cache.writeArtistObject.bind(Cache);
-      const operation = Promise.all(result.value.map(cacheToDatabase));
+      const operation = Cache.upsertManyArtistObjects(result.value);
       pendingOperations.push(operation);
       artists = artists.concat(result.value);
     }
-
-    await Promise.all(pendingOperations);
 
     // Finish operation by updating the retrieval date of the cache
     const retrievalDate = Date.now();
     const ids = artists.map(artist => artist._id);
     this.#sessionCache.followedArtists.ids = ids;
     this.#sessionCache.followedArtists.retrievalDate = retrievalDate;
+
+    await Promise.all(pendingOperations);
 
     return { ids, retrievalDate };
   }

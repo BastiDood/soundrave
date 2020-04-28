@@ -5,25 +5,58 @@ import { User, Artist, Release } from './models';
 // TODO: Ensure that IDs are indexed in MongoDB
 
 export class Cache {
-  static async writeUserObject(user: UserObject): Promise<void> {
+  static async upsertUserObject(user: UserObject): Promise<void> {
     await User
       .findByIdAndUpdate(user._id, user, { upsert: true })
       .lean()
       .exec();
   }
 
-  static async writeArtistObject(artist: ArtistObject): Promise<void> {
+  static async upsertManyUserObjects(users: UserObject[]): Promise<void> {
+    const operations = users.map(user => ({
+      updateOne: {
+        filter: { _id: user._id },
+        update: user,
+        upsert: true,
+      },
+    }));
+    await User.bulkWrite(operations, { ordered: false });
+  }
+
+  static async upsertArtistObject(artist: ArtistObject): Promise<void> {
     await Artist
       .findByIdAndUpdate(artist._id, artist, { upsert: true })
       .lean()
       .exec();
   }
 
-  static async writeReleaseObject(release: NonPopulatedReleaseObject): Promise<void> {
+  static async upsertManyArtistObjects(artists: ArtistObject[]): Promise<void> {
+    const operations = artists.map(artist => ({
+      updateOne: {
+        filter: { _id: artist._id },
+        update: artist,
+        upsert: true,
+      },
+    }));
+    await Artist.bulkWrite(operations, { ordered: false });
+  }
+
+  static async upsertReleaseObject(release: NonPopulatedReleaseObject): Promise<void> {
     await Release
       .findByIdAndUpdate(release._id, release, { upsert: true })
       .lean()
       .exec();
+  }
+
+  static async upsertManyReleaseObjects(releases: NonPopulatedReleaseObject[]): Promise<void> {
+    const operations = releases.map(release => ({
+      updateOne: {
+        filter: { _id: release._id },
+        update: release,
+        upsert: true,
+      },
+    }));
+    await Release.bulkWrite(operations, { ordered: false });
   }
 
   static async retrieveArtists(ids: string[]): Promise<ArtistObject[]> {
