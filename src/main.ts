@@ -71,7 +71,8 @@ app.use(session({
 }));
 
 // Set public files directory
-app.use(express.static(path.join(__dirname, '../public'), {
+const PUBLIC_DIRECTORY = path.join(__dirname, '../public');
+app.use(express.static(PUBLIC_DIRECTORY, {
   cacheControl: false,
   dotfiles: 'ignore',
   index: false,
@@ -90,6 +91,7 @@ mongoose.connect(env.MONGO_DB_CACHE_URL, {
   .then(() => {
     // Log successful connection
     console.log('Established database connection to cache.');
+    console.log(`Serving public directory from: ${PUBLIC_DIRECTORY}`);
 
     // Listen to the assigned port for HTTP connections
     app.listen(Number(env.PORT), () => console.log(`Server started at port ${env.PORT}`));
