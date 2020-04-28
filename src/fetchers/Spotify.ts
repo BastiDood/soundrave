@@ -16,7 +16,7 @@ import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 // TYPE ALIASES
 type RequestInit = import('node-fetch').RequestInit;
 
-// Global Variables
+// GLOBAL VARIABLES
 const FIVE_MINUTES = 5 * 60 * 1e3;
 
 export class SpotifyAPI {

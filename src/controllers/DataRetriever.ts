@@ -75,6 +75,7 @@ export class DataRetriever {
       };
 
     // Concurrently fetch data from Spotify API
+    const pendingOperations: Promise<void[]>[] = [];
     let artists: ArtistObject[] = [];
     for await (const result of this.#api.fetchFollowedArtists()) {
       // Keep track of all errors coming in
@@ -87,9 +88,12 @@ export class DataRetriever {
 
       // Write updated artist data to database cache
       const cacheToDatabase = Cache.writeArtistObject.bind(Cache);
-      await Promise.all(result.value.map(cacheToDatabase));
+      const operation = Promise.all(result.value.map(cacheToDatabase));
+      pendingOperations.push(operation);
       artists = artists.concat(result.value);
     }
+
+    await Promise.all(pendingOperations);
 
     // Finish operation by updating the retrieval date of the cache
     const retrievalDate = Date.now();
