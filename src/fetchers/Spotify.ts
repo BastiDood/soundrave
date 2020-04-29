@@ -279,8 +279,8 @@ export class SpotifyAPI {
   private static transformToArtistObject = (artists: SpotifyApi.ArtistObjectFull[]): ArtistObject[] => artists.map(artist => ({
     _id: artist.id,
     name: artist.name,
-    followers: artist.followers.total,
     popularity: artist.popularity,
+    retrievalDate: Date.now(),
     images: artist.images,
   }));
 
