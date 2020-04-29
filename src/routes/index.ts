@@ -7,6 +7,8 @@ import express from 'express';
 
 // CONTROLLERS
 import { DataRetriever } from '../controllers/DataRetriever';
+
+// FETCHERS
 import { SpotifyAPI } from '../fetchers/Spotify';
 
 // GLOBAL VARIABLES
@@ -31,12 +33,11 @@ router
 
     // Initialize Spotify fetcher
     const retriever = new DataRetriever(new SpotifyAPI(session.token.spotify), session.cache as Required<SessionCache>);
-    const releasesInfo = await retriever.getReleases();
-    session.token.spotify = releasesInfo.token ?? session.token.spotify;
+    const releases = await retriever.getReleases();
 
     // TODO: Get releases from artists
 
-    res.render('index', { releases: releasesInfo.releases });
+    res.render('index', { releases });
   })
   .get('/login', (req, res) => {
     if (req.session?.isLoggedIn)
@@ -94,16 +95,12 @@ router
     const userResult = await api.fetchUserProfile();
     // TODO: Handle any errors during the fetch
     assert(userResult.ok);
+    // TODO: Allow the retriever to implicitly mutate the session
     session.cache.user.country = userResult.value.country;
 
     // Retrieve followed artists
     const retriever = new DataRetriever(api, session.cache as Required<SessionCache>);
-    const followedArtists = await retriever.getFollowedArtistIDs();
-    session.token.spotify = followedArtists.token ?? session.token.spotify;
-    session.cache.followedArtists = {
-      ids: followedArtists.ids,
-      retrievalDate: followedArtists.retrievalDate,
-    };
+    const followedArtists = await retriever.getFollowedArtists();
 
     // TODO: Handle any error from `followedArtists.error`
     assert(!followedArtists.error);

@@ -37,12 +37,15 @@ export class SpotifyAPI {
 
   #token: SpotifyAccessToken;
 
+  /**
+   * Note that the parameters take in the objects by **reference**.
+   * Any mutation done on this class' fields **will** reflect on the session.
+   */
   constructor(token: SpotifyAccessToken) { this.#token = token; }
 
   /**
    * This generates an array of artist objects. If a request in unsuccessful,
    * it throws an error containing the error details in the request.
-   * @throws {SpotifyAPIError}
    */
   async *fetchFollowedArtists(): AsyncIterable<Result<ArtistObject[], SpotifyAPIError>> {
     if (!this.#token.scope.includes('user-follow-read'))
@@ -293,6 +296,4 @@ export class SpotifyAPI {
       headers: { Authorization: `Bearer ${this.#token.accessToken}` },
     };
   }
-
-  get tokenInfo(): SpotifyAccessToken { return { ...this.#token }; }
 }
