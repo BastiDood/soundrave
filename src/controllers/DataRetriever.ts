@@ -126,6 +126,9 @@ export class DataRetriever {
     const staleArtists = artists
       .filter(artist => Date.now() > artist.retrievalDate + DataRetriever.STALE_PERIOD.ARTIST_OBJ);
 
+    if (this.#api.isExpired)
+      await this.#api.refreshAccessToken();
+
     // Fetch the releases that have become stale
     const pendingFetches = staleArtists.map(async artist => {
       const pendingOperations: Promise<void>[] = [];
