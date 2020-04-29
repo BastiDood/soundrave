@@ -67,10 +67,12 @@ declare interface MongoUserObject extends MongoDocument {
   name: string;
   /** ISO 3166-1 alpha-2 country code in which the user registered from */
   country: string;
+  /** Represented as milliseconds since Unix time (in milliseconds) */
+  retrievalDate: number;
   images: SpotifyApi.ImageObject[];
 }
 
-type UserObject = Pick<MongoUserObject, '_id'|'name'|'country'|'images'>;
+type UserObject = Pick<MongoUserObject, '_id'|'name'|'country'|'retrievalDate'|'images'>;
 
 declare interface MongoArtistObject extends MongoDocument {
   /** Spotify ID of the artist */

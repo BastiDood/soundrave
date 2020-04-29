@@ -1,3 +1,6 @@
+// NATIVE IMPORTS
+import assert from 'assert';
+
 // CACHE
 import { Cache } from '../db/Cache';
 import { SpotifyAPI } from '../fetchers/Spotify';
@@ -6,39 +9,68 @@ import { SpotifyAPI } from '../fetchers/Spotify';
 import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
 // GLOBAL VARIABLES
-const THREE_DAYS = 3 * 24 * 60 * 60 * 1e3;
-// const ONE_WEEK = ???;
+const ONE_DAY = 24 * 60 * 60 * 1e3;
 
 // TODO: Create caching policy for release objects
 export class DataRetriever {
   private static readonly STALE_PERIOD = {
-    FOLLOWED_ARTISTS: THREE_DAYS,
-    // ARTIST_OBJ: ONE_WEEK
+    FOLLOWED_ARTISTS: ONE_DAY * 3,
+    USER_OBJ: ONE_DAY * 7,
+    ARTIST_OBJ: ONE_DAY * 4,
   };
 
   #api: SpotifyAPI;
-  #sessionCache: Required<SessionCache>;
+  #sessionCache: SessionCache;
 
   /**
    * Note that the parameters take in the objects by **reference**.
    * Any mutation done on this class' fields **will** reflect on the session.
    */
-  constructor(api: SpotifyAPI, sessionCache: Required<SessionCache>) {
+  constructor(api: SpotifyAPI, sessionCache: SessionCache) {
     this.#api = api;
     this.#sessionCache = sessionCache;
   }
 
+  get isUserObjectStale(): boolean {
+    const { user } = this.#sessionCache;
+    assert(user);
+    return Date.now() > user.retrievalDate + DataRetriever.STALE_PERIOD.USER_OBJ;
+  }
+
   get areFollowedArtistsStale(): boolean {
-    return Date.now() > this.#sessionCache.followedArtists.retrievalDate + DataRetriever.STALE_PERIOD.FOLLOWED_ARTISTS;
+    const { followedArtists } = this.#sessionCache;
+    assert(followedArtists);
+    return Date.now() > followedArtists.retrievalDate + DataRetriever.STALE_PERIOD.FOLLOWED_ARTISTS;
+  }
+
+  async getUserProfile(): Promise<Result<UserObject, SpotifyAPIError>> {
+    if (this.#sessionCache.user && !this.isUserObjectStale)
+      return {
+        ok: true,
+        value: this.#sessionCache.user,
+      };
+
+    if (this.#api.isExpired)
+      await this.#api.refreshAccessToken();
+
+    const result = await this.#api.fetchUserProfile();
+
+    if (result.ok)
+      this.#sessionCache.user = result.value;
+
+    return result;
   }
 
   async getFollowedArtists(): Promise<{
     artists: ArtistObject[];
-    error?: SpotifyAPIError;
+    error: SpotifyAPIError|null;
   }> {
-    if (!this.areFollowedArtistsStale)
+    const { followedArtists } = this.#sessionCache;
+    let error: SpotifyAPIError|null = null;
+    if (followedArtists && !this.areFollowedArtistsStale)
       return {
-        artists: await Cache.retrieveArtists(this.#sessionCache.followedArtists.ids),
+        artists: await Cache.retrieveArtists(followedArtists.ids),
+        error,
       };
 
     if (this.#api.isExpired)
@@ -49,11 +81,10 @@ export class DataRetriever {
     let artists: ArtistObject[] = [];
     for await (const result of this.#api.fetchFollowedArtists()) {
       // Keep track of all errors coming in
-      if (!result.ok)
-        return {
-          artists,
-          error: result.error,
-        };
+      if (!result.ok) {
+        error = result.error;
+        break;
+      }
 
       // Write updated artist data to database cache
       const operation = Cache.upsertManyArtistObjects(result.value);
@@ -62,22 +93,24 @@ export class DataRetriever {
     }
 
     // Finish operation by updating the session
-    this.#sessionCache.followedArtists.ids = artists.map(artist => artist._id);
-    this.#sessionCache.followedArtists.retrievalDate = Date.now();
+    assert(followedArtists);
+    followedArtists.ids = artists.map(artist => artist._id);
+    followedArtists.retrievalDate = Date.now();
 
     await Promise.all(pendingOperations);
 
-    return { artists };
+    return { artists, error };
   }
 
   async getReleases(): Promise<PopulatedReleaseObject[]> {
     // TODO: Check to see if any of the artists are not in the database
 
-    const { country } = this.#sessionCache.user;
-
+    const { followedArtists, user } = this.#sessionCache;
+    assert(followedArtists);
+    assert(user);
     if (!this.areFollowedArtistsStale) {
-      const ids = this.#sessionCache.followedArtists.ids;
-      return Cache.retrieveReleasesFromArtists(ids, country);
+      const ids = followedArtists.ids;
+      return Cache.retrieveReleasesFromArtists(ids, user.country);
     }
 
     if (this.#api.isExpired)
@@ -89,6 +122,6 @@ export class DataRetriever {
     const ids = artists.map(artist => artist._id);
 
     // TODO: Fetch from API instead
-    return Cache.retrieveReleasesFromArtists(ids, country);
+    return Cache.retrieveReleasesFromArtists(ids, user.country);
   }
 }

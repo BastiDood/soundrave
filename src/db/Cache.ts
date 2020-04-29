@@ -1,3 +1,6 @@
+// NATIVE IMPORTS
+import assert from 'assert';
+
 // MODELS
 import { User, Artist, Release } from './models';
 
@@ -59,17 +62,25 @@ export class Cache {
     await Release.bulkWrite(operations, { ordered: false });
   }
 
-  static async retrieveArtists(ids: string[]): Promise<ArtistObject[]> {
-    const artists: ArtistObject[] = await Artist
+  static async retrieveUser(id: string): Promise<UserObject> {
+    const user = await User
+      .findById(id)
+      .lean()
+      .exec();
+    assert(user);
+    return user;
+  }
+
+  static retrieveArtists(ids: string[]): Promise<ArtistObject[]> {
+    return Artist
       .find({ _id: { $in: ids } })
       .lean()
       .exec();
-    return artists;
   }
 
-  static async retrieveReleasesFromArtists(ids: string[], countryCode: string): Promise<PopulatedReleaseObject[]> {
+  static retrieveReleasesFromArtists(ids: string[], countryCode: string): Promise<PopulatedReleaseObject[]> {
     // @ts-ignore
-    const releases: PopulatedReleaseObject[] = await Release
+    return Release
       .find({
         availableCountries: countryCode,
         artists: { $in: ids },
@@ -78,6 +89,5 @@ export class Cache {
       .lean()
       .populate('artists')
       .exec();
-    return releases;
   }
 }

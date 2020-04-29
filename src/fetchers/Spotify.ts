@@ -138,6 +138,8 @@ export class SpotifyAPI {
    * minimize the number of actual requests to the API.
    * @param ids - List of Spotify artist IDs
    */
+  // TODO: Somehow figure out how to merge multiple requests into one
+  // Perhaps use a queueing system
   async fetchSeveralArtists(ids: string[]): Promise<{
     artists: ArtistObject[];
     errors: SpotifyAPIError[];
@@ -202,6 +204,7 @@ export class SpotifyAPI {
         _id,
         name: display_name ?? 'User',
         country,
+        retrievalDate: Date.now(),
         // TODO: Add a default profile picture
         images: images ?? [],
       },

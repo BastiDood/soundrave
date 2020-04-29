@@ -86,20 +86,15 @@ router
       ids: [],
       retrievalDate: -Infinity,
     };
-    assert(session.cache.followedArtists);
-    session.cache.user = Object.create(null);
-    assert(session.cache.user);
 
     // Retrieve the real country code
-    const api = new SpotifyAPI(session.token.spotify);
-    const userResult = await api.fetchUserProfile();
+    const retriever = new DataRetriever(new SpotifyAPI(session.token.spotify), session.cache);
+    const userResult = await retriever.getUserProfile();
+
     // TODO: Handle any errors during the fetch
     assert(userResult.ok);
-    // TODO: Allow the retriever to implicitly mutate the session
-    session.cache.user.country = userResult.value.country;
 
     // Retrieve followed artists
-    const retriever = new DataRetriever(api, session.cache as Required<SessionCache>);
     const followedArtists = await retriever.getFollowedArtists();
 
     // TODO: Handle any error from `followedArtists.error`
