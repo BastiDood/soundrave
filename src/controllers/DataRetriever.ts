@@ -11,7 +11,6 @@ import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 // GLOBAL VARIABLES
 const ONE_DAY = 24 * 60 * 60 * 1e3;
 
-// TODO: Create caching policy for release objects
 export class DataRetriever {
   private static readonly STALE_PERIOD = {
     FOLLOWED_ARTISTS: ONE_DAY * 3,
@@ -102,26 +101,54 @@ export class DataRetriever {
     return { artists, error };
   }
 
-  async getReleases(): Promise<PopulatedReleaseObject[]> {
-    // TODO: Check to see if any of the artists are not in the database
+  async getReleases(): Promise<{
+    releases: PopulatedReleaseObject[];
+    errors: SpotifyAPIError[];
+  }> {
+    const errors: SpotifyAPIError[] = [];
 
-    const { followedArtists, user } = this.#sessionCache;
-    assert(followedArtists);
-    assert(user);
-    if (!this.areFollowedArtistsStale) {
-      const ids = followedArtists.ids;
-      return Cache.retrieveReleasesFromArtists(ids, user.country);
-    }
+    // Abort further execution if the user does not exist
+    const userResult = await this.getUserProfile();
+    if (!userResult.ok)
+      return {
+        releases: [],
+        errors: [ userResult.error ],
+      };
+    const { value: user } = userResult;
 
-    if (this.#api.isExpired)
-      await this.#api.refreshAccessToken();
+    // Silently consume errors in order to be bubbled
+    const followedArtists = await this.getFollowedArtists();
+    if (followedArtists.error)
+      errors.push(followedArtists.error);
 
-    // TODO: Add a `lastRetrieved` field for each artist to figure
-    // out which among them have to be fetched
-    const { artists } = await this.getFollowedArtists();
+    // Segragate the followed artists whether they have been queried recently
+    const { artists } = followedArtists;
+    const staleArtists = artists
+      .filter(artist => Date.now() > artist.retrievalDate + DataRetriever.STALE_PERIOD.ARTIST_OBJ);
+
+    // Fetch the releases that have become stale
+    const pendingFetches = staleArtists.map(async artist => {
+      const pendingOperations: Promise<void>[] = [];
+      const releases = this.#api.fetchReleasesByArtistID(artist._id, user.country);
+      for await (const batch of releases) {
+        // TODO: Somehow handle any errors
+        assert(batch.ok);
+        const operation = Cache.upsertManyReleaseObjects(batch.value);
+        pendingOperations.push(operation);
+      }
+      await Promise.all(pendingOperations);
+      artist.retrievalDate = Date.now();
+      return artist;
+    });
+    const updatedArtists = await Promise.all(pendingFetches);
+    await Cache.updateManyRetrievalDatesForArtists(updatedArtists);
+
+    // Retrieve all releases from the database,
+    // assuming that every artist has been fetched
     const ids = artists.map(artist => artist._id);
-
-    // TODO: Fetch from API instead
-    return Cache.retrieveReleasesFromArtists(ids, user.country);
+    return {
+      releases: await Cache.retrieveReleasesFromArtists(ids, user.country),
+      errors,
+    };
   }
 }

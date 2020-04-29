@@ -5,7 +5,7 @@ import assert from 'assert';
 import { User, Artist, Release } from './models';
 
 // TODO: Handle `ETag` headers for caching
-// TODO: Ensure that IDs are indexed in MongoDB
+// TODO: Ensure that IDs and dates are indexed in MongoDB
 
 export class Cache {
   static async upsertUserObject(user: UserObject): Promise<void> {
@@ -89,5 +89,15 @@ export class Cache {
       .lean()
       .populate('artists')
       .exec();
+  }
+
+  static async updateManyRetrievalDatesForArtists(artists: ArtistObject[]): Promise<void> {
+    const operations = artists.map(artist => ({
+      updateOne: {
+        filter: { _id: artist._id },
+        update: { $set: { retrievalDate: artist.retrievalDate } },
+      },
+    }));
+    await Artist.bulkWrite(operations, { ordered: false });
   }
 }

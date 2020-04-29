@@ -33,11 +33,10 @@ router
 
     // Initialize Spotify fetcher
     const retriever = new DataRetriever(new SpotifyAPI(session.token.spotify), session.cache as Required<SessionCache>);
-    const releases = await retriever.getReleases();
+    const result = await retriever.getReleases();
 
-    // TODO: Get releases from artists
-
-    res.render('index', { releases });
+    // TODO: Present errors in a friendly manner
+    res.render('index', result);
   })
   .get('/login', (req, res) => {
     if (req.session?.isLoggedIn)
