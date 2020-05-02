@@ -1,4 +1,4 @@
-// TODO: Update to v0.2.0
+// TODO: Update to v0.3.0
 // NATIVE IMPORT
 import path from 'path';
 
