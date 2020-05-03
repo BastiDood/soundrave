@@ -11,7 +11,7 @@ import { env } from '../../loaders/env';
 import { BaseSpotifyAPI } from './Base';
 
 // UTILITY FUNCTIONS
-import { formatEndpoint, subdivideArray } from '../../util';
+import { formatEndpoint } from '../../util';
 
 // ERRORS
 import { SpotifyAPIError } from '../../errors/SpotifyAPIError';
@@ -134,45 +134,5 @@ export class EagerSpotifyAPI extends BaseSpotifyAPI {
     }
 
     return { releases };
-  }
-
-  /**
-   * Fetch the API for several artists. This concurrently retrieves
-   * the data in batches of `50` (Spotify's maximum limit) in order to
-   * minimize the number of actual requests to the API.
-   * @param ids - List of Spotify artist IDs
-   */
-  async fetchSeveralArtists(ids: string[]): Promise<{
-    artists: ArtistObject[];
-    errors: SpotifyAPIError[];
-  }> {
-    // Batch the requests concurrently with 50 artists each
-    const batches = subdivideArray(ids, 50);
-    const promises = batches
-      .map(async batch => {
-        const endpoint = formatEndpoint(BaseSpotifyAPI.MAIN_API_ENDPOINT, '/artists', {
-          ids: batch.join(','),
-        });
-        const response = await fetch(endpoint, this.fetchOptionsForGet);
-        const json = await response.json();
-
-        if (!response.ok)
-          throw new SpotifyAPIError(json as SpotifyApi.ErrorObject);
-
-        const { artists } = json as SpotifyApi.MultipleArtistsResponse;
-        return artists.map(BaseSpotifyAPI.transformToArtistObject);
-      });
-    const results = await Promise.allSettled(promises);
-
-    // Separate the successful requests from those with errors
-    const errors: SpotifyAPIError[] = [];
-    let artists: ArtistObject[] = [];
-    for (const result of results)
-      if (result.status === 'fulfilled')
-        artists = artists.concat(result.value);
-      else
-        errors.push(result.reason as SpotifyAPIError);
-
-    return { artists, errors };
   }
 }
