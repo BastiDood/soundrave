@@ -23,12 +23,12 @@ export class EagerSpotifyAPI extends BaseSpotifyAPI {
    * @param code - Valid authorization code sent to the callback URI
    */
   static async init(code: string): Promise<Result<EagerSpotifyAPI, SpotifyAPIError>> {
-    const response = await fetch(EagerSpotifyAPI.TOKEN_ENDPOINT, {
+    const response = await fetch(BaseSpotifyAPI.TOKEN_ENDPOINT, {
       method: 'POST',
       body: new URLSearchParams({
         code,
         grant_type: 'authorization_code',
-        redirect_uri: EagerSpotifyAPI.REDIRECT_URI,
+        redirect_uri: BaseSpotifyAPI.REDIRECT_URI,
         client_id: env.CLIENT_ID,
         client_secret: env.CLIENT_SECRET,
       }),
@@ -53,10 +53,6 @@ export class EagerSpotifyAPI extends BaseSpotifyAPI {
     };
   }
 
-  /**
-   * This generates an array of artist objects. If a request in unsuccessful,
-   * it throws an error containing the error details in the request.
-   */
   async *fetchFollowedArtists(): AsyncIterable<Result<ArtistObject[], SpotifyAPIError>> {
     if (!this.token.scope.includes('user-follow-read')) {
       yield {
@@ -69,7 +65,7 @@ export class EagerSpotifyAPI extends BaseSpotifyAPI {
       return;
     }
 
-    let next = formatEndpoint(EagerSpotifyAPI.MAIN_API_ENDPOINT, '/me/following', {
+    let next = formatEndpoint(BaseSpotifyAPI.MAIN_API_ENDPOINT, '/me/following', {
       type: 'artist',
       limit: '50',
     });
@@ -90,7 +86,7 @@ export class EagerSpotifyAPI extends BaseSpotifyAPI {
 
       yield {
         ok: response.ok,
-        value: artists.items.map(EagerSpotifyAPI.transformToArtistObject),
+        value: artists.items.map(BaseSpotifyAPI.transformToArtistObject),
       };
 
       next = artists.next;
@@ -106,40 +102,38 @@ export class EagerSpotifyAPI extends BaseSpotifyAPI {
    * @param id - Spotify ID of artist
    * @param market - ISO 3166-1 alpha-2 country code
    */
-  async *fetchReleasesByArtistID(id: string, market: string): AsyncIterable<Result<NonPopulatedReleaseObject[], SpotifyAPIError>> {
-    let next = formatEndpoint(EagerSpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
+  async fetchReleasesByArtistID(id: string, market: string): Promise<{
+    releases: NonPopulatedReleaseObject[];
+    error?: SpotifyAPIError;
+  }> {
+    let next = formatEndpoint(BaseSpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
       market,
       include_groups: 'album,single',
       limit: '50',
     });
 
     // Keep retrieving until pagination stops
+    const releases: NonPopulatedReleaseObject[] = [];
     while (next) {
       const response = await fetch(next, this.fetchOptionsForGet);
       const json = await response.json();
 
-      if (!response.ok) {
-        yield {
-          ok: response.ok,
+      if (!response.ok)
+        return {
+          releases,
           error: new SpotifyAPIError(json as SpotifyApi.ErrorObject),
         };
-        break;
-      }
 
-      const releases: NonPopulatedReleaseObject[] = [];
       const { items, next: nextURL } = json as SpotifyApi.ArtistsAlbumsResponse;
       for (const release of items)
         // Only include releases that are available in at least one country
         if (release.available_markets && release.available_markets.length > 0)
-          releases.push(EagerSpotifyAPI.transformToNonPopulatedReleaseObject(release));
-
-      yield {
-        ok: response.ok,
-        value: releases,
-      };
+          releases.push(BaseSpotifyAPI.transformToNonPopulatedReleaseObject(release));
 
       next = nextURL;
     }
+
+    return { releases };
   }
 
   /**
@@ -156,7 +150,7 @@ export class EagerSpotifyAPI extends BaseSpotifyAPI {
     const batches = subdivideArray(ids, 50);
     const promises = batches
       .map(async batch => {
-        const endpoint = formatEndpoint(EagerSpotifyAPI.MAIN_API_ENDPOINT, '/artists', {
+        const endpoint = formatEndpoint(BaseSpotifyAPI.MAIN_API_ENDPOINT, '/artists', {
           ids: batch.join(','),
         });
         const response = await fetch(endpoint, this.fetchOptionsForGet);
@@ -166,7 +160,7 @@ export class EagerSpotifyAPI extends BaseSpotifyAPI {
           throw new SpotifyAPIError(json as SpotifyApi.ErrorObject);
 
         const { artists } = json as SpotifyApi.MultipleArtistsResponse;
-        return artists.map(EagerSpotifyAPI.transformToArtistObject);
+        return artists.map(BaseSpotifyAPI.transformToArtistObject);
       });
     const results = await Promise.allSettled(promises);
 
