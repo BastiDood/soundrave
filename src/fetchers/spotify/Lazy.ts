@@ -21,6 +21,7 @@ export class LazySpotifyAPI extends BaseSpotifyAPI {
     type: 'artist',
     limit: '50',
   });
+  #releasesByArtistIDNext: Record<string, string> = Object.create(null);
 
   /**
    * Utility function for exchanging an authorization code for
@@ -89,6 +90,38 @@ export class LazySpotifyAPI extends BaseSpotifyAPI {
     return {
       ok: true,
       value: artists.items.map(LazySpotifyAPI.transformToArtistObject),
+    };
+  }
+
+  async fetchReleasesByArtistID(id: string, market: string): Promise<Result<NonPopulatedReleaseObject[]|null, SpotifyAPIError>> {
+    if (!this.#releasesByArtistIDNext[id])
+      this.#releasesByArtistIDNext[id] = formatEndpoint(LazySpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
+        market,
+        include_groups: 'album,single',
+        limit: '50',
+      });
+
+    const next = this.#releasesByArtistIDNext[id];
+    const response = await fetch(next, this.fetchOptionsForGet);
+    const json = await response.json();
+
+    if (!response.ok)
+      return {
+        ok: response.ok,
+        error: new SpotifyAPIError(json as SpotifyApi.ErrorObject),
+      };
+
+    const releases: NonPopulatedReleaseObject[] = [];
+    const { items, next: nextURL } = json as SpotifyApi.ArtistsAlbumsResponse;
+    for (const release of items)
+      // Only include releases that are available in at least one country
+      if (release.available_markets && release.available_markets.length > 0)
+        releases.push(LazySpotifyAPI.transformToNonPopulatedReleaseObject(release));
+
+    this.#releasesByArtistIDNext[id] = nextURL;
+    return {
+      ok: true,
+      value: releases,
     };
   }
 }

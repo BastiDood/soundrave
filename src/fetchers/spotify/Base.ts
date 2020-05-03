@@ -122,6 +122,17 @@ export abstract class BaseSpotifyAPI {
     images: artist.images,
   });
 
+  protected static transformToNonPopulatedReleaseObject = (release: SpotifyApi.AlbumObjectSimplified): NonPopulatedReleaseObject => ({
+    _id: release.id,
+    title: release.name,
+    albumType: release.album_type,
+    releaseDate: Number(Date.parse(release.release_date)),
+    datePrecision: release.release_date_precision,
+    availableCountries: release.available_markets ?? [],
+    images: release.images,
+    artists: release.artists.map(artist => artist.id),
+  });
+
   /**
    * Consider tokens that are 5 minutes to expiry as "expired"
    * and thus eligible to be refreshed.

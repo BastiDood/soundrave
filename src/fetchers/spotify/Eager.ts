@@ -131,16 +131,7 @@ export class EagerSpotifyAPI extends BaseSpotifyAPI {
       for (const release of items)
         // Only include releases that are available in at least one country
         if (release.available_markets && release.available_markets.length > 0)
-          releases.push({
-            _id: release.id,
-            title: release.name,
-            albumType: release.album_type,
-            releaseDate: Number(Date.parse(release.release_date)),
-            datePrecision: release.release_date_precision,
-            availableCountries: release.available_markets,
-            images: release.images,
-            artists: release.artists.map(artist => artist.id),
-          });
+          releases.push(EagerSpotifyAPI.transformToNonPopulatedReleaseObject(release));
 
       yield {
         ok: response.ok,
