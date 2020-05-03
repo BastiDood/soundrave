@@ -17,7 +17,9 @@ import { formatEndpoint } from '../../util';
 import { SpotifyAPIError } from '../../errors/SpotifyAPIError';
 
 export class LazySpotifyAPI extends BaseSpotifyAPI {
-  #followedArtistsNext: string|null = formatEndpoint(LazySpotifyAPI.MAIN_API_ENDPOINT, '/me/following', {
+  private static readonly DONE_MESSAGE = 'DONE';
+
+  #followedArtistsNext: string|null = formatEndpoint(BaseSpotifyAPI.MAIN_API_ENDPOINT, '/me/following', {
     type: 'artist',
     limit: '50',
   });
@@ -29,12 +31,12 @@ export class LazySpotifyAPI extends BaseSpotifyAPI {
    * @param code - Valid authorization code sent to the callback URI
    */
   static async init(code: string): Promise<Result<LazySpotifyAPI, SpotifyAPIError>> {
-    const response = await fetch(LazySpotifyAPI.TOKEN_ENDPOINT, {
+    const response = await fetch(BaseSpotifyAPI.TOKEN_ENDPOINT, {
       method: 'POST',
       body: new URLSearchParams({
         code,
         grant_type: 'authorization_code',
-        redirect_uri: LazySpotifyAPI.REDIRECT_URI,
+        redirect_uri: BaseSpotifyAPI.REDIRECT_URI,
         client_id: env.CLIENT_ID,
         client_secret: env.CLIENT_SECRET,
       }),
@@ -89,17 +91,26 @@ export class LazySpotifyAPI extends BaseSpotifyAPI {
     this.#followedArtistsNext = artists.next;
     return {
       ok: true,
-      value: artists.items.map(LazySpotifyAPI.transformToArtistObject),
+      value: artists.items.map(BaseSpotifyAPI.transformToArtistObject),
     };
   }
 
+  /**
+   * @param id - Spotify ID of artist
+   * @param market - ISO 3166-1 alpha-2 country code
+   */
   async fetchReleasesByArtistID(id: string, market: string): Promise<Result<NonPopulatedReleaseObject[]|null, SpotifyAPIError>> {
     if (!this.#releasesByArtistIDNext[id])
-      this.#releasesByArtistIDNext[id] = formatEndpoint(LazySpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
+      this.#releasesByArtistIDNext[id] = formatEndpoint(BaseSpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
         market,
         include_groups: 'album,single',
         limit: '50',
       });
+    else if (this.#releasesByArtistIDNext[id] === LazySpotifyAPI.DONE_MESSAGE)
+      return {
+        ok: true,
+        value: null,
+      };
 
     const next = this.#releasesByArtistIDNext[id];
     const response = await fetch(next, this.fetchOptionsForGet);
@@ -116,9 +127,9 @@ export class LazySpotifyAPI extends BaseSpotifyAPI {
     for (const release of items)
       // Only include releases that are available in at least one country
       if (release.available_markets && release.available_markets.length > 0)
-        releases.push(LazySpotifyAPI.transformToNonPopulatedReleaseObject(release));
+        releases.push(BaseSpotifyAPI.transformToNonPopulatedReleaseObject(release));
 
-    this.#releasesByArtistIDNext[id] = nextURL;
+    this.#releasesByArtistIDNext[id] = nextURL ?? LazySpotifyAPI.DONE_MESSAGE;
     return {
       ok: true,
       value: releases,
