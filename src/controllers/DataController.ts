@@ -11,35 +11,32 @@ import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 // GLOBAL VARIABLES
 const ONE_DAY = 24 * 60 * 60 * 1e3;
 
-export class DataRetriever {
+export class DataController {
   private static readonly STALE_PERIOD = {
     FOLLOWED_ARTISTS: ONE_DAY * 3,
     USER_OBJ: ONE_DAY * 7,
     ARTIST_OBJ: ONE_DAY * 4,
   };
 
+  /** Spotify ID of the current user */
+  #id: string;
   #api: SpotifyAPI;
-  #sessionCache: SessionCache;
 
-  /**
-   * Note that the parameters take in the objects by **reference**.
-   * Any mutation done on this class' fields **will** reflect on the session.
-   */
-  constructor(api: SpotifyAPI, sessionCache: SessionCache) {
+  constructor(id: string, api: SpotifyAPI) {
+    this.#id = id;
     this.#api = api;
-    this.#sessionCache = sessionCache;
   }
 
   get isUserObjectStale(): boolean {
     const { user } = this.#sessionCache;
     assert(user);
-    return Date.now() > user.retrievalDate + DataRetriever.STALE_PERIOD.USER_OBJ;
+    return Date.now() > user.retrievalDate + DataController.STALE_PERIOD.USER_OBJ;
   }
 
   get areFollowedArtistsStale(): boolean {
     const { followedArtists } = this.#sessionCache;
     assert(followedArtists);
-    return Date.now() > followedArtists.retrievalDate + DataRetriever.STALE_PERIOD.FOLLOWED_ARTISTS;
+    return Date.now() > followedArtists.retrievalDate + DataController.STALE_PERIOD.FOLLOWED_ARTISTS;
   }
 
   async getUserProfile(): Promise<Result<UserObject, SpotifyAPIError>> {
@@ -124,7 +121,7 @@ export class DataRetriever {
     // Segragate the followed artists whether they have been queried recently
     const { artists } = followedArtists;
     const staleArtists = artists
-      .filter(artist => Date.now() > artist.retrievalDate + DataRetriever.STALE_PERIOD.ARTIST_OBJ);
+      .filter(artist => Date.now() > artist.retrievalDate + DataController.STALE_PERIOD.ARTIST_OBJ);
 
     if (this.#api.isExpired)
       await this.#api.refreshAccessToken();

@@ -1,13 +1,3 @@
-interface SessionCache {
-  user?: UserObject;
-  followedArtists?: {
-    /** List of cached Spotify artist IDs. */
-    ids: string[];
-  /** Last retrieval date (in milliseconds since UNIX epoch). */
-    retrievalDate: number;
-  };
-}
-
 declare interface OAuthToken {
   /** An access token that can be provided in subsequent calls, for example to Spotify Web API services. */
   access_token: string;
@@ -41,7 +31,7 @@ declare type AuthorizationResult = AuthorizationSuccess|AuthorizationError;
 declare interface SpotifyAccessToken {
   accessToken: string;
   refreshToken: string;
-  scope: string;
+  scope: string[];
   /** Expiry date (in milliseconds since Unix Epoch) */
   expiresAt: number;
 }
@@ -67,12 +57,18 @@ declare interface MongoUserObject extends MongoDocument {
   name: string;
   /** ISO 3166-1 alpha-2 country code in which the user registered from */
   country: string;
+  followedArtists: {
+    /** Spotify IDs of the user's followed artists */
+    ids: string[];
+    /** Represented as milliseconds since Unix time (in milliseconds) */
+    retrievalDate: number;
+  };
+  images: SpotifyApi.ImageObject[];
   /** Represented as milliseconds since Unix time (in milliseconds) */
   retrievalDate: number;
-  images: SpotifyApi.ImageObject[];
 }
 
-type UserObject = Pick<MongoUserObject, '_id'|'name'|'country'|'retrievalDate'|'images'>;
+type UserObject = Pick<MongoUserObject, '_id'|'name'|'country'|'followedArtists'|'images'|'retrievalDate'>;
 
 declare interface MongoArtistObject extends MongoDocument {
   /** Spotify ID of the artist */
@@ -80,12 +76,12 @@ declare interface MongoArtistObject extends MongoDocument {
   name: string;
   /** Number between `[0, 100]` that represents artist relevance/popularity */
   popularity: number;
+  images: SpotifyApi.ImageObject[];
   /** Represented as milliseconds since Unix time (in milliseconds) */
   retrievalDate: number;
-  images: SpotifyApi.ImageObject[];
 }
 
-type ArtistObject = Pick<MongoArtistObject, '_id'|'name'|'popularity'|'retrievalDate'|'images'>;
+type ArtistObject = Pick<MongoArtistObject, '_id'|'name'|'popularity'|'images'|'retrievalDate'>;
 
 interface MongoReleaseObject extends MongoDocument {
   /** Spotify ID of the release */

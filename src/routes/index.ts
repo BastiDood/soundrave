@@ -9,7 +9,7 @@ import express from 'express';
 import { DataRetriever } from '../controllers/DataRetriever';
 
 // FETCHERS
-import { SpotifyAPI } from '../fetchers/Spotify';
+import { SpotifyAPI } from '../fetchers/Eager.';
 
 // GLOBAL VARIABLES
 const router = express.Router();
