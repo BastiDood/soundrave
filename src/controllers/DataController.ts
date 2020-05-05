@@ -3,7 +3,7 @@ import assert from 'assert';
 
 // CACHE
 import { Cache } from '../db/Cache';
-import { SpotifyAPI } from '../fetchers/Eager.';
+import { LazySpotifyAPI } from '../fetchers/spotify/Lazy';
 
 // ERRORS
 import { SpotifyAPIError } from '../errors/SpotifyAPIError';
@@ -19,11 +19,11 @@ export class DataController {
   };
 
   /** Spotify ID of the current user */
-  #id: string;
-  #api: SpotifyAPI;
+  #user: Promise<UserObject>;
+  #api: LazySpotifyAPI;
 
-  constructor(id: string, api: SpotifyAPI) {
-    this.#id = id;
+  constructor(id: string, api: LazySpotifyAPI) {
+    this.#user = Cache.retrieveUser(id);
     this.#api = api;
   }
 
