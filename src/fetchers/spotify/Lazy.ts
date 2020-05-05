@@ -23,7 +23,7 @@ export class LazySpotifyAPI extends BaseSpotifyAPI {
     type: 'artist',
     limit: '50',
   });
-  #releasesByArtistIDNext: Record<string, string> = Object.create(null);
+  #releasesByArtistIDNext: Map<string, string> = new Map();
 
   /**
    * Utility function for exchanging an authorization code for
@@ -100,19 +100,19 @@ export class LazySpotifyAPI extends BaseSpotifyAPI {
    * @param market - ISO 3166-1 alpha-2 country code
    */
   async fetchReleasesByArtistID(id: string, market: string): Promise<Result<NonPopulatedReleaseObject[]|null, SpotifyAPIError>> {
-    if (!this.#releasesByArtistIDNext[id])
-      this.#releasesByArtistIDNext[id] = formatEndpoint(BaseSpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
+    if (!this.#releasesByArtistIDNext.get(id))
+      this.#releasesByArtistIDNext.set(id, formatEndpoint(BaseSpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
         market,
         include_groups: 'album,single',
         limit: '50',
-      });
-    else if (this.#releasesByArtistIDNext[id] === LazySpotifyAPI.DONE_MESSAGE)
+      }));
+    else if (this.#releasesByArtistIDNext.get(id) === LazySpotifyAPI.DONE_MESSAGE)
       return {
         ok: true,
         value: null,
       };
 
-    const next = this.#releasesByArtistIDNext[id];
+    const next = this.#releasesByArtistIDNext.get(id)!;
     const response = await fetch(next, this.fetchOptionsForGet);
     const json = await response.json();
 
@@ -129,7 +129,7 @@ export class LazySpotifyAPI extends BaseSpotifyAPI {
       if (release.available_markets && release.available_markets.length > 0)
         releases.push(BaseSpotifyAPI.transformToNonPopulatedReleaseObject(release));
 
-    this.#releasesByArtistIDNext[id] = nextURL ?? LazySpotifyAPI.DONE_MESSAGE;
+    this.#releasesByArtistIDNext.set(id, nextURL ?? LazySpotifyAPI.DONE_MESSAGE);
     return {
       ok: true,
       value: releases,
