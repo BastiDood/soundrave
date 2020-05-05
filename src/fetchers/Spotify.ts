@@ -6,31 +6,31 @@ import { URLSearchParams } from 'url';
 import fetch from 'node-fetch';
 
 // LOADERS
-import { env } from '../../loaders/env';
+import { env } from '../loaders/env';
 
 // UTILITY FUNCTIONS
-import { formatEndpoint, subdivideArray } from '../../util';
+import { formatEndpoint, subdivideArray } from '../util';
 
 // ERRORS
-import { SpotifyAPIError } from '../../errors/SpotifyAPIError';
+import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
 // GLOBAL VARIABLES
 const FIVE_MINUTES = 5 * 60 * 1e3;
 
-export abstract class BaseSpotifyAPI {
+export abstract class SpotifyAPI {
   static readonly REDIRECT_URI = 'http://localhost/callback';
   static readonly API_VERSION = 'v1';
   static readonly BASE_ENDPOINT = 'https://api.spotify.com';
-  static readonly MAIN_API_ENDPOINT = formatEndpoint(BaseSpotifyAPI.BASE_ENDPOINT, BaseSpotifyAPI.API_VERSION);
+  static readonly MAIN_API_ENDPOINT = formatEndpoint(SpotifyAPI.BASE_ENDPOINT, SpotifyAPI.API_VERSION);
   static readonly ACCOUNTS_ENDPOINT = 'https://accounts.spotify.com';
   static readonly RESOURCE_ENDPOINT = 'https://open.spotify.com';
-  static readonly AUTH_ENDPOINT = formatEndpoint(BaseSpotifyAPI.ACCOUNTS_ENDPOINT, '/authorize', {
+  static readonly AUTH_ENDPOINT = formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/authorize', {
     client_id: env.CLIENT_ID,
     response_type: 'code',
-    redirect_uri: BaseSpotifyAPI.REDIRECT_URI,
+    redirect_uri: SpotifyAPI.REDIRECT_URI,
     scope: 'user-follow-read user-read-email user-read-private',
   });
-  static readonly TOKEN_ENDPOINT = formatEndpoint(BaseSpotifyAPI.ACCOUNTS_ENDPOINT, '/api/token');
+  static readonly TOKEN_ENDPOINT = formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/api/token');
 
   protected token: SpotifyAccessToken;
 
@@ -40,7 +40,7 @@ export abstract class BaseSpotifyAPI {
   async refreshAccessToken(): Promise<void> {
     // Retrieve new access token
     const credentials = Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64');
-    const response = await fetch(BaseSpotifyAPI.TOKEN_ENDPOINT, {
+    const response = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
       method: 'POST',
       headers: { Authorization: `Basic ${credentials}` },
       body: new URLSearchParams({
@@ -70,14 +70,14 @@ export abstract class BaseSpotifyAPI {
         }),
       };
 
-    const endpoint = formatEndpoint(BaseSpotifyAPI.MAIN_API_ENDPOINT, '/me');
+    const endpoint = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/me');
     const response = await fetch(endpoint, this.fetchOptionsForGet);
-    const json = await response.json();
+    const json = response.json();
 
     if (!response.ok)
       return {
         ok: response.ok,
-        error: new SpotifyAPIError(json as SpotifyApi.ErrorObject),
+        error: new SpotifyAPIError(await json as SpotifyApi.ErrorObject),
       };
 
     const {
@@ -85,7 +85,7 @@ export abstract class BaseSpotifyAPI {
       display_name,
       country,
       images,
-    } = json as SpotifyApi.UserObjectPrivate;
+    } = await json as SpotifyApi.UserObjectPrivate;
     return {
       ok: response.ok,
       value: {
@@ -97,6 +97,83 @@ export abstract class BaseSpotifyAPI {
         images: images ?? [],
       },
     };
+  }
+
+  async *fetchFollowedArtists(): AsyncIterable<Result<ArtistObject[], SpotifyAPIError>> {
+    if (!this.token.scope.includes('user-follow-read')) {
+      yield {
+        ok: false,
+        error: new SpotifyAPIError({
+          status: 401,
+          message: 'Access token does not have the permission to read list of followers.',
+        }),
+      };
+      return;
+    }
+
+    let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/me/following', {
+      type: 'artist',
+      limit: '50',
+    });
+
+    while (next) {
+      const response = await fetch(next, this.fetchOptionsForGet);
+      const json = response.json();
+
+      if (!response.ok) {
+        yield {
+          ok: response.ok,
+          error: new SpotifyAPIError(await json as SpotifyApi.ErrorObject),
+        };
+        break;
+      }
+
+      const { artists } = await json as SpotifyApi.UsersFollowedArtistsResponse;
+
+      yield {
+        ok: response.ok,
+        value: artists.items.map(SpotifyAPI.transformToArtistObject),
+      };
+
+      next = artists.next;
+    }
+  }
+
+  /**
+   * @param id - Spotify ID of artist
+   * @param market - ISO 3166-1 alpha-2 country code
+   */
+  async *fetchReleasesByArtistID(id: string, market: string): AsyncIterable<Result<NonPopulatedReleaseObject[]|null, SpotifyAPIError>> {
+    let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
+      market,
+      include_groups: 'album,single',
+      limit: '50',
+    });
+
+    while (next) {
+      const response = await fetch(next, this.fetchOptionsForGet);
+      const json = response.json();
+
+      if (!response.ok)
+        yield {
+          ok: response.ok,
+          error: new SpotifyAPIError(await json as SpotifyApi.ErrorObject),
+        };
+
+      const releases: NonPopulatedReleaseObject[] = [];
+      const { items, next: nextURL } = await json as SpotifyApi.ArtistsAlbumsResponse;
+      for (const release of items)
+      // Only include releases that are available in at least one country
+        if (release.available_markets && release.available_markets.length > 0)
+          releases.push(SpotifyAPI.transformToNonPopulatedReleaseObject(release));
+
+      yield {
+        ok: true,
+        value: releases,
+      };
+
+      next = nextURL;
+    }
   }
 
   /**
@@ -113,17 +190,17 @@ export abstract class BaseSpotifyAPI {
     const batches = subdivideArray(ids, 50);
     const promises = batches
       .map(async batch => {
-        const endpoint = formatEndpoint(BaseSpotifyAPI.MAIN_API_ENDPOINT, '/artists', {
+        const endpoint = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/artists', {
           ids: batch.join(','),
         });
         const response = await fetch(endpoint, this.fetchOptionsForGet);
-        const json = await response.json();
+        const json = response.json();
 
         if (!response.ok)
-          throw new SpotifyAPIError(json as SpotifyApi.ErrorObject);
+          throw new SpotifyAPIError(await json as SpotifyApi.ErrorObject);
 
-        const { artists } = json as SpotifyApi.MultipleArtistsResponse;
-        return artists.map(BaseSpotifyAPI.transformToArtistObject);
+        const { artists } = await json as SpotifyApi.MultipleArtistsResponse;
+        return artists.map(SpotifyAPI.transformToArtistObject);
       });
     const results = await Promise.allSettled(promises);
 
@@ -141,17 +218,17 @@ export abstract class BaseSpotifyAPI {
 
   // TODO: Move this into a Mongoose virtual
   static getURLfromArtist(artist: ArtistObject): string {
-    return formatEndpoint(BaseSpotifyAPI.RESOURCE_ENDPOINT, `/artist/${artist._id}`);
+    return formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/artist/${artist._id}`);
   }
 
   // TODO: Move this into a Mongoose virtual
   static getURLfromRelease(release: PopulatedReleaseObject|NonPopulatedReleaseObject): string {
-    return formatEndpoint(BaseSpotifyAPI.RESOURCE_ENDPOINT, `/album/${release._id}`);
+    return formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/album/${release._id}`);
   }
 
   // TODO: Move this into a Mongoose virtual
   static getURLfromUser(user: UserObject): string {
-    return formatEndpoint(BaseSpotifyAPI.RESOURCE_ENDPOINT, `/user/${user._id}`);
+    return formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/user/${user._id}`);
   }
 
   protected static transformToArtistObject = (artist: SpotifyApi.ArtistObjectFull): ArtistObject => ({
