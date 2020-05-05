@@ -3,6 +3,7 @@
 import path from 'path';
 
 // DEPENDENCIES
+import compression from 'compression';
 import connectMongo from 'connect-mongo';
 import cors from 'cors';
 import express from 'express';
@@ -34,6 +35,9 @@ app
   .engine('hbs', exphbs({ extname: '.hbs', defaultLayout: 'main' }))
   .set('view engine', 'hbs')
   .set('views', path.join(__dirname, 'views'));
+
+// Compress responses
+app.use(compression({ level: 11 }));
 
 // Activate security headers
 app

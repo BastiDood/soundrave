@@ -22,6 +22,7 @@
   "author": "Basti Ortiz <ortizbasti16@gmail.com>",
   "license": "GPL-3.0-or-later",
   "dependencies": {
+    "compression": "^1.7.4",
     "connect-mongo": "^3.2.0",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
