@@ -170,6 +170,14 @@ export class SpotifyAPI {
       const response = await fetch(next, fetchOpts);
       const json = response.json();
 
+      if (response.status === 304) {
+        yield {
+          ok: true,
+          value: null,
+        };
+        break;
+      }
+
       if (!response.ok) {
         yield {
           ok: response.ok,
