@@ -306,7 +306,6 @@ export class SpotifyAPI {
   protected static transformToArtistObject = (artist: SpotifyApi.ArtistObjectFull): ArtistObject => ({
     _id: artist.id,
     name: artist.name,
-    popularity: artist.popularity,
     retrievalDate: Date.now(),
     images: artist.images,
   });

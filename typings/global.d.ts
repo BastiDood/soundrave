@@ -76,14 +76,12 @@ declare interface MongoArtistObject extends MongoDocument {
   /** Spotify ID of the artist */
   _id: string;
   name: string;
-  /** Number between `[0, 100]` that represents artist relevance/popularity */
-  popularity: number;
   images: SpotifyApi.ImageObject[];
   /** Represented as milliseconds since Unix time (in milliseconds) */
   retrievalDate: number;
 }
 
-type ArtistObject = Pick<MongoArtistObject, '_id'|'name'|'popularity'|'images'|'retrievalDate'>;
+type ArtistObject = Pick<MongoArtistObject, '_id'|'name'|'images'|'retrievalDate'>;
 
 interface MongoReleaseObject extends MongoDocument {
   /** Spotify ID of the release */
