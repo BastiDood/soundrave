@@ -17,7 +17,13 @@ import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 // GLOBAL VARIABLES
 const FIVE_MINUTES = 5 * 60 * 1e3;
 
-export abstract class SpotifyAPI {
+/**
+ * In an attempt to maximize concurrency and minimize rate-limiting,
+ * the Spotify API controller has been implemented in such a manner that
+ * lazily fetches resources. It is the consumer's responsibility to continually
+ * request for the next step.
+ */
+export class SpotifyAPI {
   static readonly REDIRECT_URI = 'http://localhost/callback';
   static readonly API_VERSION = 'v1';
   static readonly BASE_ENDPOINT = 'https://api.spotify.com';
@@ -32,9 +38,48 @@ export abstract class SpotifyAPI {
   });
   static readonly TOKEN_ENDPOINT = formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/api/token');
 
-  protected token: SpotifyAccessToken;
+  #token: SpotifyAccessToken;
 
-  protected constructor(token: SpotifyAccessToken) { this.token = token; }
+  private constructor(token: SpotifyAccessToken) { this.#token = token; }
+
+  /**
+   * Initialize API by exchanging an authorization code for
+   * an access token.
+   * @param code - Valid authorization code sent to the callback URI
+   */
+  static async init(code: string): Promise<Result<SpotifyAPI, SpotifyAPIError>> {
+    const response = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
+      method: 'POST',
+      body: new URLSearchParams({
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: SpotifyAPI.REDIRECT_URI,
+        client_id: env.CLIENT_ID,
+        client_secret: env.CLIENT_SECRET,
+      }),
+    });
+    const json = response.json();
+
+    if (!response.ok)
+      return {
+        ok: response.ok,
+        error: new SpotifyAPIError(await json as SpotifyApi.ErrorObject),
+      };
+
+    const token = await json as OAuthToken;
+    return {
+      ok: response.ok,
+      value: new SpotifyAPI({
+        accessToken: token.access_token,
+        refreshToken: token.refresh_token,
+        expiresAt: Date.now() + token.expires_in * 1e3,
+        scope: token.scope.split(' '),
+      }),
+    };
+  }
+
+  /** Restore an already instantiated instance of the fetcher. */
+  static restore(token: SpotifyAccessToken): SpotifyAPI { return new SpotifyAPI(token); }
 
   /** Refresh the token associated with this instance. */
   async refreshAccessToken(): Promise<void> {
@@ -45,22 +90,22 @@ export abstract class SpotifyAPI {
       headers: { Authorization: `Basic ${credentials}` },
       body: new URLSearchParams({
         grant_type: 'refresh_token',
-        refresh_token: this.token.refreshToken,
+        refresh_token: this.#token.refreshToken,
       }),
     });
-    const json = await response.json();
+    const json = response.json();
 
     assert(response.ok, 'Unexpected error when refreshing an access token.');
 
     // Update token
-    const { access_token, scope, expires_in } = json as Omit<OAuthToken, 'refresh_token'>;
-    this.token.accessToken = access_token;
-    this.token.scope = scope.split(' ');
-    this.token.expiresAt = Date.now() + expires_in * 1e3;
+    const { access_token, scope, expires_in } = await json as Omit<OAuthToken, 'refresh_token'>;
+    this.#token.accessToken = access_token;
+    this.#token.scope = scope.split(' ');
+    this.#token.expiresAt = Date.now() + expires_in * 1e3;
   }
 
   async fetchUserProfile(): Promise<Result<Omit<UserObject, 'followedArtists'>, SpotifyAPIError>> {
-    const { scope } = this.token;
+    const { scope } = this.#token;
     if (!scope.includes('user-read-private') || !scope.includes('user-read-email'))
       return {
         ok: false,
@@ -99,8 +144,9 @@ export abstract class SpotifyAPI {
     };
   }
 
-  async *fetchFollowedArtists(): AsyncIterable<Result<ArtistObject[], SpotifyAPIError>> {
-    if (!this.token.scope.includes('user-follow-read')) {
+  /** @param etag - Associated ETag of the request */
+  async *fetchFollowedArtists(etag: string): AsyncIterable<Result<ArtistObject[], SpotifyAPIError>> {
+    if (!this.#token.scope.includes('user-follow-read')) {
       yield {
         ok: false,
         error: new SpotifyAPIError({
@@ -254,12 +300,12 @@ export abstract class SpotifyAPI {
    * Consider tokens that are 5 minutes to expiry as "expired"
    * and thus eligible to be refreshed.
    */
-  get isExpired(): boolean { return Date.now() > this.token.expiresAt - FIVE_MINUTES; }
+  get isExpired(): boolean { return Date.now() > this.#token.expiresAt - FIVE_MINUTES; }
 
   get fetchOptionsForGet(): import('node-fetch').RequestInit {
     return {
       method: 'GET',
-      headers: { Authorization: `Bearer ${this.token.accessToken}` },
+      headers: { Authorization: `Bearer ${this.#token.accessToken}` },
     };
   }
 }
