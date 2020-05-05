@@ -4,7 +4,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "test",
+      "label": "Run Tests",
       "type": "npm",
       "script": "test",
       "group": {
@@ -13,13 +13,14 @@
       }
     },
     {
-      "label": "build",
+      "label": "Build Development",
       "type": "npm",
-      "script": "build",
+      "script": "build:dev",
       "group": {
         "kind": "build",
         "isDefault": true
-      }
+      },
+      "problemMatcher": []
     }
   ]
 }

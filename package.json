@@ -13,10 +13,13 @@
     "url": "https://github.com/Some-Dood/spotify-timeline/issues"
   },
   "scripts": {
-    "build": "webpack --config webpack.prod.js",
+    "build:dev": "webpack --config webpack.dev.js",
+    "build:prod": "webpack --config webpack.prod.js",
     "lint": "eslint src/**/*.ts tests/**/*.test.ts",
     "lint:fix": "eslint --fix src/**/*.ts tests/**/*.test.ts",
-    "start": "webpack --config webpack.dev.js && node .",
+    "start": "node . --tls-min-v1.3",
+    "start:dev": "webpack --config webpack.dev.js && node . --tls-min-v1.3",
+    "start:prod": "webpack --config webpack.prod.js && node . --tls-min-v1.3",
     "test": "tsc --build tests/tsconfig.json && jest build/jest/tests"
   },
   "author": "Basti Ortiz <ortizbasti16@gmail.com>",
