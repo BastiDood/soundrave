@@ -17,6 +17,11 @@ import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 // GLOBAL VARIABLES
 const FIVE_MINUTES = 5 * 60 * 1e3;
 
+interface ETagBasedResource<ResourceType> {
+  resource: ResourceType;
+  etag: string;
+}
+
 /**
  * In an attempt to maximize concurrency and minimize rate-limiting,
  * the Spotify API controller has been implemented in such a manner that
@@ -145,7 +150,7 @@ export class SpotifyAPI {
   }
 
   /** @param etag - Associated ETag of the request */
-  async *fetchFollowedArtists(etag?: string): AsyncIterable<Result<ArtistObject[]|null, SpotifyAPIError>> {
+  async *fetchFollowedArtists(etag?: string): AsyncIterable<Result<ETagBasedResource<ArtistObject[]|null>, SpotifyAPIError>> {
     if (!this.#token.scope.includes('user-follow-read')) {
       yield {
         ok: false,
@@ -173,7 +178,10 @@ export class SpotifyAPI {
       if (response.status === 304) {
         yield {
           ok: true,
-          value: null,
+          value: {
+            resource: null,
+            etag: etag!,
+          },
         };
         break;
       }
@@ -188,9 +196,15 @@ export class SpotifyAPI {
 
       const { artists } = await json as SpotifyApi.UsersFollowedArtistsResponse;
 
+      const responseETag = response.headers.get('ETag');
+      assert(responseETag, 'Spotify did not provide an ETag.');
+
       yield {
         ok: response.ok,
-        value: artists.items.map(SpotifyAPI.transformToArtistObject),
+        value: {
+          resource: artists.items.map(SpotifyAPI.transformToArtistObject),
+          etag: responseETag,
+        },
       };
 
       next = artists.next;
