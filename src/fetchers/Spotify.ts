@@ -145,7 +145,7 @@ export class SpotifyAPI {
   }
 
   /** @param etag - Associated ETag of the request */
-  async *fetchFollowedArtists(etag: string): AsyncIterable<Result<ArtistObject[], SpotifyAPIError>> {
+  async *fetchFollowedArtists(etag?: string): AsyncIterable<Result<ArtistObject[]|null, SpotifyAPIError>> {
     if (!this.#token.scope.includes('user-follow-read')) {
       yield {
         ok: false,
@@ -157,13 +157,17 @@ export class SpotifyAPI {
       return;
     }
 
+    const fetchOpts = this.fetchOptionsForGet;
+    if (etag)
+      fetchOpts.headers['If-None-Match'] = etag;
+
     let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/me/following', {
       type: 'artist',
       limit: '50',
     });
 
     while (next) {
-      const response = await fetch(next, this.fetchOptionsForGet);
+      const response = await fetch(next, fetchOpts);
       const json = response.json();
 
       if (!response.ok) {
@@ -196,8 +200,9 @@ export class SpotifyAPI {
       limit: '50',
     });
 
+    const fetchOpts = this.fetchOptionsForGet;
     while (next) {
-      const response = await fetch(next, this.fetchOptionsForGet);
+      const response = await fetch(next, fetchOpts);
       const json = response.json();
 
       if (!response.ok)
@@ -228,10 +233,9 @@ export class SpotifyAPI {
    * minimize the number of actual requests to the API.
    * @param ids - List of Spotify artist IDs
    */
-  async fetchSeveralArtists(ids: string[]): Promise<{
-    artists: ArtistObject[];
-    errors: SpotifyAPIError[];
-  }> {
+  async fetchSeveralArtists(ids: string[]): Promise<{ artists: ArtistObject[]; errors: SpotifyAPIError[] }> {
+    const fetchOpts = this.fetchOptionsForGet;
+
     // Batch the requests concurrently with 50 artists each
     const batches = subdivideArray(ids, 50);
     const promises = batches
@@ -239,7 +243,7 @@ export class SpotifyAPI {
         const endpoint = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/artists', {
           ids: batch.join(','),
         });
-        const response = await fetch(endpoint, this.fetchOptionsForGet);
+        const response = await fetch(endpoint, fetchOpts);
         const json = response.json();
 
         if (!response.ok)
@@ -302,7 +306,7 @@ export class SpotifyAPI {
    */
   get isExpired(): boolean { return Date.now() > this.#token.expiresAt - FIVE_MINUTES; }
 
-  get fetchOptionsForGet(): import('node-fetch').RequestInit {
+  get fetchOptionsForGet(): { method: 'GET'; headers: Record<string, string> } {
     return {
       method: 'GET',
       headers: { Authorization: `Bearer ${this.#token.accessToken}` },
