@@ -50,7 +50,7 @@ type Result<SuccessType, FailureType> = SuccessfulResult<SuccessType>|FailedResu
 
 type MongoDocument = import('mongoose').Document;
 
-declare interface MongoUserObject extends MongoDocument {
+interface MongoUserObject extends MongoDocument {
   /** Spotify ID of the user */
   _id: string;
   /** Display name in Spotify */
@@ -62,6 +62,8 @@ declare interface MongoUserObject extends MongoDocument {
     ids: string[];
     /** Represented as milliseconds since Unix time (in milliseconds) */
     retrievalDate: number;
+    /** Associated ETag of the list of followed artists */
+    etag: string;
   };
   images: SpotifyApi.ImageObject[];
   /** Represented as milliseconds since Unix time (in milliseconds) */
