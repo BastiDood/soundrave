@@ -1,4 +1,4 @@
-// NATIVE IMPORTS
+// NODE CORE IMPORTS
 import assert from 'assert';
 import { promisify } from 'util';
 
@@ -9,7 +9,7 @@ import express from 'express';
 import { DataRetriever } from '../controllers/DataRetriever';
 
 // FETCHERS
-import { SpotifyAPI } from '../fetchers/Eager.';
+import { SpotifyAPI } from '../fetchers/Spotify';
 
 // GLOBAL VARIABLES
 const router = express.Router();
@@ -24,8 +24,6 @@ router
     // Reject all users that have not been logged in
     if (!session?.isLoggedIn
       || !session?.token
-      || !session?.cache?.followedArtists
-      || !session?.cache?.user
     ) {
       res.render('index');
       return;

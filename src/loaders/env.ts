@@ -1,4 +1,4 @@
-// NATIVE IMPORTS
+// NODE CORE IMPORTS
 import assert from 'assert';
 
 // DEPENDENCIES

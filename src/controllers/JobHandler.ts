@@ -1,4 +1,4 @@
-// NATIVE IMPORTS
+// NODE CORE IMPORTS
 import { EventEmitter } from 'events';
 
 // RETRIEVERS
@@ -10,10 +10,6 @@ import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 interface Job<Success, Failure> {
   execute(): Promise<Success>;
   handleError(): Promise<Failure>;
-}
-
-class SpotifyJob implements Job<PopulatedReleaseObject[], SpotifyAPIError> {
-  #controller: DataController;
 }
 
 export class JobHandler extends EventEmitter {

@@ -1,4 +1,4 @@
-// NATIVE IMPORTS
+// NODE CORE IMPORTS
 import { posix as path } from 'path';
 import { stringify } from 'querystring';
 import url from 'url';

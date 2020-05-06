@@ -1,4 +1,4 @@
-// NATIVE IMPORTS
+// NODE CORE IMPORTS
 const path = require('path');
 
 // DEPENDENCIES

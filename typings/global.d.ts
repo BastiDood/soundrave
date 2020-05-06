@@ -50,7 +50,7 @@ type Result<SuccessType, FailureType> = SuccessfulResult<SuccessType>|FailedResu
 
 type MongoDocument = import('mongoose').Document;
 
-interface MongoUserObject extends MongoDocument {
+declare interface MongoUserObject extends MongoDocument {
   /** Spotify ID of the user */
   _id: string;
   /** Display name in Spotify */
@@ -70,7 +70,7 @@ interface MongoUserObject extends MongoDocument {
   retrievalDate: number;
 }
 
-type UserObject = Pick<MongoUserObject, '_id'|'name'|'country'|'followedArtists'|'images'|'retrievalDate'>;
+declare interface UserObject extends Pick<MongoUserObject, '_id'|'name'|'country'|'followedArtists'|'images'|'retrievalDate'> { }
 
 declare interface MongoArtistObject extends MongoDocument {
   /** Spotify ID of the artist */
@@ -81,9 +81,9 @@ declare interface MongoArtistObject extends MongoDocument {
   retrievalDate: number;
 }
 
-type ArtistObject = Pick<MongoArtistObject, '_id'|'name'|'images'|'retrievalDate'>;
+interface ArtistObject extends Pick<MongoArtistObject, '_id'|'name'|'images'|'retrievalDate'> { }
 
-interface MongoReleaseObject extends MongoDocument {
+declare interface MongoReleaseObject extends MongoDocument {
   /** Spotify ID of the release */
   _id: string;
   title: string;
@@ -104,11 +104,11 @@ declare interface MongoNonPopulatedReleaseObject extends MongoReleaseObject {
   artists: string[];
 }
 
-type NonPopulatedReleaseObject = Pick<MongoNonPopulatedReleaseObject, ReleaseObjectKeys>;
+interface NonPopulatedReleaseObject extends Pick<MongoNonPopulatedReleaseObject, ReleaseObjectKeys> { }
 
 declare interface MongoPopulatedReleaseObject extends MongoReleaseObject {
   /** Spotify object representation of artists */
   artists: ArtistObject[];
 }
 
-type PopulatedReleaseObject = Pick<MongoPopulatedReleaseObject, ReleaseObjectKeys>;
+interface PopulatedReleaseObject extends Pick<MongoPopulatedReleaseObject, ReleaseObjectKeys> { }

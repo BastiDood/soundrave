@@ -1,4 +1,4 @@
-// NATIVE IMPORTS
+// NODE CORE IMPORTS
 import assert from 'assert';
 import { URLSearchParams } from 'url';
 
@@ -150,17 +150,12 @@ export class SpotifyAPI {
   }
 
   /** @param etag - Associated ETag of the request */
-  async *fetchFollowedArtists(etag?: string): AsyncIterable<Result<ETagBasedResource<ArtistObject[]|null>, SpotifyAPIError>> {
-    if (!this.#token.scope.includes('user-follow-read')) {
-      yield {
-        ok: false,
-        error: new SpotifyAPIError({
-          status: 401,
-          message: 'Access token does not have the permission to read list of followers.',
-        }),
-      };
-      return;
-    }
+  async *fetchFollowedArtists(etag?: string): AsyncGenerator<ETagBasedResource<ArtistObject[]|null>, SpotifyAPIError|undefined> {
+    if (!this.#token.scope.includes('user-follow-read'))
+      return new SpotifyAPIError({
+        status: 401,
+        message: 'Access token does not have the permission to read list of followers.',
+      });
 
     const fetchOpts = this.fetchOptionsForGet;
     if (etag)
@@ -177,45 +172,35 @@ export class SpotifyAPI {
 
       if (response.status === 304) {
         yield {
-          ok: true,
-          value: {
-            resource: null,
-            etag: etag!,
-          },
+          resource: null,
+          etag: etag!,
         };
         break;
       }
 
-      if (!response.ok) {
-        yield {
-          ok: response.ok,
-          error: new SpotifyAPIError(await json as SpotifyApi.ErrorObject),
-        };
-        break;
-      }
+      if (!response.ok)
+        return new SpotifyAPIError(await json as SpotifyApi.ErrorObject);
 
       const { artists } = await json as SpotifyApi.UsersFollowedArtistsResponse;
-
       const responseETag = response.headers.get('ETag');
-      assert(responseETag, 'Spotify did not provide an ETag.');
+      assert(responseETag, 'Spotify API did not provide an ETag.');
 
       yield {
-        ok: response.ok,
-        value: {
-          resource: artists.items.map(SpotifyAPI.transformToArtistObject),
-          etag: responseETag,
-        },
+        resource: artists.items.map(SpotifyAPI.transformToArtistObject),
+        etag: responseETag,
       };
 
       next = artists.next;
     }
+
+    return;
   }
 
   /**
    * @param id - Spotify ID of artist
    * @param market - ISO 3166-1 alpha-2 country code
    */
-  async *fetchReleasesByArtistID(id: string, market: string): AsyncIterable<Result<NonPopulatedReleaseObject[]|null, SpotifyAPIError>> {
+  async *fetchReleasesByArtistID(id: string, market: string): AsyncGenerator<NonPopulatedReleaseObject[], SpotifyAPIError|undefined> {
     let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
       market,
       include_groups: 'album,single',
@@ -228,25 +213,22 @@ export class SpotifyAPI {
       const json = response.json();
 
       if (!response.ok)
-        yield {
-          ok: response.ok,
-          error: new SpotifyAPIError(await json as SpotifyApi.ErrorObject),
-        };
+        return new SpotifyAPIError(await json as SpotifyApi.ErrorObject);
 
+      const data = await json as SpotifyApi.ArtistsAlbumsResponse;
+      const { items } = data;
       const releases: NonPopulatedReleaseObject[] = [];
-      const { items, next: nextURL } = await json as SpotifyApi.ArtistsAlbumsResponse;
       for (const release of items)
       // Only include releases that are available in at least one country
         if (release.available_markets && release.available_markets.length > 0)
           releases.push(SpotifyAPI.transformToNonPopulatedReleaseObject(release));
 
-      yield {
-        ok: true,
-        value: releases,
-      };
+      yield releases;
 
-      next = nextURL;
+      next = data.next;
     }
+
+    return;
   }
 
   /**
@@ -255,7 +237,7 @@ export class SpotifyAPI {
    * minimize the number of actual requests to the API.
    * @param ids - List of Spotify artist IDs
    */
-  async fetchSeveralArtists(ids: string[]): Promise<{ artists: ArtistObject[]; errors: SpotifyAPIError[] }> {
+  async fetchSeveralArtists(ids: string[]): Promise<Result<ArtistObject[], SpotifyAPIError>[]> {
     const fetchOpts = this.fetchOptionsForGet;
 
     // Batch the requests concurrently with 50 artists each
@@ -276,16 +258,12 @@ export class SpotifyAPI {
       });
     const results = await Promise.allSettled(promises);
 
-    // Separate the successful requests from those with errors
-    const errors: SpotifyAPIError[] = [];
-    let artists: ArtistObject[] = [];
-    for (const result of results)
-      if (result.status === 'fulfilled')
-        artists = artists.concat(result.value);
-      else
-        errors.push(result.reason as SpotifyAPIError);
-
-    return { artists, errors };
+    return results
+      .map(result => {
+        if (result.status === 'fulfilled')
+          return { ok: true, value: result.value };
+        return { ok: false, error: result.reason };
+      });
   }
 
   // TODO: Move this into a Mongoose virtual
