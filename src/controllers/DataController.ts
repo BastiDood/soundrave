@@ -50,7 +50,23 @@ export class DataController {
       };
     }
 
-    return this.#api.fetchUserProfile();
+    const partial = await this.#api.fetchUserProfile();
+    if (!partial.ok)
+      return partial;
+
+    this.#user = {
+      ...this.#user,
+      ...partial.value,
+      retrievalDate: Date.now(),
+    };
+
+    await Cache.upsertUserObject(this.#user);
+    const value = { ...this.#user };
+    delete value.followedArtists;
+    return {
+      ok: partial.ok,
+      value,
+    };
   }
 
   // TODO: Correct types for asynchronous iterables
