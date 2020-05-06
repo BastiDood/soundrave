@@ -6,10 +6,13 @@ import { promisify } from 'util';
 import express from 'express';
 
 // CONTROLLERS
-import { DataRetriever } from '../controllers/DataRetriever';
+import { DataController } from '../controllers/DataController';
 
 // FETCHERS
 import { SpotifyAPI } from '../fetchers/Spotify';
+
+// CACHE
+import { Cache } from '../db/Cache';
 
 // GLOBAL VARIABLES
 const router = express.Router();
@@ -22,19 +25,26 @@ router
     const { session } = req;
 
     // Reject all users that have not been logged in
-    if (!session?.isLoggedIn
-      || !session?.token
-    ) {
+    if (!session?.isLoggedIn || !session.userID || !session?.token) {
       res.render('index');
       return;
     }
 
-    // Initialize Spotify fetcher
-    const retriever = new DataRetriever(new SpotifyAPI(session.token.spotify), session.cache as Required<SessionCache>);
-    const result = await retriever.getReleases();
+    // Initialize the data controller
+    const user = await Cache.retrieveUser(session.userID);
+    const dataController = new DataController(session.token.spotify, user!);
+
+    // Retrieve first batch of releases
+    const releasesIterator = dataController.getReleases();
+    const releasesResult = await releasesIterator.next();
 
     // TODO: Present errors in a friendly manner
-    res.render('index', result);
+    assert(!releasesResult.done);
+    const { releases, errors } = releasesResult.value;
+    assert(errors.length < 1);
+
+    // TODO: Schedule the rest of the batches to the job handler
+    res.render('index', { releases });
   })
   .get('/login', (req, res) => {
     if (req.session?.isLoggedIn)
@@ -54,7 +64,7 @@ router
     }
 
     // Exchange the authorization code for an access token
-    const tokenResult = await SpotifyAPI.exchangeCodeForAccessToken(authorization.code);
+    const tokenResult = await SpotifyAPI.init(authorization.code);
 
     // TODO: Handle any authorization errors
     assert(tokenResult.ok);
@@ -62,42 +72,55 @@ router
     // Generate new session when the user logs in
     await promisify(session.regenerate.bind(session))();
 
+    // Initialize reference to Spotify API
+    const api = tokenResult.value;
+
     // Initialize session data
-    const { value: token } = tokenResult;
-    const ONE_HOUR = token.expires_in * 1e3;
     session.token = Object.create(null);
     assert(session.token);
-    session.token.spotify = {
-      accessToken: token.access_token,
-      refreshToken: token.refresh_token,
-      scope: token.scope,
-      expiresAt: Date.now() + ONE_HOUR,
-    };
-    session.cookie.maxAge = ONE_HOUR;
-    session.isLoggedIn = true;
+    const token = api.tokenInfo;
+    session.token.spotify = token;
+    session.cookie.maxAge = token.expiresAt - Date.now();
 
-    // Initialize session cache
-    session.cache = Object.create(null);
-    assert(session.cache);
-    session.cache.followedArtists = {
-      ids: [],
-      retrievalDate: -Infinity,
-    };
+    // Initialize the user object
+    const userResult = await api.fetchUserProfile();
 
-    // Retrieve the real country code
-    const retriever = new DataRetriever(new SpotifyAPI(session.token.spotify), session.cache);
-    const userResult = await retriever.getUserProfile();
-
-    // TODO: Handle any errors during the fetch
+    // TODO: Handle errors when initializing the user profile
     assert(userResult.ok);
 
-    // Retrieve followed artists
-    const followedArtists = await retriever.getFollowedArtists();
+    // Use the ID as an identifier for future communication
+    session.userID = userResult.value._id;
 
-    // TODO: Handle any error from `followedArtists.error`
-    assert(!followedArtists.error);
+    // Check if the user has previously logged in to the service
+    const user = await Cache.retrieveUser(session.userID);
+
+    // Initialize the new user otherwise
+    if (!user) {
+      const followedArtists = api.fetchFollowedArtists();
+      const firstBatch = await followedArtists.next();
+
+      // TODO: Handle the case when the user has not followed any artists yet
+      assert(typeof firstBatch.done !== 'undefined');
+      assert(!firstBatch.done);
+
+      const { resource, etag } = firstBatch.value;
+      const newUser: UserObject = {
+        ...userResult.value,
+        followedArtists: {
+          ids: resource!.map(artist => artist._id),
+          etag,
+          retrievalDate: Date.now(),
+        },
+      };
+
+      await Promise.all([
+        Cache.upsertManyArtistObjects(resource!),
+        Cache.upsertUserObject(newUser),
+      ]);
+    }
 
     // Explicitly save session data due to redirect
+    session.isLoggedIn = true;
     await promisify(session.save.bind(session))();
 
     // TODO: Handle error if `error in authorization`

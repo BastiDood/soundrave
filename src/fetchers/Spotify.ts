@@ -311,4 +311,6 @@ export class SpotifyAPI {
       headers: { Authorization: `Bearer ${this.#token.accessToken}` },
     };
   }
+
+  get tokenInfo(): SpotifyAccessToken { return { ...this.#token }; }
 }

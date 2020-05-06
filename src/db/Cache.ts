@@ -62,12 +62,11 @@ export class Cache {
     await Release.bulkWrite(operations, { ordered: false });
   }
 
-  static async retrieveUser(id: string): Promise<UserObject> {
+  static async retrieveUser(id: string): Promise<UserObject|null> {
     const user = await User
       .findById(id)
       .lean()
       .exec();
-    assert(user);
     return user;
   }
 
