@@ -37,15 +37,12 @@ export class DataController {
     return Date.now() > this.#user.followedArtists.retrievalDate + DataController.STALE_PERIOD.FOLLOWED_ARTISTS;
   }
 
-  async getUserProfile(): Promise<Result<Omit<UserObject, 'followedArtists'>, SpotifyAPIError>> {
-    if (!this.isUserObjectStale) {
-      const profile = { ...this.#user };
-      delete profile.followedArtists;
+  async getUserProfile(): Promise<Result<Readonly<Omit<UserObject, 'followedArtists'>>, SpotifyAPIError>> {
+    if (!this.isUserObjectStale)
       return {
         ok: true,
-        value: profile,
+        value: this.#user,
       };
-    }
 
     if (this.#api.isExpired)
       await this.#api.refreshAccessToken();
@@ -61,11 +58,9 @@ export class DataController {
     };
 
     await Cache.upsertUserObject(this.#user);
-    const value = { ...this.#user };
-    delete value.followedArtists;
     return {
       ok: partial.ok,
-      value,
+      value: this.#user,
     };
   }
 

@@ -30,12 +30,22 @@ router
       return;
     }
 
-    // Initialize the data controller
+    // Retrieve the current user
     const user = await Cache.retrieveUser(session.userID);
     assert(user);
-    const dataController = new DataController(session.token.spotify, user);
+
+    // Render the freshest content for those with pending jobs
+    // TODO: Handle the case when the user no longer has any pending jobs
+    if (user.hasPendingJobs) {
+      const { ids } = user.followedArtists;
+      const { country } = user;
+      const releases = await Cache.retrieveReleasesFromArtists(ids, country);
+      res.render('index', { releases });
+      return;
+    }
 
     // Retrieve first batch of releases
+    const dataController = new DataController(session.token.spotify, user);
     const releasesIterator = dataController.getReleases();
     const releasesResult = await releasesIterator.next();
 
@@ -61,6 +71,8 @@ router
     res.render('index', { releases: releasesResult.value.releases });
 
     // TODO: Schedule the rest of the batches to the job handler
+    user.hasPendingJobs = true;
+    await Cache.updatePendingJobsStatusForUser(user._id, user.hasPendingJobs);
   })
   .get('/login', (req, res) => {
     if (req.session?.isLoggedIn)

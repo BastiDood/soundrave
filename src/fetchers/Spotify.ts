@@ -312,5 +312,5 @@ export class SpotifyAPI {
     };
   }
 
-  get tokenInfo(): SpotifyAccessToken { return { ...this.#token }; }
+  get tokenInfo(): Readonly<SpotifyAccessToken> { return this.#token; }
 }
