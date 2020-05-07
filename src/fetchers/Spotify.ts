@@ -266,17 +266,14 @@ export class SpotifyAPI {
       });
   }
 
-  // TODO: Move this into a Mongoose virtual
   static getURLfromArtist(artist: ArtistObject): string {
     return formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/artist/${artist._id}`);
   }
 
-  // TODO: Move this into a Mongoose virtual
   static getURLfromRelease(release: PopulatedReleaseObject|NonPopulatedReleaseObject): string {
     return formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/album/${release._id}`);
   }
 
-  // TODO: Move this into a Mongoose virtual
   static getURLfromUser(user: UserObject): string {
     return formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/user/${user._id}`);
   }

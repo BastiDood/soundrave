@@ -80,7 +80,7 @@ router
     else
       res.redirect(SpotifyAPI.AUTH_ENDPOINT);
   })
-  .get('/callback', async (req: express.Request<{}, {}, {}, AuthorizationResult>, res) => {
+  .get('/callback', async (req: express.Request<{}, {}, {}, AuthorizationResult>, res, next) => {
     const { session } = req;
     const authorization = req.query;
 
@@ -127,9 +127,13 @@ router
       const followedArtists = api.fetchFollowedArtists();
       const firstBatch = await followedArtists.next();
 
-      // TODO: Handle the case when the user has not followed any artists yet
+      // Handle the case when the initial retrieval fails
       assert(typeof firstBatch.done !== 'undefined');
-      assert(!firstBatch.done);
+      if (firstBatch.done) {
+        assert(firstBatch.value);
+        next({ releases: [], errors: [ firstBatch.value ] });
+        return;
+      }
 
       const { resource, etag } = firstBatch.value;
       const newUser: UserObject = {
