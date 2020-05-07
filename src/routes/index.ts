@@ -50,6 +50,16 @@ router
       return;
     }
 
+    // Forward any errors to the centralized handler
+    if (releasesResult.value.errors.length > 0) {
+      next(releasesResult.value);
+      return;
+    }
+
+    // In the best-case scenario when there are no errors,
+    // respond to the user as soon as possible.
+    res.render('index', { releases: releasesResult.value.releases });
+
     // TODO: Schedule the rest of the batches to the job handler
   })
   .get('/login', (req, res) => {
