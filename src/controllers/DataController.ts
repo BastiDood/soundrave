@@ -162,8 +162,7 @@ export class DataController {
       const ids = followedResult.value.map(artist => artist._id);
       yield {
         releases: await Cache.retrieveReleasesFromArtists(ids, country),
-        errors: settledFetches
-          .filter(Boolean) as SpotifyAPIError[],
+        errors: settledFetches.filter(Boolean) as SpotifyAPIError[],
       };
 
       done = followedResult.done;
