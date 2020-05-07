@@ -42,21 +42,11 @@ router
     // Check for any errors on the first request
     assert(typeof releasesResult.done !== 'undefined');
     if (releasesResult.done) {
-      const output: ReleaseRetrieval = {
-        releases: [],
-        errors: [],
-      };
-
-      // Forward any errors to centralized error handlers
+      // This works on the assumption that if there is an error in the first pull,
+      // then the value is certainly a fail-fast error.
       // TODO: Ensure that all error handlers take in `ReleaseRetrieval` interface
-      if (releasesResult.value) {
-        output.errors.push(releasesResult.value);
-        next(output);
-        return;
-      }
-
-      // This is the case when the user has no followed artists
-      res.render('index', output);
+      assert(releasesResult.value);
+      next({ releases: [], errors: [ releasesResult.value ] });
       return;
     }
 

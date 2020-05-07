@@ -89,18 +89,18 @@ export class DataController {
 
       const { resource, etag } = result.value;
       if (resource) {
-        const pendingOperations: Promise<void>[] = [];
-        pendingOperations.push(Cache.upsertManyArtistObjects(resource));
-
         this.#user.followedArtists = {
           ids: this.#user.followedArtists.ids.concat(resource.map(artist => artist._id)),
           etag,
           retrievalDate: Date.now(),
         };
-        pendingOperations.push(Cache.upsertUserObject(this.#user));
 
+        await Promise.all([
+          Cache.upsertManyArtistObjects(resource),
+          // TODO: Create a model function that only updates the followed artists
+          Cache.upsertUserObject(this.#user),
+        ]);
         yield resource;
-        await Promise.all(pendingOperations);
       } else
         yield await Cache.retrieveArtists(this.#user.followedArtists.ids);
 
