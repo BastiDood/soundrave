@@ -56,37 +56,38 @@ interface ReleaseRetrieval {
 type MongoDocument = import('mongoose').Document;
 type MongoKeys = Exclude<keyof MongoDocument, '_id'>;
 
-declare interface MongoUserObject extends MongoDocument {
+interface Cacheable {
+  /** Represented as milliseconds since Unix time (in milliseconds) */
+  retrievalDate: number;
+}
+
+interface FollowedArtistsInfo extends Cacheable {
+  /** Spotify IDs of the user's followed artists */
+  ids: string[];
+  /** Associated ETag of the list of followed artists */
+  etag: string;
+}
+
+declare interface MongoUserObject extends MongoDocument, Cacheable {
   /** Spotify ID of the user */
   _id: string;
   /** Display name in Spotify */
   name: string;
   /** ISO 3166-1 alpha-2 country code in which the user registered from */
   country: string;
-  followedArtists: {
-    /** Spotify IDs of the user's followed artists */
-    ids: string[];
-    /** Represented as milliseconds since Unix time (in milliseconds) */
-    retrievalDate: number;
-    /** Associated ETag of the list of followed artists */
-    etag: string;
-  };
+  followedArtists: FollowedArtistsInfo;
   images: SpotifyApi.ImageObject[];
   /** Represents the state of the associated fetches for this user's data */
   hasPendingJobs: boolean;
-  /** Represented as milliseconds since Unix time (in milliseconds) */
-  retrievalDate: number;
 }
 
 declare interface UserObject extends Omit<MongoUserObject, MongoKeys> { }
 
-declare interface MongoArtistObject extends MongoDocument {
+declare interface MongoArtistObject extends MongoDocument, Cacheable {
   /** Spotify ID of the artist */
   _id: string;
   name: string;
   images: SpotifyApi.ImageObject[];
-  /** Represented as milliseconds since Unix time (in milliseconds) */
-  retrievalDate: number;
 }
 
 declare interface ArtistObject extends Omit<MongoArtistObject, MongoKeys> { }

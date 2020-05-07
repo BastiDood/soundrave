@@ -94,6 +94,20 @@ export class Cache {
       .exec();
   }
 
+  static async updateFollowedArtistsByUserObject({ _id, followedArtists }: UserObject): Promise<void> {
+    await User
+      .findByIdAndUpdate(_id, { $set: { followedArtists } })
+      .lean()
+      .exec();
+  }
+
+  static async updateFollowedArtistsByID(id: string, followedArtists: FollowedArtistsInfo): Promise<void> {
+    await User
+      .findByIdAndUpdate(id, { $set: { followedArtists } })
+      .lean()
+      .exec();
+  }
+
   static async updateManyRetrievalDatesForArtists(artists: ArtistObject[]): Promise<void> {
     const operations = artists.map(artist => ({
       updateOne: {

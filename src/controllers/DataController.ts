@@ -97,8 +97,7 @@ export class DataController {
 
         await Promise.all([
           Cache.upsertManyArtistObjects(resource),
-          // TODO: Create a model function that only updates the followed artists
-          Cache.upsertUserObject(this.#user),
+          Cache.updateFollowedArtistsByUserObject(this.#user),
         ]);
         yield resource;
       } else
