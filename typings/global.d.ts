@@ -49,6 +49,7 @@ interface FailedResult<T> {
 type Result<SuccessType, FailureType> = SuccessfulResult<SuccessType>|FailedResult<FailureType>;
 
 type MongoDocument = import('mongoose').Document;
+type MongoKeys = Exclude<keyof MongoDocument, '_id'>;
 
 declare interface MongoUserObject extends MongoDocument {
   /** Spotify ID of the user */
@@ -72,7 +73,7 @@ declare interface MongoUserObject extends MongoDocument {
   retrievalDate: number;
 }
 
-declare interface UserObject extends Omit<MongoUserObject, Exclude<keyof MongoDocument, '_id'>> { }
+declare interface UserObject extends Omit<MongoUserObject, MongoKeys> { }
 
 declare interface MongoArtistObject extends MongoDocument {
   /** Spotify ID of the artist */
@@ -83,7 +84,7 @@ declare interface MongoArtistObject extends MongoDocument {
   retrievalDate: number;
 }
 
-declare interface ArtistObject extends Omit<MongoArtistObject, Exclude<keyof MongoDocument, '_id'>> { }
+declare interface ArtistObject extends Omit<MongoArtistObject, MongoKeys> { }
 
 declare interface MongoReleaseObject extends MongoDocument {
   /** Spotify ID of the release */
@@ -104,11 +105,11 @@ declare interface MongoNonPopulatedReleaseObject extends MongoReleaseObject {
   artists: string[];
 }
 
-declare interface NonPopulatedReleaseObject extends Omit<MongoNonPopulatedReleaseObject, Exclude<keyof MongoDocument, '_id'>> { }
+declare interface NonPopulatedReleaseObject extends Omit<MongoNonPopulatedReleaseObject, MongoKeys> { }
 
 declare interface MongoPopulatedReleaseObject extends MongoReleaseObject {
   /** Spotify object representation of artists */
   artists: ArtistObject[];
 }
 
-declare interface PopulatedReleaseObject extends Omit<MongoPopulatedReleaseObject, Exclude<keyof MongoDocument, '_id'>> { }
+declare interface PopulatedReleaseObject extends Omit<MongoPopulatedReleaseObject, MongoKeys> { }
