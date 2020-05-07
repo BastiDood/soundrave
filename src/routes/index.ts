@@ -25,26 +25,31 @@ router
     const { session } = req;
 
     // Reject all users that have not been logged in
-    if (!session?.isLoggedIn || !session.userID || !session?.token) {
+    if (!session?.isLoggedIn) {
       res.render('index');
       return;
     }
 
     // Initialize the data controller
     const user = await Cache.retrieveUser(session.userID);
-    const dataController = new DataController(session.token.spotify, user!);
+    assert(user);
+    const dataController = new DataController(session.token.spotify, user);
 
     // Retrieve first batch of releases
     const releasesIterator = dataController.getReleases();
     const releasesResult = await releasesIterator.next();
 
+    // TODO: Schedule the rest of the batches to the job handler
+    if (!releasesResult.done) {
+      user.hasPendingJobs = true;
+      await Cache.updatePendingJobsStatusForUser(user._id, user.hasPendingJobs);
+    }
+
     // TODO: Present errors in a friendly manner
     assert(!releasesResult.done);
-    const { releases, errors } = releasesResult.value;
-    assert(errors.length < 1);
+    assert(releasesResult.value.errors.length < 1);
 
-    // TODO: Schedule the rest of the batches to the job handler
-    res.render('index', { releases });
+    res.render('index', releasesResult.value);
   })
   .get('/login', (req, res) => {
     if (req.session?.isLoggedIn)

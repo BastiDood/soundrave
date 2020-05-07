@@ -1,10 +1,8 @@
-// NODE CORE IMPORTS
-import assert from 'assert';
-
 // MODELS
 import { User, Artist, Release } from './models';
 
-// TODO: Handle `ETag` headers for caching
+// TODO: Create specialized methods for updating single fields
+// or only retrieving specific fields **for query performance**
 // TODO: Ensure that IDs and dates are indexed in MongoDB
 
 export class Cache {
@@ -62,12 +60,11 @@ export class Cache {
     await Release.bulkWrite(operations, { ordered: false });
   }
 
-  static async retrieveUser(id: string): Promise<UserObject|null> {
-    const user = await User
+  static retrieveUser(id: string): Promise<UserObject|null> {
+    return User
       .findById(id)
       .lean()
       .exec();
-    return user;
   }
 
   static retrieveArtists(ids: string[]): Promise<ArtistObject[]> {
@@ -87,6 +84,13 @@ export class Cache {
       .sort({ releaseDate: -1 })
       .lean()
       .populate('artists')
+      .exec();
+  }
+
+  static async updatePendingJobsStatusForUser(id: string, status: boolean): Promise<void> {
+    await User
+      .findByIdAndUpdate(id, { $set: { hasPendingJobs: status } })
+      .lean()
       .exec();
   }
 
