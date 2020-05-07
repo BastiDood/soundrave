@@ -8,11 +8,11 @@ import express from 'express';
 // CONTROLLERS
 import { DataController } from '../controllers/DataController';
 
-// FETCHERS
-import { SpotifyAPI } from '../fetchers/Spotify';
-
 // CACHE
 import { Cache } from '../db/Cache';
+
+// FETCHERS
+import { SpotifyAPI } from '../fetchers/Spotify';
 
 // GLOBAL VARIABLES
 const router = express.Router();
@@ -20,7 +20,7 @@ const router = express.Router();
 // TODO: Catch and handle bubbled events
 
 router
-  .get('/', async (req, res) => {
+  .get('/', async (req, res, next) => {
     // Shorthand for session object
     const { session } = req;
 
@@ -39,17 +39,28 @@ router
     const releasesIterator = dataController.getReleases();
     const releasesResult = await releasesIterator.next();
 
-    // TODO: Schedule the rest of the batches to the job handler
-    if (!releasesResult.done) {
-      user.hasPendingJobs = true;
-      await Cache.updatePendingJobsStatusForUser(user._id, user.hasPendingJobs);
+    // Check for any errors on the first request
+    assert(typeof releasesResult.done !== 'undefined');
+    if (releasesResult.done) {
+      const output: ReleaseRetrieval = {
+        releases: [],
+        errors: [],
+      };
+
+      // Forward any errors to centralized error handlers
+      // TODO: Ensure that all error handlers take in `ReleaseRetrieval` interface
+      if (releasesResult.value) {
+        output.errors.push(releasesResult.value);
+        next(output);
+        return;
+      }
+
+      // This is the case when the user has no followed artists
+      res.render('index', output);
+      return;
     }
 
-    // TODO: Present errors in a friendly manner
-    assert(!releasesResult.done);
-    assert(releasesResult.value.errors.length < 1);
-
-    res.render('index', releasesResult.value);
+    // TODO: Schedule the rest of the batches to the job handler
   })
   .get('/login', (req, res) => {
     if (req.session?.isLoggedIn)

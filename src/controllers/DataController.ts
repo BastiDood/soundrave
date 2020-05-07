@@ -110,7 +110,7 @@ export class DataController {
     return;
   }
 
-  async *getReleases(): AsyncGenerator<{ releases: PopulatedReleaseObject[]; errors: SpotifyAPIError[] }, SpotifyAPIError|undefined> {
+  async *getReleases(): AsyncGenerator<ReleaseRetrieval, SpotifyAPIError|undefined> {
     const userResult = await this.getUserProfile();
 
     if (!userResult.ok)

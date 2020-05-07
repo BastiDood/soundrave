@@ -48,6 +48,11 @@ interface FailedResult<T> {
 
 type Result<SuccessType, FailureType> = SuccessfulResult<SuccessType>|FailedResult<FailureType>;
 
+interface ReleaseRetrieval {
+  releases: PopulatedReleaseObject[];
+  errors: import('../src/errors/SpotifyAPIError').SpotifyAPIError[];
+}
+
 type MongoDocument = import('mongoose').Document;
 type MongoKeys = Exclude<keyof MongoDocument, '_id'>;
 
