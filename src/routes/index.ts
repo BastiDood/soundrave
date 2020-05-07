@@ -111,6 +111,7 @@ router
           etag,
           retrievalDate: Date.now(),
         },
+        hasPendingJobs: false,
       };
 
       await Promise.all([
