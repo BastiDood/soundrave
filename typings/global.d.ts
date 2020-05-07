@@ -66,11 +66,13 @@ declare interface MongoUserObject extends MongoDocument {
     etag: string;
   };
   images: SpotifyApi.ImageObject[];
+  /** Represents the state of the associated fetches for this user's data */
+  hasPendingJobs: boolean;
   /** Represented as milliseconds since Unix time (in milliseconds) */
   retrievalDate: number;
 }
 
-declare interface UserObject extends Pick<MongoUserObject, '_id'|'name'|'country'|'followedArtists'|'images'|'retrievalDate'> { }
+declare interface UserObject extends Omit<MongoUserObject, keyof MongoDocument> { }
 
 declare interface MongoArtistObject extends MongoDocument {
   /** Spotify ID of the artist */
@@ -81,7 +83,7 @@ declare interface MongoArtistObject extends MongoDocument {
   retrievalDate: number;
 }
 
-interface ArtistObject extends Pick<MongoArtistObject, '_id'|'name'|'images'|'retrievalDate'> { }
+declare interface ArtistObject extends Omit<MongoArtistObject, keyof MongoDocument> { }
 
 declare interface MongoReleaseObject extends MongoDocument {
   /** Spotify ID of the release */
@@ -97,18 +99,16 @@ declare interface MongoReleaseObject extends MongoDocument {
   images: SpotifyApi.ImageObject[];
 }
 
-type ReleaseObjectKeys = '_id'|'title'|'albumType'|'releaseDate'|'datePrecision'|'availableCountries'|'images'|'artists';
-
 declare interface MongoNonPopulatedReleaseObject extends MongoReleaseObject {
   /** Spotify IDs of artists */
   artists: string[];
 }
 
-interface NonPopulatedReleaseObject extends Pick<MongoNonPopulatedReleaseObject, ReleaseObjectKeys> { }
+declare interface NonPopulatedReleaseObject extends Omit<MongoNonPopulatedReleaseObject, keyof MongoDocument> { }
 
 declare interface MongoPopulatedReleaseObject extends MongoReleaseObject {
   /** Spotify object representation of artists */
   artists: ArtistObject[];
 }
 
-interface PopulatedReleaseObject extends Pick<MongoPopulatedReleaseObject, ReleaseObjectKeys> { }
+declare interface PopulatedReleaseObject extends Omit<MongoPopulatedReleaseObject, keyof MongoDocument> { }

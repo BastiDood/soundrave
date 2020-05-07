@@ -8,5 +8,6 @@ export const UserSchema = new Schema({
   country: { type: String, required: true },
   images: [ { type: ImageSchema, required: true } ],
   followedArtists: { type: FollowedArtistsSchema, required: true },
+  hasPendingJobs: { type: Boolean, required: true },
   retrievalDate: { type: Number, required: true },
 });

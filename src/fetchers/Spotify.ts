@@ -109,7 +109,7 @@ export class SpotifyAPI {
     this.#token.expiresAt = Date.now() + expires_in * 1e3;
   }
 
-  async fetchUserProfile(): Promise<Result<Omit<UserObject, 'followedArtists'>, SpotifyAPIError>> {
+  async fetchUserProfile(): Promise<Result<Omit<UserObject, 'followedArtists'|'hasPendingJobs'>, SpotifyAPIError>> {
     const { scope } = this.#token;
     if (!scope.includes('user-read-private') || !scope.includes('user-read-email'))
       return {
