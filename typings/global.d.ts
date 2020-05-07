@@ -79,6 +79,8 @@ declare interface MongoUserObject extends MongoDocument, Cacheable {
   images: SpotifyApi.ImageObject[];
   /** Represents the state of the associated fetches for this user's data */
   hasPendingJobs: boolean;
+  /** Represents the amount of time (in UNIX time) since the last time this user finished all jobs */
+  timeSinceLastDone: number;
 }
 
 declare interface UserObject extends Omit<MongoUserObject, MongoKeys> { }

@@ -9,7 +9,6 @@ export class Cache {
   static async upsertUserObject(user: UserObject): Promise<void> {
     await User
       .findByIdAndUpdate(user._id, user, { upsert: true })
-      .lean()
       .exec();
   }
 
@@ -27,7 +26,6 @@ export class Cache {
   static async upsertArtistObject(artist: ArtistObject): Promise<void> {
     await Artist
       .findByIdAndUpdate(artist._id, artist, { upsert: true })
-      .lean()
       .exec();
   }
 
@@ -45,7 +43,6 @@ export class Cache {
   static async upsertReleaseObject(release: NonPopulatedReleaseObject): Promise<void> {
     await Release
       .findByIdAndUpdate(release._id, release, { upsert: true })
-      .lean()
       .exec();
   }
 
@@ -87,24 +84,21 @@ export class Cache {
       .exec();
   }
 
-  static async updatePendingJobsStatusForUser(id: string, status: boolean): Promise<void> {
+  static async updateJobStatusForUser({ _id, hasPendingJobs, timeSinceLastDone }: UserObject): Promise<void> {
     await User
-      .findByIdAndUpdate(id, { $set: { hasPendingJobs: status } })
-      .lean()
+      .findByIdAndUpdate(_id, { $set: { hasPendingJobs, timeSinceLastDone } })
       .exec();
   }
 
   static async updateFollowedArtistsByUserObject({ _id, followedArtists }: UserObject): Promise<void> {
     await User
       .findByIdAndUpdate(_id, { $set: { followedArtists } })
-      .lean()
       .exec();
   }
 
   static async updateFollowedArtistsByID(id: string, followedArtists: FollowedArtistsInfo): Promise<void> {
     await User
       .findByIdAndUpdate(id, { $set: { followedArtists } })
-      .lean()
       .exec();
   }
 

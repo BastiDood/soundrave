@@ -18,6 +18,7 @@ export class DataController {
     FOLLOWED_ARTISTS: ONE_DAY * 3,
     USER_OBJ: ONE_DAY * 7,
     ARTIST_OBJ: ONE_DAY * 4,
+    LAST_DONE: ONE_DAY * 5,
   };
 
   /** Spotify ID of the current user */
@@ -35,6 +36,11 @@ export class DataController {
 
   get areFollowedArtistsStale(): boolean {
     return Date.now() > this.#user.followedArtists.retrievalDate + DataController.STALE_PERIOD.FOLLOWED_ARTISTS;
+  }
+
+  get isLastDoneStale(): boolean {
+    return !this.#user.hasPendingJobs
+      && Date.now() > this.#user.timeSinceLastDone + DataController.STALE_PERIOD.LAST_DONE;
   }
 
   async getUserProfile(): Promise<Result<Readonly<Omit<UserObject, 'followedArtists'>>, SpotifyAPIError>> {
@@ -105,6 +111,19 @@ export class DataController {
   }
 
   async *getReleases(): AsyncGenerator<ReleaseRetrieval, SpotifyAPIError|undefined> {
+    if (!this.isLastDoneStale) {
+      const { ids } = this.#user.followedArtists;
+      const { country } = this.#user;
+      yield {
+        releases: await Cache.retrieveReleasesFromArtists(ids, country),
+        errors: [],
+      };
+      return;
+    }
+
+    // Officially begin a new job
+    this.#user.hasPendingJobs = true;
+
     const userResult = await this.getUserProfile();
 
     if (!userResult.ok)
@@ -162,6 +181,9 @@ export class DataController {
       done = followedResult.done;
     }
 
+    this.#user.hasPendingJobs = false;
+    this.#user.timeSinceLastDone = Date.now();
+    await Cache.updateJobStatusForUser(this.#user);
     return;
   }
 }

@@ -9,5 +9,6 @@ export const UserSchema = new Schema({
   images: [ { type: ImageSchema, required: true } ],
   followedArtists: { type: FollowedArtistsSchema, required: true },
   hasPendingJobs: { type: Boolean, required: true },
+  timeSinceLastDone: { type: Number, required: true },
   retrievalDate: { type: Number, required: true },
 });
