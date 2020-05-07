@@ -72,7 +72,7 @@ declare interface MongoUserObject extends MongoDocument {
   retrievalDate: number;
 }
 
-declare interface UserObject extends Omit<MongoUserObject, keyof MongoDocument> { }
+declare interface UserObject extends Omit<MongoUserObject, Exclude<keyof MongoDocument, '_id'>> { }
 
 declare interface MongoArtistObject extends MongoDocument {
   /** Spotify ID of the artist */
@@ -83,7 +83,7 @@ declare interface MongoArtistObject extends MongoDocument {
   retrievalDate: number;
 }
 
-declare interface ArtistObject extends Omit<MongoArtistObject, keyof MongoDocument> { }
+declare interface ArtistObject extends Omit<MongoArtistObject, Exclude<keyof MongoDocument, '_id'>> { }
 
 declare interface MongoReleaseObject extends MongoDocument {
   /** Spotify ID of the release */
@@ -104,11 +104,11 @@ declare interface MongoNonPopulatedReleaseObject extends MongoReleaseObject {
   artists: string[];
 }
 
-declare interface NonPopulatedReleaseObject extends Omit<MongoNonPopulatedReleaseObject, keyof MongoDocument> { }
+declare interface NonPopulatedReleaseObject extends Omit<MongoNonPopulatedReleaseObject, Exclude<keyof MongoDocument, '_id'>> { }
 
 declare interface MongoPopulatedReleaseObject extends MongoReleaseObject {
   /** Spotify object representation of artists */
   artists: ArtistObject[];
 }
 
-declare interface PopulatedReleaseObject extends Omit<MongoPopulatedReleaseObject, keyof MongoDocument> { }
+declare interface PopulatedReleaseObject extends Omit<MongoPopulatedReleaseObject, Exclude<keyof MongoDocument, '_id'>> { }
