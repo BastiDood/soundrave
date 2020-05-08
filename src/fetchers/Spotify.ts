@@ -128,7 +128,7 @@ export class SpotifyAPI {
     };
   }
 
-  async fetchUserProfile(): Promise<Result<Omit<UserObject, 'followedArtists'|'hasPendingJobs'|'timeSinceLastDone'>, SpotifyAPIError>> {
+  async fetchUserProfile(): Promise<Result<Pick<UserObject, '_id'|'profile'>, SpotifyAPIError>> {
     const { scope } = this.#token;
     if (!scope.includes('user-read-private') || !scope.includes('user-read-email'))
       return {
@@ -165,11 +165,13 @@ export class SpotifyAPI {
       ok: response.ok,
       value: {
         _id,
-        name: display_name ?? 'User',
-        country,
-        retrievalDate: Date.now(),
-        // TODO: Add a default profile picture
-        images: images ?? [],
+        profile: {
+          name: display_name ?? 'User',
+          country,
+          retrievalDate: Date.now(),
+          // TODO: Add a default profile picture
+          images: images ?? [],
+        },
       },
     };
   }

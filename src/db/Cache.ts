@@ -84,9 +84,9 @@ export class Cache {
       .exec();
   }
 
-  static async updateJobStatusForUser({ _id, hasPendingJobs, timeSinceLastDone }: UserObject): Promise<void> {
+  static async updateJobStatusForUser({ _id, job }: UserObject): Promise<void> {
     await User
-      .findByIdAndUpdate(_id, { $set: { hasPendingJobs, timeSinceLastDone } })
+      .findByIdAndUpdate(_id, { $set: { job } })
       .exec();
   }
 
@@ -103,10 +103,10 @@ export class Cache {
   }
 
   static async updateManyRetrievalDatesForArtists(artists: ArtistObject[]): Promise<void> {
-    const operations = artists.map(artist => ({
+    const operations = artists.map(({ _id, retrievalDate }) => ({
       updateOne: {
-        filter: { _id: artist._id },
-        update: { $set: { retrievalDate: artist.retrievalDate } },
+        filter: { _id },
+        update: { $set: { retrievalDate } },
       },
     }));
     await Artist.bulkWrite(operations, { ordered: false });

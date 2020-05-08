@@ -34,7 +34,7 @@ export class DataController {
   }
 
   get isUserObjectStale(): boolean {
-    return Date.now() > this.#user.retrievalDate + DataController.STALE_PERIOD.USER_OBJ;
+    return Date.now() > this.#user.profile.retrievalDate + DataController.STALE_PERIOD.USER_OBJ;
   }
 
   get areFollowedArtistsStale(): boolean {
@@ -42,11 +42,11 @@ export class DataController {
   }
 
   get isLastDoneStale(): boolean {
-    return !this.#user.hasPendingJobs
-      && Date.now() > this.#user.timeSinceLastDone + DataController.STALE_PERIOD.LAST_DONE;
+    return !this.#user.job.isRunning
+      && Date.now() > this.#user.job.dateLastDone + DataController.STALE_PERIOD.LAST_DONE;
   }
 
-  async getUserProfile(): Promise<Result<Readonly<Omit<UserObject, 'followedArtists'>>, SpotifyAPIError>> {
+  async getUserProfile(): Promise<Result<Readonly<Pick<UserObject, '_id'|'profile'>>, SpotifyAPIError>> {
     if (!this.isUserObjectStale)
       return {
         ok: true,
@@ -57,12 +57,9 @@ export class DataController {
     if (!partial.ok)
       return partial;
 
-    this.#user = {
-      ...this.#user,
-      ...partial.value,
-      retrievalDate: Date.now(),
-    };
-
+    const { value: user } = partial;
+    this.#user._id = user._id;
+    this.#user.profile = user.profile;
     await Cache.upsertUserObject(this.#user);
     return {
       ok: partial.ok,
@@ -110,7 +107,7 @@ export class DataController {
   async *getReleases(): AsyncGenerator<ReleaseRetrieval, SpotifyAPIError|undefined> {
     if (!this.isLastDoneStale) {
       const { ids } = this.#user.followedArtists;
-      const { country } = this.#user;
+      const { country } = this.#user.profile;
       yield {
         releases: await Cache.retrieveReleasesFromArtists(ids, country),
         errors: [],
@@ -119,14 +116,14 @@ export class DataController {
     }
 
     // Officially begin a new job
-    this.#user.hasPendingJobs = true;
+    this.#user.job.isRunning = true;
 
     const userResult = await this.getUserProfile();
 
     if (!userResult.ok)
       return userResult.error;
 
-    const { country } = userResult.value;
+    const { country } = userResult.value.profile;
 
     const iterator = this.getFollowedArtistsIDs();
     let done = false;
@@ -172,8 +169,10 @@ export class DataController {
       done = followedResult.done;
     }
 
-    this.#user.hasPendingJobs = false;
-    this.#user.timeSinceLastDone = Date.now();
+    this.#user.job = {
+      isRunning: false,
+      dateLastDone: Date.now(),
+    };
     await Cache.updateJobStatusForUser(this.#user);
     return;
   }

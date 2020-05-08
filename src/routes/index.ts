@@ -131,8 +131,10 @@ router
           etag,
           retrievalDate: Date.now(),
         },
-        hasPendingJobs: false,
-        timeSinceLastDone: -Infinity,
+        job: {
+          isRunning: false,
+          dateLastDone: -Infinity,
+        },
       };
 
       await Promise.all([

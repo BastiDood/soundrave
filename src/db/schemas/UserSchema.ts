@@ -1,14 +1,11 @@
 import { Schema } from 'mongoose';
+import { ProfileInfoSchema } from './ProfileInfoSchema';
 import { FollowedArtistsSchema } from './FollowedArtistsSchema';
-import { ImageSchema } from './ImageSchema';
+import { JobStatusSchema } from './JobStatusSchema';
 
 export const UserSchema = new Schema({
   _id: { type: String, required: true },
-  name: { type: String, required: true },
-  country: { type: String, required: true },
-  images: [ { type: ImageSchema, required: true } ],
+  profile: { type: ProfileInfoSchema, required: true },
   followedArtists: { type: FollowedArtistsSchema, required: true },
-  hasPendingJobs: { type: Boolean, required: true },
-  timeSinceLastDone: { type: Number, required: true },
-  retrievalDate: { type: Number, required: true },
+  job: { type: JobStatusSchema, required: true },
 });

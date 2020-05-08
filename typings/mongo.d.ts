@@ -6,6 +6,14 @@ interface Cacheable {
   retrievalDate: number;
 }
 
+interface UserProfileInfo extends Cacheable {
+  /** Display name in Spotify */
+  name: string;
+  /** ISO 3166-1 alpha-2 country code in which the user registered from */
+  country: string;
+  images: SpotifyApi.ImageObject[];
+}
+
 interface FollowedArtistsInfo extends Cacheable {
   /** Spotify IDs of the user's followed artists */
   ids: string[];
@@ -13,19 +21,19 @@ interface FollowedArtistsInfo extends Cacheable {
   etag: string;
 }
 
-declare interface MongoUserObject extends MongoDocument, Cacheable {
+interface JobStatusInfo {
+  /** Represents the state of the associated fetches for this user's data */
+  isRunning: boolean;
+  /** Represents the amount of time (in UNIX time) since the last time this user finished all jobs */
+  dateLastDone: number;
+}
+
+declare interface MongoUserObject extends MongoDocument {
   /** Spotify ID of the user */
   _id: string;
-  /** Display name in Spotify */
-  name: string;
-  /** ISO 3166-1 alpha-2 country code in which the user registered from */
-  country: string;
+  profile: UserProfileInfo;
   followedArtists: FollowedArtistsInfo;
-  images: SpotifyApi.ImageObject[];
-  /** Represents the state of the associated fetches for this user's data */
-  hasPendingJobs: boolean;
-  /** Represents the amount of time (in UNIX time) since the last time this user finished all jobs */
-  timeSinceLastDone: number;
+  job: JobStatusInfo;
 }
 
 declare interface MongoArtistObject extends MongoDocument, Cacheable {
