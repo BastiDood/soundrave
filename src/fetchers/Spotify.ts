@@ -91,7 +91,7 @@ export class SpotifyAPI {
   static restore(token: SpotifyAccessToken): SpotifyAPI { return new SpotifyAPI(token); }
 
   /** Refresh the token associated with this instance. */
-  async refreshAccessToken(): Promise<void> {
+  async refreshAccessToken(): Promise<Result<Readonly<SpotifyAccessToken>, SpotifyAPIError>> {
     // Retrieve new access token
     const credentials = Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64');
     const response = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
@@ -104,13 +104,28 @@ export class SpotifyAPI {
     });
     const json = response.json();
 
-    assert(response.ok, 'Unexpected error when refreshing an access token.');
+    // This should be a rare occurrence (i.e. Spotify Service is unavailable)
+    if (!response.ok) {
+      const { error, error_description } = await json as { error: string; error_description: string };
+      return {
+        ok: response.ok,
+        error: new SpotifyAPIError({
+          status: response.status,
+          message: `[${error}]: ${error_description}`,
+        }),
+      };
+    }
 
     // Update token
     const { access_token, scope, expires_in } = await json as Omit<OAuthToken, 'refresh_token'>;
     this.#token.accessToken = access_token;
     this.#token.scope = scope.split(' ');
     this.#token.expiresAt = Date.now() + expires_in * 1e3;
+
+    return {
+      ok: response.ok,
+      value: this.#token,
+    };
   }
 
   async fetchUserProfile(): Promise<Result<Omit<UserObject, 'followedArtists'|'hasPendingJobs'|'timeSinceLastDone'>, SpotifyAPIError>> {
@@ -124,8 +139,11 @@ export class SpotifyAPI {
         }),
       };
 
-    if (this.isExpired)
-      await this.refreshAccessToken();
+    if (this.isExpired) {
+      const refreshResult = await this.refreshAccessToken();
+      if (!refreshResult.ok)
+        return refreshResult;
+    }
 
     const endpoint = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/me');
     const response = await fetch(endpoint, this.fetchOptionsForGet);
@@ -164,8 +182,11 @@ export class SpotifyAPI {
         message: 'Access token does not have the permission to read list of followers.',
       });
 
-    if (this.isExpired)
-      await this.refreshAccessToken();
+    if (this.isExpired) {
+      const refreshResult = await this.refreshAccessToken();
+      if (!refreshResult.ok)
+        return refreshResult.error;
+    }
 
     const fetchOpts = this.fetchOptionsForGet;
     if (etag)
@@ -211,8 +232,11 @@ export class SpotifyAPI {
    * @param market - ISO 3166-1 alpha-2 country code
    */
   async *fetchReleasesByArtistID(id: string, market: string): AsyncGenerator<NonPopulatedReleaseObject[], SpotifyAPIError|undefined> {
-    if (this.isExpired)
-      await this.refreshAccessToken();
+    if (this.isExpired) {
+      const refreshResult = await this.refreshAccessToken();
+      if (!refreshResult.ok)
+        return refreshResult.error;
+    }
 
     let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
       market,
@@ -251,8 +275,11 @@ export class SpotifyAPI {
    * @param ids - List of Spotify artist IDs
    */
   async fetchSeveralArtists(ids: string[]): Promise<Result<ArtistObject[], SpotifyAPIError>[]> {
-    if (this.isExpired)
-      await this.refreshAccessToken();
+    if (this.isExpired) {
+      const refreshResult = await this.refreshAccessToken();
+      if (!refreshResult.ok)
+        return [ refreshResult ];
+    }
 
     // Batch the requests concurrently with 50 artists each
     const fetchOpts = this.fetchOptionsForGet;
