@@ -45,6 +45,10 @@ export class SpotifyAPI {
 
   #token: SpotifyAccessToken;
 
+  /**
+   * **NOTE:** This takes in a token by reference. This should be able
+   * to mutate the session.
+   */
   private constructor(token: SpotifyAccessToken) { this.#token = token; }
 
   /**
@@ -109,7 +113,7 @@ export class SpotifyAPI {
     this.#token.expiresAt = Date.now() + expires_in * 1e3;
   }
 
-  async fetchUserProfile(): Promise<Result<Omit<UserObject, 'followedArtists'|'hasPendingJobs'>, SpotifyAPIError>> {
+  async fetchUserProfile(): Promise<Result<Omit<UserObject, 'followedArtists'|'hasPendingJobs'|'timeSinceLastDone'>, SpotifyAPIError>> {
     const { scope } = this.#token;
     if (!scope.includes('user-read-private') || !scope.includes('user-read-email'))
       return {
@@ -119,6 +123,9 @@ export class SpotifyAPI {
           message: 'Access token does not have the permission to read the user\'s profile.',
         }),
       };
+
+    if (this.isExpired)
+      await this.refreshAccessToken();
 
     const endpoint = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/me');
     const response = await fetch(endpoint, this.fetchOptionsForGet);
@@ -156,6 +163,9 @@ export class SpotifyAPI {
         status: 401,
         message: 'Access token does not have the permission to read list of followers.',
       });
+
+    if (this.isExpired)
+      await this.refreshAccessToken();
 
     const fetchOpts = this.fetchOptionsForGet;
     if (etag)
@@ -201,6 +211,9 @@ export class SpotifyAPI {
    * @param market - ISO 3166-1 alpha-2 country code
    */
   async *fetchReleasesByArtistID(id: string, market: string): AsyncGenerator<NonPopulatedReleaseObject[], SpotifyAPIError|undefined> {
+    if (this.isExpired)
+      await this.refreshAccessToken();
+
     let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
       market,
       include_groups: 'album,single',
@@ -238,9 +251,11 @@ export class SpotifyAPI {
    * @param ids - List of Spotify artist IDs
    */
   async fetchSeveralArtists(ids: string[]): Promise<Result<ArtistObject[], SpotifyAPIError>[]> {
-    const fetchOpts = this.fetchOptionsForGet;
+    if (this.isExpired)
+      await this.refreshAccessToken();
 
     // Batch the requests concurrently with 50 artists each
+    const fetchOpts = this.fetchOptionsForGet;
     const batches = subdivideArray(ids, 50);
     const promises = batches
       .map(async batch => {

@@ -8,7 +8,7 @@ import { SpotifyAPI } from '../fetchers/Spotify';
 import { Cache } from '../db/Cache';
 
 // ERRORS
-import { SpotifyAPIError } from '../errors/SpotifyAPIError';
+import type { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
 // TYPES
 import type { ReleaseRetrieval } from '../../typings/global';
@@ -53,9 +53,6 @@ export class DataController {
         value: this.#user,
       };
 
-    if (this.#api.isExpired)
-      await this.#api.refreshAccessToken();
-
     const partial = await this.#api.fetchUserProfile();
     if (!partial.ok)
       return partial;
@@ -82,9 +79,6 @@ export class DataController {
     const iterator = this.#api.fetchFollowedArtists(this.#user.followedArtists.etag);
     let done = false;
     while (!done) {
-      if (this.#api.isExpired)
-        await this.#api.refreshAccessToken();
-
       const result = await iterator.next();
       assert(typeof result.done !== 'undefined');
 
@@ -137,9 +131,6 @@ export class DataController {
     const iterator = this.getFollowedArtistsIDs();
     let done = false;
     while (!done) {
-      if (this.#api.isExpired)
-        await this.#api.refreshAccessToken();
-
       const followedResult = await iterator.next();
       assert(typeof followedResult.done !== 'undefined');
 
@@ -154,9 +145,6 @@ export class DataController {
           const releaseIterator = this.#api.fetchReleasesByArtistID(_id, country);
           let fetchDone = false;
           while (!fetchDone) {
-            if (this.#api.isExpired)
-              await this.#api.refreshAccessToken();
-
             const releasesResult = await releaseIterator.next();
             assert(typeof releasesResult.done !== 'undefined');
 
