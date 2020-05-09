@@ -5,8 +5,11 @@ import { promisify } from 'util';
 // DEPENDENCIES
 import express from 'express';
 
+// LOADERS
+import { backgroundJobHandler } from '../loaders/backgroundJobHandler';
+
 // CONTROLLERS
-import { DataController } from '../controllers/DataController';
+import { DataController, SpotifyJob } from '../controllers';
 
 // CACHE
 import { Cache } from '../db/Cache';
@@ -60,7 +63,8 @@ router
     // respond to the user as soon as possible.
     res.render('index', { releases: releasesResult.value.releases });
 
-    // TODO: Schedule the rest of the batches to the job handler
+    // Schedule the rest of the batches to the job handler
+    backgroundJobHandler.addJob(new SpotifyJob(session, releasesIterator));
   })
   .get('/login', (req, res) => {
     if (req.session?.isLoggedIn)
