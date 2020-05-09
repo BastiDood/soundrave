@@ -340,8 +340,8 @@ export class SpotifyAPI {
   protected static transformToArtistObject = (artist: SpotifyApi.ArtistObjectFull): ArtistObject => ({
     _id: artist.id,
     name: artist.name,
-    retrievalDate: Date.now(),
     images: artist.images,
+    retrievalDate: Date.now(),
   });
 
   protected static transformToNonPopulatedReleaseObject = (release: SpotifyApi.AlbumObjectSimplified): NonPopulatedReleaseObject => ({
