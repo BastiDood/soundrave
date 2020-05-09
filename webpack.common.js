@@ -19,13 +19,15 @@ const web = {
     rules: [
       {
         enforce: 'pre',
-        test: /\.tsx?$/,
+        test: /\.ts$/,
         use: 'eslint-loader',
+        include: PUBLIC_DIR,
         exclude: nodeModulesPattern,
       },
       {
-        test: /(?<!\.test)\.tsx?$/,
+        test: /(?<!\.test)\.ts$/,
         use: 'ts-loader',
+        include: PUBLIC_DIR,
         exclude: nodeModulesPattern,
       },
     ]
@@ -52,13 +54,15 @@ const node = {
     rules: [
       {
         enforce: 'pre',
-        test: /\.tsx?$/,
+        test: /\.ts$/,
         use: 'eslint-loader',
+        include: SRC_DIR,
         exclude: nodeModulesPattern,
       },
       {
-        test: /(?<!\.test)\.tsx?$/,
+        test: /(?<!\.test)\.ts$/,
         use: 'ts-loader',
+        include: SRC_DIR,
         exclude: nodeModulesPattern,
       },
     ],
