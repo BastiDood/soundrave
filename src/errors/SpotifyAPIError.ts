@@ -1,4 +1,4 @@
-import assert from 'assert';
+import { strict as assert } from 'assert';
 
 export class SpotifyAPIError extends Error {
   /** HTTP status code received in the failed fetch */
