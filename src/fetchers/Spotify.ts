@@ -29,7 +29,7 @@ interface ETagBasedResource<ResourceType> {
  * request for the next step.
  */
 export class SpotifyAPI {
-  static readonly REDIRECT_URI = 'http://localhost/callback';
+  static readonly REDIRECT_URI = 'http://localhost:3000/callback';
   static readonly API_VERSION = 'v1';
   static readonly BASE_ENDPOINT = 'https://api.spotify.com';
   static readonly MAIN_API_ENDPOINT = formatEndpoint(SpotifyAPI.BASE_ENDPOINT, SpotifyAPI.API_VERSION);
