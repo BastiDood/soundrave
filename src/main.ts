@@ -37,7 +37,7 @@ app
   .set('views', path.join(__dirname, 'views'));
 
 // Compress responses
-app.use(compression({ level: 11 }));
+app.use(compression({ level: 9 }));
 
 // Activate security headers
 app
