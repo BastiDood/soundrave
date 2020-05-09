@@ -72,7 +72,10 @@ export class SpotifyAPI {
     if (!response.ok)
       return {
         ok: response.ok,
-        error: new SpotifyAPIError(await json as SpotifyApi.ErrorObject),
+        error: new SpotifyAPIError(
+          await json as SpotifyApi.ErrorObject,
+          Number(response.headers.get('Retry-After')) * 1e3,
+        ),
       };
 
     const token = await json as OAuthToken;
@@ -112,7 +115,7 @@ export class SpotifyAPI {
         error: new SpotifyAPIError({
           status: response.status,
           message: `[${error}]: ${error_description}`,
-        }),
+        }, Number(response.headers.get('Retry-After')) * 1e3),
       };
     }
 
@@ -136,7 +139,7 @@ export class SpotifyAPI {
         error: new SpotifyAPIError({
           status: 401,
           message: 'Access token does not have the permission to read the user\'s profile.',
-        }),
+        }, 0),
       };
 
     if (this.isExpired) {
@@ -152,7 +155,10 @@ export class SpotifyAPI {
     if (!response.ok)
       return {
         ok: response.ok,
-        error: new SpotifyAPIError(await json as SpotifyApi.ErrorObject),
+        error: new SpotifyAPIError(
+          await json as SpotifyApi.ErrorObject,
+          Number(response.headers.get('Retry-After')) * 1e3,
+        ),
       };
 
     const {
@@ -182,7 +188,7 @@ export class SpotifyAPI {
       return new SpotifyAPIError({
         status: 401,
         message: 'Access token does not have the permission to read list of followers.',
-      });
+      }, 0);
 
     if (this.isExpired) {
       const refreshResult = await this.refreshAccessToken();
@@ -212,7 +218,10 @@ export class SpotifyAPI {
       }
 
       if (!response.ok)
-        return new SpotifyAPIError(await json as SpotifyApi.ErrorObject);
+        return new SpotifyAPIError(
+          await json as SpotifyApi.ErrorObject,
+          Number(response.headers.get('Retry-After')) * 1e3,
+        );
 
       const { artists } = await json as SpotifyApi.UsersFollowedArtistsResponse;
       const responseETag = response.headers.get('ETag');
@@ -252,7 +261,10 @@ export class SpotifyAPI {
       const json = response.json();
 
       if (!response.ok)
-        return new SpotifyAPIError(await json as SpotifyApi.ErrorObject);
+        return new SpotifyAPIError(
+          await json as SpotifyApi.ErrorObject,
+          Number(response.headers.get('Retry-After')) * 1e3,
+        );
 
       const data = await json as SpotifyApi.ArtistsAlbumsResponse;
       const { items } = data;
@@ -295,7 +307,10 @@ export class SpotifyAPI {
         const json = response.json();
 
         if (!response.ok)
-          throw new SpotifyAPIError(await json as SpotifyApi.ErrorObject);
+          throw new SpotifyAPIError(
+            await json as SpotifyApi.ErrorObject,
+            Number(response.headers.get('Retry-After')) * 1e3,
+          );
 
         const { artists } = await json as SpotifyApi.MultipleArtistsResponse;
         return artists.map(SpotifyAPI.transformToArtistObject);
@@ -347,6 +362,7 @@ export class SpotifyAPI {
   get isExpired(): boolean { return Date.now() > this.#token.expiresAt - FIVE_MINUTES; }
 
   get fetchOptionsForGet(): { method: 'GET'; headers: Record<string, string> } {
+    // TODO: `Accept-Encoding: gz, deflate, br`
     return {
       method: 'GET',
       headers: { Authorization: `Bearer ${this.#token.accessToken}` },

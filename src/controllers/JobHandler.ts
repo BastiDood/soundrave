@@ -1,17 +1,15 @@
 // NODE CORE IMPORTS
 import { EventEmitter } from 'events';
 
-// RETRIEVERS
-import { DataController } from './DataController';
+// TYPES
+import type { SpotifyJob } from './SpotifyJob';
 
-// ERRORS
-import { SpotifyAPIError } from '../errors/SpotifyAPIError';
-
-interface Job<Success, Failure> {
-  execute(): Promise<Success>;
-  handleError(): Promise<Failure>;
-}
-
+/**
+ * The job handler is responsible for processing jobs in a queue-like fashion.
+ * A new job will trigger the handler to begin processing until it has exhausted
+ * its queue. Meanwhile, the handler can continue to receive more jobs while
+ * processing others.
+ */
 export class JobHandler extends EventEmitter {
   #jobQueue: SpotifyJob[] = [];
   #isBusy = false;
@@ -21,7 +19,7 @@ export class JobHandler extends EventEmitter {
     this.prependListener('__process__', this.handleProcessing.bind(this));
   }
 
-  addJob(job: Job<PopulatedReleaseObject[], SpotifyAPIError>): void {
+  addJob(job: SpotifyJob): void {
     this.#jobQueue.push(job);
     if (!this.#isBusy)
       this.emit('__process__');
@@ -30,22 +28,19 @@ export class JobHandler extends EventEmitter {
   private async handleProcessing(): Promise<void> {
     const job = this.#jobQueue.shift();
 
+    // Stop processing if there are no more jobs
     if (!job) {
       this.#isBusy = false;
       return;
     }
 
     this.#isBusy = true;
+    const result = await job.execute();
 
-    try {
-      const result = await job.execute();
-      this.emit('success', result);
-    } catch (err) {
-      this.#jobQueue.unshift(job);
-      const reason = await job.handleError();
-      this.emit('error', reason);
-    } finally {
-      this.emit('__process__');
-    }
+    // If there exists more jobs, then they should be executed
+    // once all others have been finished.
+    if (result)
+      this.addJob(result);
+    this.emit('__process__');
   }
 }
