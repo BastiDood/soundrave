@@ -270,7 +270,7 @@ export class SpotifyAPI {
       const releases: NonPopulatedReleaseObject[] = [];
       for (const release of items)
         // Only include releases that are available in at least one country
-        if (release.available_markets && release.available_markets.length > 0)
+        if (release.available_markets.length > 0)
           releases.push(SpotifyAPI.transformToNonPopulatedReleaseObject(release));
 
       yield releases;
