@@ -5,4 +5,7 @@ const merge = require('webpack-merge');
 module.exports = common.map(config => merge(config, {
   mode: 'development',
   devtool: 'source-map',
+  output: {
+    devtoolModuleFilenameTemplate: 'file:///[absolute-resource-path]',
+  },
 }));

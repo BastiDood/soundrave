@@ -11,12 +11,12 @@
       "skipFiles": [
         "${workspaceFolder}/node_modules/**/*",
         "<node_internals>/**",
-        "${workspaceFolder}/src/**/*",
-        "${workspaceFolder}/public/**/*"
       ],
-      "program": "${workspaceFolder}\\build\\src\\main.js",
-      "envFile": "${workspaceFolder}\\.env",
-      "preLaunchTask": "build"
+      "program": "${workspaceFolder}/src/main.ts",
+      "envFile": "${workspaceFolder}/.env",
+      "sourceMaps": true,
+      "outFiles": [ "${workspaceFolder}/build/**/*.js" ]
+      // "preLaunchTask": "Build Development"
     }
   ]
 }
