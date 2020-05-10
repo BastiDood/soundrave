@@ -1,2 +1,12 @@
-<script defer="defer" src="/js/main.js"></script>
-<button>Sign in with Spotify</button>
+{{#if releases}}
+  <ul>
+    {{#each releases}}
+      <li>
+        <a href="https://open.spotify.com/album/{{ this._id }}">"{{ this.title }}"</a> by {{#each this.artists }}<a href="https://open.spotify.com/artist/{{ this._id }}">{{ this.name }}</a>{{/each}}
+      </li>
+    {{/each}}
+  </ul>
+{{else}}
+  <script defer="defer" src="/js/main.js"></script>
+  <button>Sign in with Spotify</button>
+{{/if}}
