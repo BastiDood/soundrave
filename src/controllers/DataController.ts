@@ -136,9 +136,9 @@ export class DataController {
       // Segregate fresh and stale artist objects
       const releaseFetches = followedResult.value
         .filter(artist => artist.retrievalDate > Date.now() + DataController.STALE_PERIOD.ARTIST_OBJ)
-        .map(async ({ _id }) => {
+        .map(async ({ _id }): Promise<SpotifyAPIError|undefined> => {
           const pendingOperations: Promise<void>[] = [];
-          const releaseIterator = this.#api.fetchReleasesByArtistID(_id, country);
+          const releaseIterator = this.#api.fetchReleasesByArtistID(_id);
           let fetchDone = false;
           while (!fetchDone) {
             const releasesResult = await releaseIterator.next();

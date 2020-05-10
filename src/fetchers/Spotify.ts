@@ -242,7 +242,7 @@ export class SpotifyAPI {
    * @param id - Spotify ID of artist
    * @param market - ISO 3166-1 alpha-2 country code
    */
-  async *fetchReleasesByArtistID(id: string, market: string): AsyncGenerator<NonPopulatedReleaseObject[], SpotifyAPIError|undefined> {
+  async *fetchReleasesByArtistID(id: string): AsyncGenerator<NonPopulatedReleaseObject[], SpotifyAPIError|undefined> {
     if (this.isExpired) {
       const refreshResult = await this.refreshAccessToken();
       if (!refreshResult.ok)
@@ -250,7 +250,6 @@ export class SpotifyAPI {
     }
 
     let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
-      market,
       include_groups: 'album,single',
       limit: '50',
     });
@@ -270,7 +269,7 @@ export class SpotifyAPI {
       const { items } = data;
       const releases: NonPopulatedReleaseObject[] = [];
       for (const release of items)
-      // Only include releases that are available in at least one country
+        // Only include releases that are available in at least one country
         if (release.available_markets && release.available_markets.length > 0)
           releases.push(SpotifyAPI.transformToNonPopulatedReleaseObject(release));
 
