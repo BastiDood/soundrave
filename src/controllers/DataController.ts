@@ -119,10 +119,8 @@ export class DataController {
     this.#user.job.isRunning = true;
 
     const userResult = await this.getUserProfile();
-
     if (!userResult.ok)
       return userResult.error;
-
     const { country } = userResult.value.profile;
 
     const iterator = this.getFollowedArtistsIDs();

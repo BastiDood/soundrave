@@ -40,7 +40,9 @@ export class JobHandler extends EventEmitter {
     // If there exists more jobs, then they should be executed
     // once all others have been finished.
     if (result)
-      this.addJob(result);
+      this.#jobQueue.push(result);
+
+    // Continue processing other jobs
     this.emit('__process__');
   }
 }

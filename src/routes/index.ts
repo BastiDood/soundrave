@@ -73,12 +73,11 @@ router
       res.redirect(SpotifyAPI.AUTH_ENDPOINT);
   })
   .get('/callback', async (req: express.Request<{}, {}, {}, AuthorizationResult>, res, next) => {
-    const { session } = req;
     const authorization = req.query;
 
     // TODO: Check if request is from Spotify accounts using `state` parameter
     // Check if authorization code exists
-    if (!session || !('code' in authorization)) {
+    if (!req.session || !('code' in authorization)) {
       res.sendStatus(404);
       return;
     }
@@ -90,7 +89,8 @@ router
     assert(tokenResult.ok);
 
     // Generate new session when the user logs in
-    await promisify(session.regenerate.bind(session))();
+    await promisify(req.session.regenerate.bind(req.session))();
+    const { session } = req;
 
     // Initialize reference to Spotify API
     const api = tokenResult.value;
