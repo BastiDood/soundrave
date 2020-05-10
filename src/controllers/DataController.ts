@@ -117,6 +117,7 @@ export class DataController {
 
     // Officially begin a new job
     this.#user.job.isRunning = true;
+    await Cache.updateJobStatusForUser(this.#user);
 
     const userResult = await this.getUserProfile();
     if (!userResult.ok)
