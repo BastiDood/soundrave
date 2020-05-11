@@ -29,7 +29,7 @@ router
 
     // Reject all users that have not been logged in
     if (!session?.isLoggedIn) {
-      res.render('index');
+      res.render('init');
       return;
     }
 
