@@ -75,12 +75,15 @@ export class DataController {
 
     const iterator = this.#api.fetchFollowedArtists(this.#user.followedArtists.etag);
     let done = false;
+    let error: SpotifyAPIError|undefined;
     while (!done) {
       const result = await iterator.next();
       assert(typeof result.done !== 'undefined');
 
-      if (result.done)
-        return result.value;
+      if (result.done) {
+        error = result.value;
+        break;
+      }
 
       const { resource, etag } = result.value;
       if (resource) {
@@ -101,7 +104,7 @@ export class DataController {
       done = result.done;
     }
 
-    return;
+    return error;
   }
 
   async *getReleases(limit = 0): AsyncGenerator<ReleaseRetrieval, SpotifyAPIError|undefined> {
@@ -126,12 +129,15 @@ export class DataController {
 
     const iterator = this.getFollowedArtistsIDs();
     let done = false;
+    let error: SpotifyAPIError|undefined;
     while (!done) {
       const followedResult = await iterator.next();
       assert(typeof followedResult.done !== 'undefined');
 
-      if (followedResult.done)
-        return followedResult.value;
+      if (followedResult.done) {
+        error = followedResult.value;
+        break;
+      }
 
       // Segregate fresh and stale artist objects
       const releaseFetches = followedResult.value
@@ -140,12 +146,15 @@ export class DataController {
           const pendingOperations: Promise<void>[] = [];
           const releaseIterator = this.#api.fetchReleasesByArtistID(_id);
           let fetchDone = false;
+          let releasesError: SpotifyAPIError|undefined;
           while (!fetchDone) {
             const releasesResult = await releaseIterator.next();
             assert(typeof releasesResult.done !== 'undefined');
 
-            if (releasesResult.done)
-              return releasesResult.value;
+            if (releasesResult.done) {
+              releasesError = releasesResult.value;
+              break;
+            }
 
             // TODO: For v1.0, make sure to query for other featured artists
             // who are not necessarily followed by the current user
@@ -155,7 +164,7 @@ export class DataController {
           }
 
           await Promise.all(pendingOperations);
-          return;
+          return releasesError;
         });
 
       const settledFetches = await Promise.all(releaseFetches);
@@ -173,6 +182,6 @@ export class DataController {
       dateLastDone: Date.now(),
     };
     await Cache.updateJobStatusForUser(this.#user);
-    return;
+    return error;
   }
 }

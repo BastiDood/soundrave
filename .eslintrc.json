@@ -59,7 +59,6 @@
     "global-require": "error",
     "handle-callback-err": "error",
     "indent": [ "error", 2 ],
-    "init-declarations": ["error", "always"],
     "key-spacing": "error",
     "keyword-spacing": "error",
     "linebreak-style": [ "error", "windows" ],
