@@ -17,7 +17,7 @@ import session from 'express-session';
 import { env } from './loaders/env';
 
 // ROUTES
-import { router } from './routes/index';
+import { coreHandler, errorHandler } from './routes';
 
 // GLOBAL VARIABLES
 const ONE_HOUR = 60;
@@ -86,7 +86,8 @@ app.use(express.static(PUBLIC_DIRECTORY, {
 }));
 
 // Delegate endpoint logic to `Router` controllers
-app.use('/', router);
+app.use('/', coreHandler);
+app.use('/', errorHandler);
 
 // Initialize Mongoose connection
 mongoose.connect(env.MONGO_DB_CACHE_URL, {
