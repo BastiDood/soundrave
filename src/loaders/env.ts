@@ -17,14 +17,14 @@ const {
   CLIENT_SECRET,
 } = process.env;
 
-assert(NODE_ENV);
-assert(MAX_RELEASES);
-assert(MONGO_DB_CACHE_URL);
-assert(MONGO_DB_SESSION_URL);
-assert(MONGO_DB_SESSION_SECRET);
-assert(COOKIE_SECRET);
-assert(CLIENT_ID);
-assert(CLIENT_SECRET);
+assert(NODE_ENV, 'The Node environment has not been defined: `production` or `development`.');
+assert(MAX_RELEASES, 'The maximum number of releases per page has not been defined.');
+assert(MONGO_DB_CACHE_URL, 'The database collection in which the local cache will be stored has not been defined.');
+assert(MONGO_DB_SESSION_URL, 'The database collection in which the user session data will be stored has not been defined.');
+assert(MONGO_DB_SESSION_SECRET, 'The secret key that will be used to encrypt the user session data has not been defined.');
+assert(COOKIE_SECRET, 'The secret that will be used to encrypt the HTTP cookies has not been defined.');
+assert(CLIENT_ID, 'The public Spotify Client ID has not been defined.');
+assert(CLIENT_SECRET, 'The private Spotify Client Secret has not been defined.');
 
 const env = {
   NODE_ENV,
