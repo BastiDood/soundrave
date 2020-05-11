@@ -8,6 +8,7 @@ dotenv.config();
 
 const {
   NODE_ENV,
+  MAX_RELEASES,
   MONGO_DB_CACHE_URL,
   MONGO_DB_SESSION_URL,
   MONGO_DB_SESSION_SECRET,
@@ -17,6 +18,7 @@ const {
 } = process.env;
 
 assert(NODE_ENV);
+assert(MAX_RELEASES);
 assert(MONGO_DB_CACHE_URL);
 assert(MONGO_DB_SESSION_URL);
 assert(MONGO_DB_SESSION_SECRET);
@@ -26,6 +28,7 @@ assert(CLIENT_SECRET);
 
 const env = {
   NODE_ENV,
+  MAX_RELEASES: Number(MAX_RELEASES),
   MONGO_DB_CACHE_URL,
   MONGO_DB_SESSION_URL,
   MONGO_DB_SESSION_SECRET,

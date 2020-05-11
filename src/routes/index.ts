@@ -7,6 +7,7 @@ import express from 'express';
 
 // LOADERS
 import { backgroundJobHandler } from '../loaders/backgroundJobHandler';
+import { env } from '../loaders/env';
 
 // CONTROLLERS
 import { DataController, SpotifyJob } from '../controllers';
@@ -39,7 +40,7 @@ router
 
     // Retrieve first batch of releases
     const dataController = new DataController(session.token.spotify, user);
-    const releasesIterator = dataController.getReleases();
+    const releasesIterator = dataController.getReleases(env.MAX_RELEASES);
     const releasesResult = await releasesIterator.next();
 
     // Check for any errors on the first request

@@ -104,25 +104,25 @@ export class DataController {
     return;
   }
 
-  async *getReleases(): AsyncGenerator<ReleaseRetrieval, SpotifyAPIError|undefined> {
+  async *getReleases(limit = 0): AsyncGenerator<ReleaseRetrieval, SpotifyAPIError|undefined> {
     if (!this.isLastDoneStale) {
       const { ids } = this.#user.followedArtists;
       const { country } = this.#user.profile;
       yield {
-        releases: await Cache.retrieveReleasesFromArtists(ids, country),
+        releases: await Cache.retrieveReleasesFromArtists(ids, country, limit),
         errors: [],
       };
       return;
     }
 
-    // Officially begin a new job
-    this.#user.job.isRunning = true;
-    await Cache.updateJobStatusForUser(this.#user);
-
     const userResult = await this.getUserProfile();
     if (!userResult.ok)
       return userResult.error;
     const { country } = userResult.value.profile;
+
+    // Officially begin a new job
+    this.#user.job.isRunning = true;
+    await Cache.updateJobStatusForUser(this.#user);
 
     const iterator = this.getFollowedArtistsIDs();
     let done = false;
@@ -161,7 +161,7 @@ export class DataController {
       const settledFetches = await Promise.all(releaseFetches);
       const ids = followedResult.value.map(artist => artist._id);
       yield {
-        releases: await Cache.retrieveReleasesFromArtists(ids, country),
+        releases: await Cache.retrieveReleasesFromArtists(ids, country, -limit),
         errors: settledFetches.filter(Boolean) as SpotifyAPIError[],
       };
 

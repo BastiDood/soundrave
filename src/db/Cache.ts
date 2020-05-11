@@ -71,7 +71,7 @@ export class Cache {
       .exec();
   }
 
-  static retrieveReleasesFromArtists(ids: string[], countryCode: string): Promise<PopulatedReleaseObject[]> {
+  static retrieveReleasesFromArtists(ids: string[], countryCode: string, limit: number): Promise<PopulatedReleaseObject[]> {
     // @ts-ignore
     return Release
       .find({
@@ -79,6 +79,7 @@ export class Cache {
         artists: { $in: ids },
       })
       .sort({ releaseDate: -1 })
+      .limit(limit)
       .lean()
       .populate('artists')
       .exec();
