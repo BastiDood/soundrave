@@ -53,7 +53,9 @@ export class DataController {
 
   /**
    * Updates the access token and the session cookie's `maxAge` property
-   * according to the latest data by the Spotify fetcher.
+   * according to the latest data by the Spotify fetcher. The cookie is to
+   * be stored in the browser for up to 10 days. The counter restarts whenever
+   * the token is refreshed.
    */
   updateAccessToken(): Promise<void> {
     const token = this.#api.tokenInfo;
