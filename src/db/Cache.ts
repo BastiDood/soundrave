@@ -1,8 +1,6 @@
 // MODELS
 import { User, Artist, Release } from './models';
 
-// TODO: Create specialized methods for updating single fields
-// or only retrieving specific fields **for query performance**
 // TODO: Ensure that IDs and dates are indexed in MongoDB
 
 export class Cache {

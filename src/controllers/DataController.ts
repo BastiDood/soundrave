@@ -64,7 +64,7 @@ export class DataController {
     };
   }
 
-  async *getFollowedArtistsIDs(): AsyncGenerator<ArtistObject[], SpotifyAPIError|undefined> {
+  async *getFollowedArtists(): AsyncGenerator<ArtistObject[], SpotifyAPIError|undefined> {
     if (!this.areFollowedArtistsStale) {
       yield await Cache.retrieveArtists(this.#user.followedArtists.ids);
       return;
@@ -124,7 +124,7 @@ export class DataController {
     this.#user.job.isRunning = true;
     await Cache.updateJobStatusForUser(this.#user);
 
-    const iterator = this.getFollowedArtistsIDs();
+    const iterator = this.getFollowedArtists();
     let done = false;
     let error: SpotifyAPIError|undefined;
     while (!done) {

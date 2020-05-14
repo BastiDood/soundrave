@@ -21,8 +21,6 @@ import { SpotifyAPI } from '../fetchers/Spotify';
 // GLOBAL VARIABLES
 const router = express.Router();
 
-// TODO: Catch and handle bubbled events
-
 router
   .get('/', async (req, res, next) => {
     // Shorthand for session object
@@ -101,6 +99,7 @@ router
     assert(session.token);
     const token = api.tokenInfo;
     session.token.spotify = token;
+    // TODO: Adjust this to span multiple days
     session.cookie.maxAge = token.expiresAt - Date.now();
 
     // Initialize the user object
