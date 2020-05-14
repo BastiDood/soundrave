@@ -2,16 +2,14 @@
 {{#if releases}}
   <ul>
     {{#each releases}}
-      {{#with this}}
         <li>
-          <a href="https://open.spotify.com/album/{{ _id }}">"{{ title }}"</a>
+          <a href="https://open.spotify.com/album/{{ this._id }}">"{{ this.title }}"</a>
           by
           {{#each artists }}
-            <a href="https://open.spotify.com/artist/{{ _id }}">{{ name }}</a>
+            <a href="https://open.spotify.com/artist/{{ this._id }}">{{ this.name }}</a>
           {{/each}}
         </li>
-      {{/each}}
-    {{/with}}
+    {{/each}}
   </ul>
 {{else}}
   No releases found. This is probably because you haven't followed any artist on Spotify yet.
