@@ -106,9 +106,11 @@ mongoose.connect(env.MONGO_DB_CACHE_URL, {
     console.log(`Serving public directory from: ${PUBLIC_DIRECTORY}`);
 
     // Listen to the assigned port for HTTP connections
-    const addressInfo = server.address()!;
-    assert(typeof addressInfo !== 'string');
-    const { address, port } = addressInfo;
-    server.listen(Number(PORT), '0.0.0.0', () => console.log(`Server started at ${address}:${port}`));
+    server.listen(Number(PORT), '0.0.0.0', () => {
+      const addressInfo = server.address()!;
+      assert(typeof addressInfo !== 'string');
+      const { address, port } = addressInfo;
+      console.log(`Server started at ${address}:${port}`);
+    });
   })
   .catch(console.error);
