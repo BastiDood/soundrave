@@ -10,7 +10,7 @@ export const handleReleaseRetrievalErrors = (err: any, req: Request, res: Respon
     // Find the highest severity error and present it to the user
     // eslint-disable-next-line no-extra-parens
     const highestSeverityError = errors.reduce((prev, curr) => (curr.status > prev.status ? curr : prev));
-    res.status(highestSeverityError.status).render('error', { releases, highestSeverityError });
+    res.status(highestSeverityError.status).render('index', { releases, highestSeverityError });
     return;
   }
 

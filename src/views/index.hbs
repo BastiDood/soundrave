@@ -1,11 +1,23 @@
+<!-- Render the release timeline -->
 {{#if releases}}
   <ul>
     {{#each releases}}
-      <li>
-        <a href="https://open.spotify.com/album/{{ this._id }}">"{{ this.title }}"</a> by {{#each this.artists }}<a href="https://open.spotify.com/artist/{{ this._id }}">{{ this.name }}</a>{{/each}}
-      </li>
-    {{/each}}
+      {{#with this}}
+        <li>
+          <a href="https://open.spotify.com/album/{{ _id }}">"{{ title }}"</a>
+          by
+          {{#each artists }}
+            <a href="https://open.spotify.com/artist/{{ _id }}">{{ name }}</a>
+          {{/each}}
+        </li>
+      {{/each}}
+    {{/with}}
   </ul>
 {{else}}
-  No releases found.
+  No releases found. This is probably because you haven't followed any artist on Spotify yet.
+{{/if}}
+
+<!-- Render any of the possible errors as a modal or pop-up -->
+{{#if highestSeverityError}}
+<p>{{ status }}: {{ message }}</p>
 {{/if}}
