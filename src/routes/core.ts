@@ -95,10 +95,8 @@ router
     const api = tokenResult.value;
 
     // Initialize session data
-    session.token = Object.create(null);
-    assert(session.token);
     const token = api.tokenInfo;
-    session.token.spotify = token;
+    session.token = { spotify: token };
     // TODO: Adjust this to span multiple days
     session.cookie.maxAge = token.expiresAt - Date.now();
 
