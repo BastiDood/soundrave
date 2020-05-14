@@ -13,10 +13,11 @@
         "<node_internals>/**",
       ],
       "program": "${workspaceFolder}/src/main.ts",
+      "runtimeArgs": [ "--tls-min-v1.3" ],
       "envFile": "${workspaceFolder}/.env",
       "sourceMaps": true,
-      "outFiles": [ "${workspaceFolder}/build/**/*.js" ]
-      // "preLaunchTask": "Build Development"
+      "outFiles": [ "${workspaceFolder}/build/**/*.js" ],
+      "preLaunchTask": "Build Development"
     }
   ]
 }
