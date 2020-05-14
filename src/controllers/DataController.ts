@@ -10,9 +10,6 @@ import { Cache } from '../db/Cache';
 // ERRORS
 import type { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
-// TYPES
-import type { ReleaseRetrieval } from '../../typings/global';
-
 // GLOBAL VARIABLES
 const ONE_DAY = 24 * 60 * 60 * 1e3;
 

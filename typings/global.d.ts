@@ -1,10 +1,12 @@
-import './api.d.ts';
-import './auth.d.ts';
-import './mongo.d.ts';
-import './token.d.ts';
-import './util.d.ts';
+import './api';
+import './auth';
+import './mongo';
+import './token';
+import './util';
 
-declare interface ReleaseRetrieval {
-  releases: PopulatedReleaseObject[];
-  errors: import('../src/errors/SpotifyAPIError').SpotifyAPIError[];
+declare global {
+  interface ReleaseRetrieval {
+    releases: PopulatedReleaseObject[];
+    errors: import('../src/errors/SpotifyAPIError').SpotifyAPIError[];
+  }
 }

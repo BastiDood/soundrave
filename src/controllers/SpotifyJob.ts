@@ -3,7 +3,6 @@ import { strict as assert } from 'assert';
 import { promisify } from 'util';
 
 // TYPES
-import type { ReleaseRetrieval } from '../../typings/global';
 import type { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
 // GLOBAL VARIABLES
