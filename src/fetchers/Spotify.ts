@@ -43,6 +43,7 @@ export class SpotifyAPI {
   });
   static readonly TOKEN_ENDPOINT = formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/api/token');
 
+  /** Reference to the user's access token (from the session) */
   #token: SpotifyAccessToken;
 
   /**
@@ -190,12 +191,6 @@ export class SpotifyAPI {
         message: 'Access token does not have the permission to read list of followers.',
       }, 0);
 
-    if (this.isExpired) {
-      const refreshResult = await this.refreshAccessToken();
-      if (!refreshResult.ok)
-        return refreshResult.error;
-    }
-
     const fetchOpts = this.fetchOptionsForGet;
     if (etag)
       fetchOpts.headers['If-None-Match'] = etag;
@@ -205,7 +200,16 @@ export class SpotifyAPI {
       limit: '50',
     });
 
+    let error: SpotifyAPIError|undefined;
     while (next) {
+      if (this.isExpired) {
+        const refreshResult = await this.refreshAccessToken();
+        if (!refreshResult.ok) {
+          error = refreshResult.error;
+          break;
+        }
+      }
+
       const response = await fetch(next, fetchOpts);
       const json = response.json();
 
@@ -217,11 +221,13 @@ export class SpotifyAPI {
         break;
       }
 
-      if (!response.ok)
-        return new SpotifyAPIError(
+      if (!response.ok) {
+        error = new SpotifyAPIError(
           await json as SpotifyApi.ErrorObject,
           Number(response.headers.get('Retry-After')) * 1e3,
         );
+        break;
+      }
 
       const { artists } = await json as SpotifyApi.UsersFollowedArtistsResponse;
       const responseETag = response.headers.get('ETag');
@@ -235,7 +241,7 @@ export class SpotifyAPI {
       next = artists.next;
     }
 
-    return;
+    return error;
   }
 
   /**
@@ -243,27 +249,32 @@ export class SpotifyAPI {
    * @param market - ISO 3166-1 alpha-2 country code
    */
   async *fetchReleasesByArtistID(id: string): AsyncGenerator<NonPopulatedReleaseObject[], SpotifyAPIError|undefined> {
-    if (this.isExpired) {
-      const refreshResult = await this.refreshAccessToken();
-      if (!refreshResult.ok)
-        return refreshResult.error;
-    }
-
     let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
       include_groups: 'album,single',
       limit: '50',
     });
 
+    let error: SpotifyAPIError|undefined;
     const fetchOpts = this.fetchOptionsForGet;
     while (next) {
+      if (this.isExpired) {
+        const refreshResult = await this.refreshAccessToken();
+        if (!refreshResult.ok) {
+          error = refreshResult.error;
+          break;
+        }
+      }
+
       const response = await fetch(next, fetchOpts);
       const json = response.json();
 
-      if (!response.ok)
-        return new SpotifyAPIError(
+      if (!response.ok) {
+        error = new SpotifyAPIError(
           await json as SpotifyApi.ErrorObject,
           Number(response.headers.get('Retry-After')) * 1e3,
         );
+        break;
+      }
 
       const data = await json as SpotifyApi.ArtistsAlbumsResponse;
       const { items } = data;
@@ -278,7 +289,7 @@ export class SpotifyAPI {
       next = data.next;
     }
 
-    return;
+    return error;
   }
 
   /**
@@ -288,6 +299,7 @@ export class SpotifyAPI {
    * @param ids - List of Spotify artist IDs
    */
   async fetchSeveralArtists(ids: string[]): Promise<Result<ArtistObject[], SpotifyAPIError>[]> {
+    // TODO: Decide on whether to leave this check outside or inside the main fetching loop
     if (this.isExpired) {
       const refreshResult = await this.refreshAccessToken();
       if (!refreshResult.ok)

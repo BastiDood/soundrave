@@ -1,6 +1,7 @@
 // TYPES
 import type { Request, Response, NextFunction } from 'express';
 
+// @ts-ignore
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const handleReleaseRetrievalErrors = (err: any, req: Request, res: Response, next: NextFunction): void => {
   if ('releases' in err && 'errors' in err) {

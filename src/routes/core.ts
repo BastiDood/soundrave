@@ -37,7 +37,7 @@ router
     assert(user);
 
     // Retrieve first batch of releases
-    const dataController = new DataController(session.token.spotify, user);
+    const dataController = new DataController(session, user);
     const releasesIterator = dataController.getReleases(env.MAX_RELEASES);
     const releasesResult = await releasesIterator.next();
 
@@ -46,7 +46,6 @@ router
     if (releasesResult.done) {
       // This works on the assumption that if there is an error in the first pull,
       // then the value is certainly a fail-fast error.
-      // TODO: Ensure that all error handlers take in `ReleaseRetrieval` interface
       assert(releasesResult.value);
       next({ releases: [], errors: [ releasesResult.value ] });
       return;

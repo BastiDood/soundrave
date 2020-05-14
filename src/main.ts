@@ -68,7 +68,6 @@ app.use(session({
   store: new MongoStore({
     url: env.MONGO_DB_SESSION_URL,
     secret: env.MONGO_DB_SESSION_SECRET,
-    // TODO: Notify cookie about refreshed tokens
     autoRemove: 'interval',
     autoRemoveInterval: ONE_HOUR,
   }),

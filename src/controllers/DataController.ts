@@ -1,4 +1,5 @@
 // NODE CORE IMPORTS
+import { promisify } from 'util';
 import { strict as assert } from 'assert';
 
 // FETCHERS
@@ -21,13 +22,20 @@ export class DataController {
     LAST_DONE: ONE_DAY * 5,
   };
 
-  /** Spotify ID of the current user */
+  /** Reference to the current user's session */
+  #session: Express.Session;
+  /** Represents the current Spotify user */
   #user: UserObject;
+  /** Handler for all API fetches */
   #api: SpotifyAPI;
+  /** Utility function for manually saving the current session */
+  #saveSession: () => Promise<void>;
 
-  constructor(token: SpotifyAccessToken, user: UserObject) {
+  constructor(session: Express.Session, user: UserObject) {
+    this.#session = session;
     this.#user = user;
-    this.#api = SpotifyAPI.restore(token);
+    this.#api = SpotifyAPI.restore(this.#session.token.spotify);
+    this.#saveSession = promisify(this.#session.save.bind(this.#session));
   }
 
   get isUserObjectStale(): boolean {
@@ -43,6 +51,17 @@ export class DataController {
       && Date.now() > this.#user.job.dateLastDone + DataController.STALE_PERIOD.LAST_DONE;
   }
 
+  /**
+   * Updates the access token and the session cookie's `maxAge` property
+   * according to the latest data by the Spotify fetcher.
+   */
+  updateAccessToken(): Promise<void> {
+    const token = this.#api.tokenInfo;
+    const remainingTime = token.expiresAt - Date.now();
+    this.#session.cookie.maxAge = remainingTime + ONE_DAY * 10;
+    return this.#saveSession();
+  }
+
   async getUserProfile(): Promise<Result<Readonly<Pick<UserObject, '_id'|'profile'>>, SpotifyAPIError>> {
     if (!this.isUserObjectStale)
       return {
@@ -51,6 +70,7 @@ export class DataController {
       };
 
     const partial = await this.#api.fetchUserProfile();
+    await this.updateAccessToken();
     if (!partial.ok)
       return partial;
 
@@ -75,6 +95,7 @@ export class DataController {
     let error: SpotifyAPIError|undefined;
     while (!done) {
       const result = await iterator.next();
+      await this.updateAccessToken();
       assert(typeof result.done !== 'undefined');
 
       if (result.done) {
@@ -146,6 +167,7 @@ export class DataController {
           let releasesError: SpotifyAPIError|undefined;
           while (!fetchDone) {
             const releasesResult = await releaseIterator.next();
+            await this.updateAccessToken();
             assert(typeof releasesResult.done !== 'undefined');
 
             if (releasesResult.done) {
