@@ -66,11 +66,11 @@ export class DataController {
     return this.#saveSession();
   }
 
-  async getUserProfile(): Promise<Result<Readonly<Pick<UserObject, '_id'|'profile'>>, SpotifyAPIError>> {
+  async getUserProfile(): Promise<Result<Readonly<UserProfileInfo>, SpotifyAPIError>> {
     if (!this.isUserObjectStale)
       return {
         ok: true,
-        value: this.#session.user,
+        value: this.#session.user.profile,
       };
 
     const partial = await this.#api.fetchUserProfile();
@@ -84,7 +84,7 @@ export class DataController {
     await Cache.updateUserProfile(this.#session.user);
     return {
       ok: partial.ok,
-      value: this.#session.user,
+      value: this.#session.user.profile,
     };
   }
 
@@ -144,7 +144,7 @@ export class DataController {
     const userResult = await this.getUserProfile();
     if (!userResult.ok)
       return userResult.error;
-    const { country } = userResult.value.profile;
+    const { country } = userResult.value;
 
     // Officially begin a new job
     this.#session.user.job.isRunning = true;
