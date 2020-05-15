@@ -81,7 +81,7 @@ export class DataController {
     const { value: user } = partial;
     this.#session.user._id = user._id;
     this.#session.user.profile = user.profile;
-    await Cache.upsertUserObject(this.#session.user);
+    await Cache.updateUserProfile(this.#session.user);
     return {
       ok: partial.ok,
       value: this.#session.user,
