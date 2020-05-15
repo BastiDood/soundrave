@@ -118,6 +118,8 @@ router
           dateLastDone: -Infinity,
         },
       };
+    else
+      user.profile = userResult.value.profile;
 
     // Store the user object to the session cache
     session.user = user;

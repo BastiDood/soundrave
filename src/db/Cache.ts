@@ -83,6 +83,12 @@ export class Cache {
       .exec();
   }
 
+  static async updateUserProfile({ _id, profile }: UserObject): Promise<void> {
+    await User
+      .findByIdAndUpdate(_id, { $set: { profile } })
+      .exec();
+  }
+
   static async updateJobStatusForUser({ _id, job }: UserObject): Promise<void> {
     await User
       .findByIdAndUpdate(_id, { $set: { job } })
