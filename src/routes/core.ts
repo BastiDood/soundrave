@@ -106,7 +106,8 @@ router
     let user = await Cache.retrieveUser(userResult.value._id);
 
     // Initialize the new user otherwise
-    if (!user)
+    const saveOperations: Promise<void>[] = [];
+    if (!user) {
       user = {
         ...userResult.value,
         followedArtists: {
@@ -118,18 +119,19 @@ router
           dateLastDone: -Infinity,
         },
       };
-    else
+      saveOperations.push(Cache.upsertUserObject(user));
+    } else {
       user.profile = userResult.value.profile;
+      saveOperations.push(Cache.updateUserProfile(user));
+    }
 
     // Store the user object to the session cache
     session.user = user;
     session.isLoggedIn = true;
 
     // Explicitly save session data due to redirect
-    await Promise.all([
-      Cache.upsertUserObject(user),
-      promisify(session.save.bind(session))(),
-    ]);
+    saveOperations.push(promisify(session.save.bind(session))());
+    await Promise.all(saveOperations);
 
     // TODO: Handle error if `error in authorization`
 
