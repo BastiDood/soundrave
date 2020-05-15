@@ -16,9 +16,9 @@ const sleep = promisify(setTimeout);
  */
 export class SpotifyJob {
   #session: Express.Session;
-  #iterator: AsyncGenerator<ReleaseRetrieval, SpotifyAPIError|undefined>;
+  #iterator: AsyncGenerator<ReleasesRetrieval, SpotifyAPIError|undefined>;
 
-  constructor(session: Express.Session, iterator: AsyncGenerator<ReleaseRetrieval, SpotifyAPIError|undefined>) {
+  constructor(session: Express.Session, iterator: AsyncGenerator<ReleasesRetrieval, SpotifyAPIError|undefined>) {
     this.#session = session;
     this.#iterator = iterator;
   }

@@ -4,9 +4,19 @@ import './mongo';
 import './token';
 import './util';
 
+interface BaseRetrieval {
+  errors: import('../src/errors/SpotifyAPIError').SpotifyAPIError[];
+}
+
 declare global {
-  interface ReleaseRetrieval {
+  interface ArtistsRetrieval extends BaseRetrieval {
+    artists: {
+      recent: ArtistObject[];
+      existing: ArtistObject[];
+    };
+  }
+
+  interface ReleasesRetrieval extends BaseRetrieval {
     releases: PopulatedReleaseObject[];
-    errors: import('../src/errors/SpotifyAPIError').SpotifyAPIError[];
   }
 }

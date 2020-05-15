@@ -70,6 +70,7 @@
     "no-caller": "error",
     "no-confusing-arrow": "error",
     "no-console": [ "error", { "allow": [ "log", "error", "table" ] } ],
+    "no-constant-condition": [ "error", { "checkLoops": false } ],
     "no-control-regex":"off",
     "no-duplicate-imports": [ "error", { "includeExports": true } ],
     "no-else-return": "error",

@@ -52,13 +52,12 @@ export class DataController {
    * Updates the access token and the session cookie's `maxAge` property
    * according to the latest data by the Spotify fetcher. The cookie is to
    * be stored in the browser for up to 10 days. The counter restarts whenever
-   * the token is refreshed.
+   * the token is refreshed. **This does not invoke a manual session save.**
    */
-  updateAccessToken(): Promise<void> {
+  updateAccessToken(): void {
     const token = this.#api.tokenInfo;
     const remainingTime = token.expiresAt - Date.now();
     this.#session.cookie.maxAge = remainingTime + ONE_DAY * 10;
-    return this.#saveSession();
   }
 
   async getUserProfile(): Promise<Result<Readonly<UserProfileInfo>, SpotifyAPIError>> {
@@ -69,32 +68,35 @@ export class DataController {
       };
 
     const partial = await this.#api.fetchUserProfile();
-    await this.updateAccessToken();
+    this.updateAccessToken();
     if (!partial.ok)
       return partial;
 
     const { value: user } = partial;
     this.#session.user._id = user._id;
     this.#session.user.profile = user.profile;
-    await Cache.updateUserProfile(this.#session.user);
+    await Promise.all([
+      this.#saveSession(),
+      Cache.updateUserProfile(this.#session.user),
+    ]);
     return {
       ok: partial.ok,
       value: this.#session.user.profile,
     };
   }
 
-  async *getFollowedArtists(): AsyncGenerator<ArtistObject[], SpotifyAPIError|undefined> {
+  async *getFollowedArtistsIDs(): AsyncGenerator<string[], SpotifyAPIError|undefined> {
+    const { user } = this.#session;
     if (!this.areFollowedArtistsStale) {
-      yield await Cache.retrieveArtists(this.#session.user.followedArtists.ids);
+      yield user.followedArtists.ids;
       return;
     }
 
-    const iterator = this.#api.fetchFollowedArtists(this.#session.user.followedArtists.etag);
-    let done = false;
+    const iterator = this.#api.fetchFollowedArtists(user.followedArtists.etag);
     let error: SpotifyAPIError|undefined;
-    while (!done) {
+    while (true) {
       const result = await iterator.next();
-      await this.updateAccessToken();
+      this.updateAccessToken();
       assert(typeof result.done !== 'undefined');
 
       if (result.done) {
@@ -104,70 +106,103 @@ export class DataController {
 
       const { resource, etag } = result.value;
       if (resource) {
-        this.#session.user.followedArtists = {
-          ids: this.#session.user.followedArtists.ids.concat(resource.map(artist => artist._id)),
+        const ids = resource.map(artist => artist._id);
+        user.followedArtists = {
+          ids: user.followedArtists.ids.concat(ids),
           etag,
           retrievalDate: Date.now(),
         };
 
         await Promise.all([
+          this.#saveSession(),
           Cache.upsertManyArtistObjects(resource),
-          Cache.updateFollowedArtistsByUserObject(this.#session.user),
+          Cache.updateFollowedArtistsByUserObject(user),
         ]);
-        yield resource;
+        yield ids;
       } else
-        yield await Cache.retrieveArtists(this.#session.user.followedArtists.ids);
-
-      done = result.done;
+        yield this.#session.user.followedArtists.ids;
     }
 
     return error;
   }
 
-  async *getReleases(limit = 0): AsyncGenerator<ReleaseRetrieval, SpotifyAPIError|undefined> {
-    if (!this.isLastDoneStale) {
-      const { followedArtists, profile } = this.#session.user;
-      const { ids } = followedArtists;
-      const { country } = profile;
-      yield {
-        releases: await Cache.retrieveReleasesFromArtists(ids, country, limit),
-        errors: [],
-      };
-      return;
+  async getSeveralArtists(ids: string[]): Promise<ArtistsRetrieval> {
+    const existingArtists = await Cache.retrieveArtists(ids);
+    const existingIDs = existingArtists.map(artist => artist._id);
+
+    // TODO: Optimize this to be more efficient
+    // Find the difference between known IDs and new IDs
+    const unknownIDs = ids.filter(id => !existingIDs.includes(id));
+
+    // Fetch the unknown artists
+    const errors: SpotifyAPIError[] = [];
+    const newArtists: ArtistObject[] = [];
+    const artistsResults = await this.#api.fetchSeveralArtists(unknownIDs);
+    for (const result of artistsResults) {
+      if (!result.ok) {
+        errors.push(result.error);
+        continue;
+      }
+      newArtists.splice(newArtists.length, 0, ...result.value);
     }
 
-    const userResult = await this.getUserProfile();
-    if (!userResult.ok)
-      return userResult.error;
-    const { country } = userResult.value;
+    await this.#saveSession();
+    return {
+      artists: { recent: newArtists, existing: existingArtists },
+      errors,
+    };
+  }
 
-    // Officially begin a new job
-    this.#session.user.job.isRunning = true;
-    await Cache.updateJobStatusForUser(this.#session.user);
+  async *getReleases(limit = 0): AsyncGenerator<ReleasesRetrieval, SpotifyAPIError[]> {
+    const profileResult = await this.getUserProfile();
+    if (!profileResult.ok)
+      return [ profileResult.error ];
+    const { country } = profileResult.value;
 
-    const iterator = this.getFollowedArtists();
-    let done = false;
-    let error: SpotifyAPIError|undefined;
-    while (!done) {
-      const followedResult = await iterator.next();
-      assert(typeof followedResult.done !== 'undefined');
+    const fetchErrors: SpotifyAPIError[] = [];
+    const artistIDsIterator = this.getFollowedArtistsIDs();
+    while (true) {
+      const artistIDsResult = await artistIDsIterator.next();
+      assert(typeof artistIDsResult.done !== 'undefined');
 
-      if (followedResult.done) {
-        error = followedResult.value;
+      if (artistIDsResult.done) {
+        const artistIDsError = artistIDsResult.value;
+        if (artistIDsError)
+          fetchErrors.push(artistIDsError);
         break;
       }
 
-      // Segregate fresh and stale artist objects
-      const releaseFetches = followedResult.value
-        .filter(artist => artist.retrievalDate > Date.now() + DataController.STALE_PERIOD.ARTIST_OBJ)
+      const artistIDs = artistIDsResult.value;
+      if (!this.isLastDoneStale) {
+        yield {
+          releases: await Cache.retrieveReleasesFromArtists(artistIDs, country, limit),
+          errors: [],
+        };
+        break;
+      }
+
+      // Officially begin a new job
+      this.#session.user.job.isRunning = true;
+      await Cache.updateJobStatusForUser(this.#session.user);
+
+      // TODO: Optimize this by batching together multiple batches of followed artists
+      // Retrieve followed artists, even those who do not exist from the cache yet
+      const { artists, errors } = await this.getSeveralArtists(artistIDs);
+      fetchErrors.splice(fetchErrors.length, 0, ...errors);
+
+      // Segregate the stale artist objects
+      const staleArtists = artists.existing
+        .filter(artist => Date.now() > artist.retrievalDate + DataController.STALE_PERIOD.ARTIST_OBJ);
+
+      // Concurrently request for all releases
+      const releaseFetches = staleArtists
         .map(async ({ _id }): Promise<SpotifyAPIError|undefined> => {
           const pendingOperations: Promise<void>[] = [];
           const releaseIterator = this.#api.fetchReleasesByArtistID(_id);
-          let fetchDone = false;
           let releasesError: SpotifyAPIError|undefined;
-          while (!fetchDone) {
+          while (true) {
             const releasesResult = await releaseIterator.next();
-            await this.updateAccessToken();
+            this.updateAccessToken();
             assert(typeof releasesResult.done !== 'undefined');
 
             if (releasesResult.done) {
@@ -179,7 +214,6 @@ export class DataController {
             // who are not necessarily followed by the current user
 
             pendingOperations.push(Cache.upsertManyReleaseObjects(releasesResult.value));
-            fetchDone = releasesResult.done;
           }
 
           await Promise.all(pendingOperations);
@@ -187,20 +221,18 @@ export class DataController {
         });
 
       const settledFetches = await Promise.all(releaseFetches);
-      const ids = followedResult.value.map(artist => artist._id);
       yield {
-        releases: await Cache.retrieveReleasesFromArtists(ids, country, -limit),
+        releases: await Cache.retrieveReleasesFromArtists(artistIDs, country, -limit),
         errors: settledFetches.filter(Boolean) as SpotifyAPIError[],
       };
-
-      done = followedResult.done;
     }
 
-    this.#session.user.job = {
+    const { user } = this.#session;
+    user.job = {
       isRunning: false,
-      dateLastDone: Date.now(),
+      dateLastDone: fetchErrors.length < 1 ? Date.now() : user.job.dateLastDone,
     };
     await Cache.updateJobStatusForUser(this.#session.user);
-    return error;
+    return fetchErrors;
   }
 }
