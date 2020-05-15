@@ -9,7 +9,7 @@ import { SpotifyAPI } from '../fetchers/Spotify';
 import { Cache } from '../db/Cache';
 
 // ERRORS
-import type { SpotifyAPIError } from '../errors/SpotifyAPIError';
+import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
 // GLOBAL VARIABLES
 const ONE_DAY = 24 * 60 * 60 * 1e3;
@@ -97,7 +97,9 @@ export class DataController {
     }
 
     console.log('Retrieving followed artist IDs from the Spotify API...');
+
     const iterator = this.#api.fetchFollowedArtists(user.followedArtists.etag);
+    const ids: string[] = [];
     let error: SpotifyAPIError|undefined;
     while (true) {
       const result = await iterator.next();
@@ -112,9 +114,10 @@ export class DataController {
       console.log('One batch of followed artist IDs successfully pulled.');
       const { resource, etag } = result.value;
       if (resource) {
-        const ids = resource.map(artist => artist._id);
+        const idsBatch = resource.map(artist => artist._id);
+        ids.splice(ids.length, 0, ...idsBatch);
         user.followedArtists = {
-          ids: user.followedArtists.ids.concat(ids),
+          ids,
           etag,
           retrievalDate: Date.now(),
         };
@@ -124,7 +127,7 @@ export class DataController {
           Cache.upsertManyArtistObjects(resource),
           Cache.updateFollowedArtistsByUserObject(user),
         ]);
-        yield ids;
+        yield idsBatch;
       } else
         yield this.#session.user.followedArtists.ids;
     }
@@ -144,19 +147,18 @@ export class DataController {
 
     // Fetch the unknown artists
     const errors: SpotifyAPIError[] = [];
-    const newArtists: ArtistObject[] = [];
     const artistsResults = await this.#api.fetchSeveralArtists(unknownIDs);
     for (const result of artistsResults) {
       if (!result.ok) {
         errors.push(result.error);
         continue;
       }
-      newArtists.splice(newArtists.length, 0, ...result.value);
+      existingArtists.splice(existingArtists.length, 0, ...result.value);
     }
 
     await this.#saveSession();
     return {
-      artists: { recent: newArtists, existing: existingArtists },
+      artists: existingArtists,
       errors,
     };
   }
@@ -205,13 +207,13 @@ export class DataController {
       fetchErrors.splice(fetchErrors.length, 0, ...errors);
 
       // Segregate the stale artist objects
-      const staleArtists = artists.existing
+      const staleArtists = artists
         .filter(artist => Date.now() > artist.retrievalDate + DataController.STALE_PERIOD.ARTIST_OBJ);
-      console.log(`${staleArtists.length} artists from the database cache are stale, thus requiring an equal number of fetches.`);
+      console.log(`${staleArtists.length} followed artists are considered stale, thus requiring an equal number of fetches.`);
 
       // Concurrently request for all releases
       const releaseFetches = staleArtists
-        .map(async (artist): Promise<SpotifyAPIError|undefined> => {
+        .map(async (artist): Promise<ArtistObject|SpotifyAPIError> => {
           const pendingOperations: Promise<void>[] = [];
           const releaseIterator = this.#api.fetchReleasesByArtistID(artist._id);
           let releasesError: SpotifyAPIError|undefined;
@@ -232,15 +234,30 @@ export class DataController {
           }
 
           await Promise.all(pendingOperations);
-          return releasesError;
+          artist.retrievalDate = Date.now();
+          return releasesError ?? artist;
         });
 
       const settledFetches = await Promise.all(releaseFetches);
-      console.log('All fetches settled.');
       this.updateAccessToken();
+      console.log('All fetches settled.');
+
+      // Segregate successful fetches
+      const fetchResults = settledFetches
+        .reduce((prev, curr) => {
+          if (curr instanceof SpotifyAPIError)
+            prev.errors.push(curr);
+          else
+            prev.artists.push(curr);
+          return prev;
+        }, { artists: [] as ArtistObject[], errors: [] as SpotifyAPIError[] });
+
+      // Save all artists to the database cache
+      await Cache.upsertManyArtistObjects(fetchResults.artists);
+
       yield {
         releases: await Cache.retrieveReleasesFromArtists(artistIDs, country, -limit),
-        errors: settledFetches.filter(Boolean) as SpotifyAPIError[],
+        errors: fetchResults.errors,
       };
     }
 

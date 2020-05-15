@@ -10,10 +10,7 @@ interface BaseRetrieval {
 
 declare global {
   interface ArtistsRetrieval extends BaseRetrieval {
-    artists: {
-      recent: ArtistObject[];
-      existing: ArtistObject[];
-    };
+    artists: ArtistObject[];
   }
 
   interface ReleasesRetrieval extends BaseRetrieval {

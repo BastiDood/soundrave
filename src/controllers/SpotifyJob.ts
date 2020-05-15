@@ -45,12 +45,13 @@ export class SpotifyJob {
   }
 
   async handleError(errors: SpotifyAPIError[]): Promise<SpotifyJob> {
+    console.log('Errors were encountered in the background.');
     // TODO: Test assumption that any error must be about rate limits
     const maxRetryAfter = Math.max(...errors.map(err => err.retryAfter));
     assert(maxRetryAfter > 0);
 
     const sleepPeriod = maxRetryAfter + 1e3;
-    console.log(`Errors were encountered in the background. Now sleeping for ${maxRetryAfter} seconds...`);
+    console.log(`Now sleeping for ${maxRetryAfter} seconds...`);
     await sleep(sleepPeriod);
     console.log('Resuming background processing...');
 

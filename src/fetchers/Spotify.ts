@@ -352,7 +352,8 @@ export class SpotifyAPI {
     _id: artist.id,
     name: artist.name,
     images: artist.images,
-    retrievalDate: Date.now(),
+    // **NOTE:** This refers to the date since this artist's releases have been fetched.
+    retrievalDate: -Infinity,
   });
 
   protected static transformToNonPopulatedReleaseObject = (release: SpotifyApi.AlbumObjectSimplified): NonPopulatedReleaseObject => ({
