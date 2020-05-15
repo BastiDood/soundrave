@@ -19,6 +19,7 @@ import { Cache } from '../db/Cache';
 import { SpotifyAPI } from '../fetchers/Spotify';
 
 // GLOBAL VARIABLES
+const ONE_DAY = 24 * 60 * 60 * 1e3;
 const router = express.Router();
 
 router
@@ -92,8 +93,8 @@ router
     // Initialize session data
     const token = api.tokenInfo;
     session.token = { spotify: token };
-    // TODO: Adjust this to span multiple days
-    session.cookie.maxAge = token.expiresAt - Date.now();
+    const remainingTime = token.expiresAt - Date.now();
+    session.cookie.maxAge = remainingTime + ONE_DAY * 10;
 
     // Initialize the user object
     const userResult = await api.fetchUserProfile();

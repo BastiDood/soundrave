@@ -56,11 +56,6 @@ export class DataController {
    */
   updateAccessToken(): Promise<void> {
     const token = this.#api.tokenInfo;
-
-    // TODO: Remove this once the reference has been verified
-    assert(this.#session.token.spotify === token);
-    console.log('Assertion passed.');
-
     const remainingTime = token.expiresAt - Date.now();
     this.#session.cookie.maxAge = remainingTime + ONE_DAY * 10;
     return this.#saveSession();
