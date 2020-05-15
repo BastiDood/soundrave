@@ -69,8 +69,7 @@ app.use(session({
   unset: 'destroy',
   store: new MongoStore({
     url: env.MONGO_DB_SESSION_URL,
-    // TODO: Enable session secrets in the real deployment
-    // secret: env.MONGO_DB_SESSION_SECRET,
+    secret: env.MONGO_DB_SESSION_SECRET,
     autoRemove: 'interval',
     autoRemoveInterval: ONE_HOUR,
   }),

@@ -32,12 +32,8 @@ router
       return;
     }
 
-    // Retrieve the current user
-    const user = await Cache.retrieveUser(session.userID);
-    assert(user);
-
     // Retrieve first batch of releases
-    const dataController = new DataController(session, user);
+    const dataController = new DataController(session);
     const releasesIterator = dataController.getReleases(env.MAX_RELEASES);
     const releasesResult = await releasesIterator.next();
 
@@ -70,7 +66,7 @@ router
     else
       res.redirect(SpotifyAPI.AUTH_ENDPOINT);
   })
-  .get('/callback', async (req: express.Request<{}, {}, {}, AuthorizationResult>, res, next) => {
+  .get('/callback', async (req: express.Request<{}, {}, {}, AuthorizationResult>, res) => {
     const authorization = req.query;
 
     // TODO: Check if request is from Spotify accounts using `state` parameter
@@ -105,32 +101,17 @@ router
     // TODO: Handle errors when initializing the user profile
     assert(userResult.ok);
 
-    // Use the ID as an identifier for future communication
-    session.userID = userResult.value._id;
-
+    // TODO: store user in the request scope
     // Check if the user has previously logged in to the service
-    const user = await Cache.retrieveUser(session.userID);
+    let user = await Cache.retrieveUser(session.userID);
 
     // Initialize the new user otherwise
-    if (!user) {
-      const followedArtists = api.fetchFollowedArtists();
-      const firstBatch = await followedArtists.next();
-
-      // Handle the case when the initial retrieval fails
-      assert(typeof firstBatch.done !== 'undefined');
-      if (firstBatch.done) {
-        assert(firstBatch.value);
-        next({ releases: [], errors: [ firstBatch.value ] });
-        return;
-      }
-
-      const { resource, etag } = firstBatch.value;
-      const newUser: UserObject = {
+    if (!user)
+      user = {
         ...userResult.value,
         followedArtists: {
-          ids: resource!.map(artist => artist._id),
-          etag,
-          retrievalDate: Date.now(),
+          ids: [],
+          retrievalDate: -Infinity,
         },
         job: {
           isRunning: false,
@@ -138,15 +119,15 @@ router
         },
       };
 
-      await Promise.all([
-        Cache.upsertManyArtistObjects(resource!),
-        Cache.upsertUserObject(newUser),
-      ]);
-    }
+    // Store the user object to the session cache
+    session.user = user;
+    session.isLoggedIn = true;
 
     // Explicitly save session data due to redirect
-    session.isLoggedIn = true;
-    await promisify(session.save.bind(session))();
+    await Promise.all([
+      Cache.upsertUserObject(user),
+      promisify(session.save.bind(session))(),
+    ]);
 
     // TODO: Handle error if `error in authorization`
 

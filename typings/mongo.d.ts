@@ -18,7 +18,7 @@ interface FollowedArtistsInfo extends Cacheable {
   /** Spotify IDs of the user's followed artists */
   ids: string[];
   /** Associated ETag of the list of followed artists */
-  etag: string;
+  etag?: string;
 }
 
 interface JobStatusInfo {

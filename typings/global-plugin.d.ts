@@ -6,7 +6,7 @@ interface UninitializedSession {
 
 interface ValidSession {
   /** Spotify ID of the current user */
-  userID: string;
+  user: UserObject;
   token: { spotify: SpotifyAccessToken };
   isLoggedIn: true;
 }

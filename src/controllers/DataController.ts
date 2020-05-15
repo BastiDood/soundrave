@@ -24,31 +24,28 @@ export class DataController {
 
   /** Reference to the current user's session */
   #session: Express.Session;
-  /** Represents the current Spotify user */
-  #user: UserObject;
   /** Handler for all API fetches */
   #api: SpotifyAPI;
   /** Utility function for manually saving the current session */
   #saveSession: () => Promise<void>;
 
-  constructor(session: Express.Session, user: UserObject) {
+  constructor(session: Express.Session) {
     this.#session = session;
-    this.#user = user;
     this.#api = SpotifyAPI.restore(this.#session.token.spotify);
     this.#saveSession = promisify(this.#session.save.bind(this.#session));
   }
 
   get isUserObjectStale(): boolean {
-    return Date.now() > this.#user.profile.retrievalDate + DataController.STALE_PERIOD.USER_OBJ;
+    return Date.now() > this.#session.user.profile.retrievalDate + DataController.STALE_PERIOD.USER_OBJ;
   }
 
   get areFollowedArtistsStale(): boolean {
-    return Date.now() > this.#user.followedArtists.retrievalDate + DataController.STALE_PERIOD.FOLLOWED_ARTISTS;
+    return Date.now() > this.#session.user.followedArtists.retrievalDate + DataController.STALE_PERIOD.FOLLOWED_ARTISTS;
   }
 
   get isLastDoneStale(): boolean {
-    return !this.#user.job.isRunning
-      && Date.now() > this.#user.job.dateLastDone + DataController.STALE_PERIOD.LAST_DONE;
+    return !this.#session.user.job.isRunning
+      && Date.now() > this.#session.user.job.dateLastDone + DataController.STALE_PERIOD.LAST_DONE;
   }
 
   /**
@@ -59,6 +56,11 @@ export class DataController {
    */
   updateAccessToken(): Promise<void> {
     const token = this.#api.tokenInfo;
+
+    // TODO: Remove this once the reference has been verified
+    assert(this.#session.token.spotify === token);
+    console.log('Assertion passed.');
+
     const remainingTime = token.expiresAt - Date.now();
     this.#session.cookie.maxAge = remainingTime + ONE_DAY * 10;
     return this.#saveSession();
@@ -68,7 +70,7 @@ export class DataController {
     if (!this.isUserObjectStale)
       return {
         ok: true,
-        value: this.#user,
+        value: this.#session.user,
       };
 
     const partial = await this.#api.fetchUserProfile();
@@ -77,22 +79,22 @@ export class DataController {
       return partial;
 
     const { value: user } = partial;
-    this.#user._id = user._id;
-    this.#user.profile = user.profile;
-    await Cache.upsertUserObject(this.#user);
+    this.#session.user._id = user._id;
+    this.#session.user.profile = user.profile;
+    await Cache.upsertUserObject(this.#session.user);
     return {
       ok: partial.ok,
-      value: this.#user,
+      value: this.#session.user,
     };
   }
 
   async *getFollowedArtists(): AsyncGenerator<ArtistObject[], SpotifyAPIError|undefined> {
     if (!this.areFollowedArtistsStale) {
-      yield await Cache.retrieveArtists(this.#user.followedArtists.ids);
+      yield await Cache.retrieveArtists(this.#session.user.followedArtists.ids);
       return;
     }
 
-    const iterator = this.#api.fetchFollowedArtists(this.#user.followedArtists.etag);
+    const iterator = this.#api.fetchFollowedArtists(this.#session.user.followedArtists.etag);
     let done = false;
     let error: SpotifyAPIError|undefined;
     while (!done) {
@@ -107,19 +109,19 @@ export class DataController {
 
       const { resource, etag } = result.value;
       if (resource) {
-        this.#user.followedArtists = {
-          ids: this.#user.followedArtists.ids.concat(resource.map(artist => artist._id)),
+        this.#session.user.followedArtists = {
+          ids: this.#session.user.followedArtists.ids.concat(resource.map(artist => artist._id)),
           etag,
           retrievalDate: Date.now(),
         };
 
         await Promise.all([
           Cache.upsertManyArtistObjects(resource),
-          Cache.updateFollowedArtistsByUserObject(this.#user),
+          Cache.updateFollowedArtistsByUserObject(this.#session.user),
         ]);
         yield resource;
       } else
-        yield await Cache.retrieveArtists(this.#user.followedArtists.ids);
+        yield await Cache.retrieveArtists(this.#session.user.followedArtists.ids);
 
       done = result.done;
     }
@@ -129,8 +131,9 @@ export class DataController {
 
   async *getReleases(limit = 0): AsyncGenerator<ReleaseRetrieval, SpotifyAPIError|undefined> {
     if (!this.isLastDoneStale) {
-      const { ids } = this.#user.followedArtists;
-      const { country } = this.#user.profile;
+      const { followedArtists, profile } = this.#session.user;
+      const { ids } = followedArtists;
+      const { country } = profile;
       yield {
         releases: await Cache.retrieveReleasesFromArtists(ids, country, limit),
         errors: [],
@@ -144,8 +147,8 @@ export class DataController {
     const { country } = userResult.value.profile;
 
     // Officially begin a new job
-    this.#user.job.isRunning = true;
-    await Cache.updateJobStatusForUser(this.#user);
+    this.#session.user.job.isRunning = true;
+    await Cache.updateJobStatusForUser(this.#session.user);
 
     const iterator = this.getFollowedArtists();
     let done = false;
@@ -198,11 +201,11 @@ export class DataController {
       done = followedResult.done;
     }
 
-    this.#user.job = {
+    this.#session.user.job = {
       isRunning: false,
       dateLastDone: Date.now(),
     };
-    await Cache.updateJobStatusForUser(this.#user);
+    await Cache.updateJobStatusForUser(this.#session.user);
     return error;
   }
 }
