@@ -103,7 +103,7 @@ router
 
     // TODO: store user in the request scope
     // Check if the user has previously logged in to the service
-    let user = await Cache.retrieveUser(session.userID);
+    let user = await Cache.retrieveUser(userResult.value._id);
 
     // Initialize the new user otherwise
     if (!user)
