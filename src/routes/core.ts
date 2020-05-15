@@ -29,11 +29,13 @@ router
 
     // Reject all users that have not been logged in
     if (!session?.isLoggedIn) {
+      console.log('Received a user that is not logged in.');
       res.render('init');
       return;
     }
 
     // Retrieve first batch of releases
+    console.log('Initializing requests...');
     const dataController = new DataController(session);
     const releasesIterator = dataController.getReleases(env.MAX_RELEASES);
     const releasesResult = await releasesIterator.next();
@@ -43,8 +45,9 @@ router
     if (releasesResult.done) {
       // This works on the assumption that if there is an error in the first pull,
       // then the value is certainly a fail-fast error.
-      assert(releasesResult.value);
-      next({ releases: [], errors: [ releasesResult.value ] });
+      assert(releasesResult.value.length > 0);
+      console.log('Encountered a first-pull error.');
+      next({ releases: [], errors: releasesResult.value });
       return;
     }
 
@@ -59,7 +62,9 @@ router
     res.render('index', { releases: releasesResult.value.releases });
 
     // Schedule the rest of the batches to the job handler
+    console.log('Scheduling background job...');
     backgroundJobHandler.addJob(new SpotifyJob(session, releasesIterator));
+    console.log('Background job successfully scheduled.');
   })
   .get('/login', (req, res) => {
     if (req.session?.isLoggedIn)

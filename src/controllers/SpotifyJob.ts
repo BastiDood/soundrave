@@ -16,9 +16,9 @@ const sleep = promisify(setTimeout);
  */
 export class SpotifyJob {
   #session: Express.Session;
-  #iterator: AsyncGenerator<ReleasesRetrieval, SpotifyAPIError|undefined>;
+  #iterator: AsyncGenerator<ReleasesRetrieval, SpotifyAPIError[]>;
 
-  constructor(session: Express.Session, iterator: AsyncGenerator<ReleasesRetrieval, SpotifyAPIError|undefined>) {
+  constructor(session: Express.Session, iterator: AsyncGenerator<ReleasesRetrieval, SpotifyAPIError[]>) {
     this.#session = session;
     this.#iterator = iterator;
   }
@@ -28,9 +28,9 @@ export class SpotifyJob {
     assert(typeof releasesResult.done !== 'undefined');
 
     if (releasesResult.done) {
-      const error = releasesResult.value;
-      if (error)
-        return this.handleError(error);
+      const errors = releasesResult.value;
+      if (errors.length > 0)
+        return this.handleError(errors);
       return null;
     }
 
@@ -41,11 +41,16 @@ export class SpotifyJob {
     return this;
   }
 
-  async handleError(error: SpotifyAPIError): Promise<SpotifyJob> {
-    // TODO: Test assumption that any errors must be about rate limits
-    assert(error.status === 429);
-    // TODO: Log the errors
-    await sleep(error.retryAfter);
+  async handleError(errors: SpotifyAPIError[]): Promise<SpotifyJob> {
+    // TODO: Test assumption that any error must be about rate limits
+    const maxRetryAfter = Math.max(...errors.map(err => err.retryAfter));
+    assert(maxRetryAfter > 0);
+
+    const sleepPeriod = maxRetryAfter + 1e3;
+    console.log(`Errors were encountered in the background. Now sleeping for ${maxRetryAfter} seconds...`);
+    await sleep(sleepPeriod);
+    console.log('Resuming background processing...');
+
     return this;
   }
 }
