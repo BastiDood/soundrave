@@ -24,6 +24,8 @@ export class SpotifyJob {
   }
 
   async execute(): Promise<SpotifyJob|null> {
+    const username = this.#session.user.profile.name.toUpperCase();
+    console.log(`Executing job in the background for ${username}...`);
     const releasesResult = await this.#iterator.next();
     assert(typeof releasesResult.done !== 'undefined');
 
@@ -31,6 +33,7 @@ export class SpotifyJob {
       const errors = releasesResult.value;
       if (errors.length > 0)
         return this.handleError(errors);
+      console.log(`All jobs done for ${username}.`);
       return null;
     }
 
