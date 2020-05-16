@@ -28,7 +28,7 @@ router
     const { session } = req;
 
     // Reject all users that have not been logged in
-    if (!session?.isLoggedIn) {
+    if (!session?.user || !session?.token) {
       console.log('Received a user that is not logged in.');
       res.render('init');
       return;
@@ -36,7 +36,8 @@ router
 
     // Retrieve first batch of releases
     console.log('Initializing requests...');
-    const dataController = new DataController(session);
+    const { user, token } = session;
+    const dataController = new DataController({ user, token });
     const releasesIterator = dataController.getReleases(env.MAX_RELEASES);
     const releasesResult = await releasesIterator.next();
 
@@ -66,8 +67,8 @@ router
     backgroundJobHandler.addJob(new SpotifyJob(session, releasesIterator));
     console.log('Background job successfully scheduled.');
   })
-  .get('/login', (req, res) => {
-    if (req.session?.isLoggedIn)
+  .get('/login', ({ session }, res) => {
+    if (!session?.user || !session?.token)
       res.sendStatus(404);
     else
       res.redirect(SpotifyAPI.AUTH_ENDPOINT);
@@ -133,7 +134,6 @@ router
 
     // Store the user object to the session cache
     session.user = user;
-    session.isLoggedIn = true;
 
     // Explicitly save session data due to redirect
     saveOperations.push(promisify(session.save.bind(session))());

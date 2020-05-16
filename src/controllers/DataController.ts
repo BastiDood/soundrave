@@ -1,5 +1,4 @@
 // NODE CORE IMPORTS
-import { promisify } from 'util';
 import { strict as assert } from 'assert';
 
 // FETCHERS
@@ -22,42 +21,27 @@ export class DataController {
     LAST_DONE: ONE_DAY * 5,
   };
 
-  /** Reference to the current user's session */
-  #session: Express.Session;
+  /** Copy of the current user's session */
+  #sessionData: Required<BaseSession>;
   /** Handler for all API fetches */
   #api: SpotifyAPI;
-  /** Utility function for manually saving the current session */
-  #saveSession: () => Promise<void>;
 
-  constructor(session: Express.Session) {
-    this.#session = session;
-    this.#api = SpotifyAPI.restore(this.#session.token.spotify);
-    this.#saveSession = promisify(this.#session.save.bind(this.#session));
+  constructor(sessionData: Required<BaseSession>) {
+    this.#sessionData = sessionData;
+    this.#api = SpotifyAPI.restore(this.#sessionData.token.spotify);
   }
 
   get isUserObjectStale(): boolean {
-    return Date.now() > this.#session.user.profile.retrievalDate + DataController.STALE_PERIOD.USER_OBJ;
+    return Date.now() > this.#sessionData.user.profile.retrievalDate + DataController.STALE_PERIOD.USER_OBJ;
   }
 
   get areFollowedArtistsStale(): boolean {
-    return Date.now() > this.#session.user.followedArtists.retrievalDate + DataController.STALE_PERIOD.FOLLOWED_ARTISTS;
+    return Date.now() > this.#sessionData.user.followedArtists.retrievalDate + DataController.STALE_PERIOD.FOLLOWED_ARTISTS;
   }
 
   get isLastDoneStale(): boolean {
-    return !this.#session.user.job.isRunning
-      && Date.now() > this.#session.user.job.dateLastDone + DataController.STALE_PERIOD.LAST_DONE;
-  }
-
-  /**
-   * Updates the access token and the session cookie's `maxAge` property
-   * according to the latest data by the Spotify fetcher. The cookie is to
-   * be stored in the browser for up to 10 days. The counter restarts whenever
-   * the token is refreshed. **This does not invoke a manual session save.**
-   */
-  updateAccessToken(): void {
-    const token = this.#api.tokenInfo;
-    const remainingTime = token.expiresAt - Date.now();
-    this.#session.cookie.maxAge = remainingTime + ONE_DAY * 10;
+    return !this.#sessionData.user.job.isRunning
+      && Date.now() > this.#sessionData.user.job.dateLastDone + DataController.STALE_PERIOD.LAST_DONE;
   }
 
   async getUserProfile(): Promise<Result<Readonly<UserProfileInfo>, SpotifyAPIError>> {
@@ -65,31 +49,27 @@ export class DataController {
       console.log('Retrieving user profile from the session CACHE...');
       return {
         ok: true,
-        value: this.#session.user.profile,
+        value: this.#sessionData.user.profile,
       };
     }
 
     console.log('Retrieving user profile from Spotify API...');
     const partial = await this.#api.fetchUserProfile();
-    this.updateAccessToken();
     if (!partial.ok)
       return partial;
 
     const { value: user } = partial;
-    this.#session.user._id = user._id;
-    this.#session.user.profile = user.profile;
-    await Promise.all([
-      this.#saveSession(),
-      Cache.updateUserProfile(this.#session.user),
-    ]);
+    this.#sessionData.user._id = user._id;
+    this.#sessionData.user.profile = user.profile;
+    await Cache.updateUserProfile(this.#sessionData.user);
     return {
       ok: partial.ok,
-      value: this.#session.user.profile,
+      value: this.#sessionData.user.profile,
     };
   }
 
   async *getFollowedArtistsIDs(): AsyncGenerator<string[], SpotifyAPIError|undefined> {
-    const { user } = this.#session;
+    const { user } = this.#sessionData;
     if (!this.areFollowedArtistsStale) {
       console.log('Retrieving followed artist IDs from the session CACHE...');
       yield user.followedArtists.ids;
@@ -103,7 +83,6 @@ export class DataController {
     let error: SpotifyAPIError|undefined;
     while (true) {
       const result = await iterator.next();
-      this.updateAccessToken();
       assert(typeof result.done !== 'undefined');
 
       if (result.done) {
@@ -123,13 +102,12 @@ export class DataController {
         };
 
         await Promise.all([
-          this.#saveSession(),
           Cache.upsertManyArtistObjects(resource),
           Cache.updateFollowedArtistsByUserObject(user),
         ]);
         yield idsBatch;
       } else
-        yield this.#session.user.followedArtists.ids;
+        yield this.#sessionData.user.followedArtists.ids;
     }
 
     return error;
@@ -156,7 +134,6 @@ export class DataController {
       existingArtists.splice(existingArtists.length, 0, ...result.value);
     }
 
-    await this.#saveSession();
     return {
       artists: existingArtists,
       errors,
@@ -168,7 +145,7 @@ export class DataController {
     if (!profileResult.ok)
       return [ profileResult.error ];
     const { country } = profileResult.value;
-    const { user } = this.#session;
+    const { user } = this.#sessionData;
 
     const fetchErrors: SpotifyAPIError[] = [];
     const artistIDsIterator = this.getFollowedArtistsIDs();
@@ -196,10 +173,7 @@ export class DataController {
       // Officially begin a new job
       console.log(`Beginning new job for ${user.profile.name.toUpperCase()}...`);
       user.job.isRunning = true;
-      await Promise.all([
-        this.#saveSession(),
-        Cache.updateJobStatusForUser(user),
-      ]);
+      await Cache.updateJobStatusForUser(user);
 
       // TODO: Optimize this by batching together multiple batches of followed artists
       // Retrieve followed artists, even those who do not exist from the cache yet
@@ -239,7 +213,6 @@ export class DataController {
         });
 
       const settledFetches = await Promise.all(releaseFetches);
-      this.updateAccessToken();
       console.log('All fetches settled.');
 
       // Segregate successful fetches
@@ -265,7 +238,7 @@ export class DataController {
       isRunning: false,
       dateLastDone: fetchErrors.length < 1 ? Date.now() : user.job.dateLastDone,
     };
-    await Cache.updateJobStatusForUser(this.#session.user);
+    await Cache.updateJobStatusForUser(this.#sessionData.user);
     return fetchErrors;
   }
 }
