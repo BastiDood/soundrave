@@ -26,21 +26,24 @@ export class JobHandler extends EventEmitter {
   }
 
   private async handleProcessing(): Promise<void> {
-    const job = this.#jobQueue.shift();
-
     // Stop processing if there are no more jobs
-    if (!job) {
+    const { length } = this.#jobQueue;
+    if (length < 1) {
       this.#isBusy = false;
       return;
     }
 
+    // Set the handler to "busy mode"
+    const jobs = this.#jobQueue.splice(0, length);
     this.#isBusy = true;
-    const result = await job.execute();
 
-    // If there exists more jobs, then they should be executed
-    // once all others have been finished.
-    if (result)
-      this.#jobQueue.push(result);
+    // Concurrently execute the entire batch
+    const promises = jobs.map(job => job.execute());
+    const resolvedJobs = await Promise.all(promises);
+    const pendingJobs = resolvedJobs.filter(Boolean) as SpotifyJob[];
+
+    // Queue up those with more pending jobs
+    this.#jobQueue.splice(this.#jobQueue.length, 0, ...pendingJobs);
 
     // Continue processing other jobs
     this.emit('__process__');

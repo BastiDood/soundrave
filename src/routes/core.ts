@@ -34,6 +34,7 @@ router
       return;
     }
 
+    // TODO: Figure out how to notify the route-level on `maxAge` changes
     // Retrieve first batch of releases
     console.log('Initializing requests...');
     const { user, token } = session;
@@ -64,7 +65,7 @@ router
 
     // Schedule the rest of the batches to the job handler
     console.log('Scheduling background job...');
-    backgroundJobHandler.addJob(new SpotifyJob(session, releasesIterator));
+    backgroundJobHandler.addJob(new SpotifyJob({ user, token }, env.MAX_RELEASES));
     console.log('Background job successfully scheduled.');
   })
   .get('/login', ({ session }, res) => {

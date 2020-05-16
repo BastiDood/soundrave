@@ -2,6 +2,9 @@
 import { strict as assert } from 'assert';
 import { promisify } from 'util';
 
+// CONTROLLERS
+import { DataController } from '.';
+
 // TYPES
 import type { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
@@ -15,17 +18,15 @@ const sleep = promisify(setTimeout);
  * to give the blocked requests a chance to execute.
  */
 export class SpotifyJob {
-  #session: Express.Session;
   #iterator: AsyncGenerator<ReleasesRetrieval, SpotifyAPIError[]>;
 
-  constructor(session: Express.Session, iterator: AsyncGenerator<ReleasesRetrieval, SpotifyAPIError[]>) {
-    this.#session = session;
-    this.#iterator = iterator;
+  constructor(sessionData: Required<BaseSession>, maxReleasesLimit: number) {
+    const controller = new DataController(sessionData);
+    this.#iterator = controller.getReleases(maxReleasesLimit);
   }
 
   async execute(): Promise<SpotifyJob|null> {
-    const username = this.#session.user.profile.name.toUpperCase();
-    console.log(`Executing job in the background for ${username}...`);
+    console.log('Executing job in the background...');
     const releasesResult = await this.#iterator.next();
     assert(typeof releasesResult.done !== 'undefined');
 
@@ -33,18 +34,14 @@ export class SpotifyJob {
       const errors = releasesResult.value;
       if (errors.length > 0)
         return this.handleError(errors);
-      console.log(`All jobs done for ${username}.`);
+      console.log('All jobs done.');
       return null;
     }
-
-    // Update the database session accordingly
-    const session = this.#session;
-    await promisify(session.save.bind(session))();
 
     return this;
   }
 
-  async handleError(errors: SpotifyAPIError[]): Promise<SpotifyJob> {
+  private async handleError(errors: SpotifyAPIError[]): Promise<SpotifyJob> {
     console.log('Errors were encountered in the background.');
     // TODO: Test assumption that any error must be about rate limits
     const maxRetryAfter = Math.max(...errors.map(err => err.retryAfter));

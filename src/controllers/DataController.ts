@@ -31,6 +31,8 @@ export class DataController {
     this.#api = SpotifyAPI.restore(sessionData.token.spotify);
   }
 
+  get tokenInfo(): Readonly<SpotifyAccessToken> { return this.#api.tokenInfo; }
+
   private get isUserObjectStale(): boolean {
     return Date.now() > this.#user.profile.retrievalDate + DataController.STALE_PERIOD.USER_OBJ;
   }
