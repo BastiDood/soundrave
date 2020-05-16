@@ -52,7 +52,7 @@ router
     res.render('index', { releases: retrieval.releases });
   })
   .get('/login', ({ session }, res) => {
-    if (!session?.user || !session?.token)
+    if (session?.user && session?.token)
       res.sendStatus(404);
     else
       res.redirect(SpotifyAPI.AUTH_ENDPOINT);
