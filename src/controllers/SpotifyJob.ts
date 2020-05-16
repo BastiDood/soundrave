@@ -1,5 +1,5 @@
 // NODE CORE IMPORTS
-import  { EventEmitter } from 'events';
+import { EventEmitter } from 'events';
 import { strict as assert } from 'assert';
 import { promisify } from 'util';
 

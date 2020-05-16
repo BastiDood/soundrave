@@ -71,10 +71,12 @@ const node = {
     extensions: [ '.tsx', '.ts', '.js', '.css', '.hbs' ],
   },
   plugins: [
-    new CopyPlugin([
-      { from: path.join(SRC_DIR, 'views'), to: path.join(OUTPUT_DIR, 'server/views') },
-      { from: path.join(PUBLIC_DIR, 'css'), to: path.join(OUTPUT_DIR, 'public/css') },
-    ]),
+    new CopyPlugin({
+      patterns: [
+        { from: path.join(SRC_DIR, 'views'), to: path.join(OUTPUT_DIR, 'server/views') },
+        { from: path.join(PUBLIC_DIR, 'css'), to: path.join(OUTPUT_DIR, 'public/css') },
+      ],
+    }),
   ],
   output: {
     filename: 'main.js',
