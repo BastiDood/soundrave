@@ -1,4 +1,5 @@
 // NODE CORE IMPORTS
+import  { EventEmitter } from 'events';
 import { strict as assert } from 'assert';
 import { promisify } from 'util';
 
@@ -17,12 +18,18 @@ const sleep = promisify(setTimeout);
  * stops blocking execution, the `SpotifyJob` shall be sent to the back of the queue
  * to give the blocked requests a chance to execute.
  */
-export class SpotifyJob {
+export class SpotifyJob extends EventEmitter {
+  /** Indicates if the current iteration was the first execution */
+  #firstRun = true;
+  readonly #maxReleasesLimit: number;
+  readonly #controller: DataController;
   #iterator: AsyncGenerator<ReleasesRetrieval, SpotifyAPIError[]>;
 
   constructor(sessionData: Required<BaseSession>, maxReleasesLimit: number) {
-    const controller = new DataController(sessionData);
-    this.#iterator = controller.getReleases(maxReleasesLimit);
+    super();
+    this.#controller = new DataController(sessionData);
+    this.#maxReleasesLimit = maxReleasesLimit;
+    this.#iterator = this.#controller.getReleases(maxReleasesLimit);
   }
 
   async execute(): Promise<SpotifyJob|null> {
@@ -38,19 +45,31 @@ export class SpotifyJob {
       return null;
     }
 
+    if (this.#firstRun) {
+      console.log('Resolving the first run...');
+      this.#firstRun = false;
+      this.emit('first-run', releasesResult.value);
+    }
+
     return this;
   }
 
   private async handleError(errors: SpotifyAPIError[]): Promise<SpotifyJob> {
     console.log('Errors were encountered in the background.');
+    errors.forEach(err => console.error(err));
+
     // TODO: Test assumption that any error must be about rate limits
+    // TODO: Consider the situation when the permissions fail (due to unexpected user tampering
+    // with the authorization redirection link)
     const maxRetryAfter = Math.max(...errors.map(err => err.retryAfter));
     assert(maxRetryAfter > 0);
 
     const sleepPeriod = maxRetryAfter + 1e3;
     console.log(`Now sleeping for ${maxRetryAfter} seconds...`);
     await sleep(sleepPeriod);
+
     console.log('Resuming background processing...');
+    this.#iterator = this.#controller.getReleases(this.#maxReleasesLimit);
 
     return this;
   }

@@ -10,7 +10,7 @@ import { backgroundJobHandler } from '../loaders/backgroundJobHandler';
 import { env } from '../loaders/env';
 
 // CONTROLLERS
-import { DataController, SpotifyJob } from '../controllers';
+import { SpotifyJob } from '../controllers';
 
 // CACHE
 import { Cache } from '../db/Cache';
@@ -36,37 +36,20 @@ router
 
     // TODO: Figure out how to notify the route-level on `maxAge` changes
     // Retrieve first batch of releases
-    console.log('Initializing requests...');
+    console.log('Scheduling background job...');
     const { user, token } = session;
-    const dataController = new DataController({ user, token });
-    const releasesIterator = dataController.getReleases(env.MAX_RELEASES);
-    const releasesResult = await releasesIterator.next();
-
-    // Check for any errors on the first request
-    assert(typeof releasesResult.done !== 'undefined');
-    if (releasesResult.done) {
-      // This works on the assumption that if there is an error in the first pull,
-      // then the value is certainly a fail-fast error.
-      assert(releasesResult.value.length > 0);
-      console.log('Encountered a first-pull error.');
-      next({ releases: [], errors: releasesResult.value });
-      return;
-    }
+    const retrieval = await backgroundJobHandler.addJob(new SpotifyJob({ user, token }, env.MAX_RELEASES));
+    console.log('Background job successfully scheduled.');
 
     // Forward any errors to the centralized handler
-    if (releasesResult.value.errors.length > 0) {
-      next(releasesResult.value);
+    if (retrieval.errors.length > 0) {
+      next(retrieval);
       return;
     }
 
     // In the best-case scenario when there are no errors,
     // respond to the user as soon as possible.
-    res.render('index', { releases: releasesResult.value.releases });
-
-    // Schedule the rest of the batches to the job handler
-    console.log('Scheduling background job...');
-    backgroundJobHandler.addJob(new SpotifyJob({ user, token }, env.MAX_RELEASES));
-    console.log('Background job successfully scheduled.');
+    res.render('index', { releases: retrieval.releases });
   })
   .get('/login', ({ session }, res) => {
     if (!session?.user || !session?.token)

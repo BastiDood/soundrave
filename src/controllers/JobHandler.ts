@@ -19,10 +19,16 @@ export class JobHandler extends EventEmitter {
     this.prependListener('__process__', this.handleProcessing.bind(this));
   }
 
-  addJob(job: SpotifyJob): void {
+  /**
+   * Adds a job to the job handler queue, then once the job finishes its first run,
+   * it returns the result wrapped in a promise.
+   * @returns Eventual result of the first job run.
+   */
+  addJob(job: SpotifyJob): Promise<ReleasesRetrieval> {
     this.#jobQueue.push(job);
     if (!this.#isBusy)
       this.emit('__process__');
+    return new Promise(resolve => job.once('first-run', resolve));
   }
 
   private async handleProcessing(): Promise<void> {
