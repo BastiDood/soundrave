@@ -23,7 +23,7 @@ export class SpotifyJob extends EventEmitter {
   #firstRun = true;
   readonly #maxReleasesLimit: number;
   readonly #controller: DataController;
-  #iterator: AsyncGenerator<ReleasesRetrieval, SpotifyAPIError[]>;
+  #iterator: AsyncGenerator<ReleasesRetrieval>;
 
   constructor(sessionData: Required<BaseSession>, maxReleasesLimit: number) {
     super();
@@ -34,36 +34,43 @@ export class SpotifyJob extends EventEmitter {
 
   async execute(): Promise<SpotifyJob|null> {
     console.log('Executing job in the background...');
-    const releasesResult = await this.#iterator.next();
-    assert(typeof releasesResult.done !== 'undefined');
+    const retrievalResult = await this.#iterator.next();
+    assert(typeof retrievalResult.done !== 'undefined');
 
-    if (this.#firstRun) {
-      console.log('Resolving the first run...');
-      this.#firstRun = false;
-      this.emit('first-run', releasesResult.value);
-    }
-
-    if (releasesResult.done) {
-      const errors = releasesResult.value;
-      if (errors.length > 0)
-        return this.handleError(errors);
+    if (retrievalResult.done) {
       console.log('All jobs done.');
       return null;
     }
 
+    const retrieval = retrievalResult.value;
+    if (this.#firstRun) {
+      console.log('Resolving the first run...');
+      this.#firstRun = false;
+      this.emit('first-run', retrieval);
+      return this;
+    }
+
+    if (retrieval.errors.length > 0)
+      return this.handleErrors(retrieval.errors);
+
+    console.log('Background job successfully executed without any errors.');
     return this;
   }
 
-  private async handleError(errors: SpotifyAPIError[]): Promise<SpotifyJob> {
-    console.log('Errors were encountered in the background.');
-    errors.forEach(err => console.error(err));
-
+  private async handleErrors(errors: SpotifyAPIError[]): Promise<SpotifyJob> {
     // TODO: Test assumption that any error must be about rate limits
+    console.log('These errors were encountered in the background:');
+    assert(errors.every(err => {
+      console.error(err);
+      return err.status === 429
+        && err.retryAfter > 0;
+    }));
+
     // TODO: Consider the situation when the permissions fail (due to unexpected user tampering
     // with the authorization redirection link)
     const maxRetryAfter = Math.max(...errors.map(err => err.retryAfter));
-    assert(maxRetryAfter > 0);
 
+    // Add one second of cooldown after Spotify's recommended retry period (just to be sure)
     const sleepPeriod = maxRetryAfter + 1e3;
     console.log(`Now sleeping for ${maxRetryAfter} seconds...`);
     await sleep(sleepPeriod);
