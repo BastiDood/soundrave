@@ -38,7 +38,7 @@ router
     const { user, token } = session;
     const { isRunning } = user.job;
     const hasStaleData = Date.now() > user.job.dateLastDone + DataController.STALE_PERIOD.LAST_DONE;
-    if (!isRunning && hasStaleData) {
+    if (!isRunning && !hasStaleData) {
       const cachedData = await Cache.retrieveReleasesFromArtists(
         user.followedArtists.ids,
         user.profile.country,
