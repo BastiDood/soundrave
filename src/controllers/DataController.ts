@@ -123,17 +123,17 @@ export class DataController {
     // TODO: Optimize this to be more efficient
     // Find the difference between known IDs and new IDs
     const unknownIDs = ids.filter(id => !existingIDs.includes(id));
-    console.log(`Now retrieving ${unknownIDs.length} artists from the Spotify API...`);
+    console.log(`Now fetching ${unknownIDs.length} artists from the Spotify API...`);
 
     // Fetch the unknown artists
     const errors: SpotifyAPIError[] = [];
-    const artistsResults = await this.#api.fetchSeveralArtists(unknownIDs);
-    for (const result of artistsResults) {
-      if (!result.ok) {
-        errors.push(result.error);
+    const artistsResultBatches = await this.#api.fetchSeveralArtists(unknownIDs);
+    for (const batch of artistsResultBatches) {
+      if (!batch.ok) {
+        errors.push(batch.error);
         continue;
       }
-      existingArtists.splice(existingArtists.length, 0, ...result.value);
+      existingArtists.splice(existingArtists.length, 0, ...batch.value);
     }
 
     return {
@@ -186,7 +186,7 @@ export class DataController {
       // Segregate the stale artist objects
       const staleArtists = artists
         .filter(artist => Date.now() > artist.retrievalDate + DataController.STALE_PERIOD.ARTIST_OBJ);
-      console.log(`${staleArtists.length} followed artists are considered stale, thus requiring an equal number of release fetches.`);
+      console.log(`${staleArtists.length} followed artists are considered new or stale, thus requiring an equal number of release fetches.`);
 
       // Concurrently request for all releases
       const releaseFetches = staleArtists
@@ -199,8 +199,11 @@ export class DataController {
             assert(typeof releasesResult.done !== 'undefined');
 
             if (releasesResult.done) {
-              console.error(`Encountered an error while fetching ${artist.name}'s releases.`);
-              releasesError = releasesResult.value;
+              const releaseError = releasesResult.value;
+              if (releaseError) {
+                console.error(`Encountered an error while fetching ${artist.name}'s releases.`);
+                fetchErrors.push(releaseError);
+              }
               break;
             }
 
