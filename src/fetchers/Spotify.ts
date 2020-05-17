@@ -188,7 +188,7 @@ export class SpotifyAPI {
     if (!this.#token.scope.includes('user-follow-read'))
       return new SpotifyAPIError({
         status: 401,
-        message: 'Access token does not have the permission to read list of followers.',
+        message: 'Access token does not have the permission to read the list of followers.',
       }, 0);
 
     const fetchOpts = this.fetchOptionsForGet;
@@ -276,15 +276,15 @@ export class SpotifyAPI {
         break;
       }
 
+      // Only include releases that are available in at least one country
       const data = await json as SpotifyApi.ArtistsAlbumsResponse;
-      const { items } = data;
-      const releases: NonPopulatedReleaseObject[] = [];
-      for (const release of items)
-        // Only include releases that are available in at least one country
-        if (release.available_markets?.length! > 0)
-          releases.push(SpotifyAPI.transformToNonPopulatedReleaseObject(release));
-
-      yield releases;
+      yield data.items.reduce((prev, curr) => {
+        const markets = curr.available_markets;
+        assert(markets);
+        if (markets.length > 0)
+          prev.push(SpotifyAPI.transformToNonPopulatedReleaseObject(curr));
+        return prev;
+      }, [] as NonPopulatedReleaseObject[]);
 
       next = data.next;
     }
