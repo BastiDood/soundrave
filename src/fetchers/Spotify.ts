@@ -110,7 +110,7 @@ export class SpotifyAPI {
 
     // This should be a rare occurrence (i.e. Spotify Service is unavailable)
     if (!response.ok) {
-      const { error, error_description } = await json as { error: string; error_description: string };
+      const { error, error_description } = await json as OAuthError;
       return {
         ok: response.ok,
         error: new SpotifyAPIError({

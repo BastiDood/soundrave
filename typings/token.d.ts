@@ -11,6 +11,11 @@ declare interface OAuthToken {
   refresh_token: string;
 }
 
+declare interface OAuthError {
+  error: string;
+  error_description: string;
+}
+
 declare interface SpotifyAccessToken {
   accessToken: string;
   refreshToken: string;
