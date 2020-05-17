@@ -14,7 +14,7 @@ import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 const ONE_DAY = 24 * 60 * 60 * 1e3;
 
 export class DataController {
-  private static readonly STALE_PERIOD = {
+  static readonly STALE_PERIOD = {
     FOLLOWED_ARTISTS: ONE_DAY * 3,
     USER_OBJ: ONE_DAY * 7,
     ARTIST_OBJ: ONE_DAY * 4,

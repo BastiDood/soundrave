@@ -10,7 +10,7 @@ import { backgroundJobHandler } from '../loaders/backgroundJobHandler';
 import { env } from '../loaders/env';
 
 // CONTROLLERS
-import { SpotifyJob } from '../controllers';
+import { DataController, SpotifyJob } from '../controllers';
 
 // CACHE
 import { Cache } from '../db/Cache';
@@ -34,10 +34,23 @@ router
       return;
     }
 
+    // Bypass the scheduling of a background job if the cache is still fresh
+    const { user, token } = session;
+    const { isRunning } = user.job;
+    const hasStaleData = Date.now() > user.job.dateLastDone + DataController.STALE_PERIOD.LAST_DONE;
+    if (!isRunning && hasStaleData) {
+      const cachedData = await Cache.retrieveReleasesFromArtists(
+        user.followedArtists.ids,
+        user.profile.country,
+        env.MAX_RELEASES,
+      );
+      res.render('index', { releases: cachedData });
+      return;
+    }
+
     // TODO: Figure out how to notify the route-level on `maxAge` changes
     // Retrieve first batch of releases
     console.log('Scheduling background job...');
-    const { user, token } = session;
     const retrieval = await backgroundJobHandler.addJob(new SpotifyJob({ user, token }, env.MAX_RELEASES));
     console.log('Background job successfully scheduled.');
 
