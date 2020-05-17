@@ -142,10 +142,10 @@ export class DataController {
     };
   }
 
-  async *getReleases(limit = 0): AsyncGenerator<ReleasesRetrieval, SpotifyAPIError[]> {
+  async *getReleases(limit = 0): AsyncGenerator<ReleasesRetrieval> {
     const profileResult = await this.getUserProfile();
     if (!profileResult.ok)
-      return [ profileResult.error ];
+      return { releases: [], errors: [ profileResult.error ] };
     const { country } = profileResult.value;
     const user = this.#user;
 
@@ -159,6 +159,7 @@ export class DataController {
         const artistIDsError = artistIDsResult.value;
         if (artistIDsError)
           fetchErrors.push(artistIDsError);
+        yield { releases: [], errors: fetchErrors };
         break;
       }
 
@@ -166,7 +167,7 @@ export class DataController {
       if (!this.isLastDoneStale) {
         console.log(`Retrieving the releases of ${artistIDs.length} artists from the database CACHE...`);
         yield {
-          releases: await Cache.retrieveReleasesFromArtists(artistIDs, country, limit),
+          releases: await Cache.retrieveReleasesFromArtists(artistIDs, country, -limit),
           errors: [],
         };
         break;
@@ -185,7 +186,7 @@ export class DataController {
       // Segregate the stale artist objects
       const staleArtists = artists
         .filter(artist => Date.now() > artist.retrievalDate + DataController.STALE_PERIOD.ARTIST_OBJ);
-      console.log(`${staleArtists.length} followed artists are considered stale, thus requiring an equal number of fetches.`);
+      console.log(`${staleArtists.length} followed artists are considered stale, thus requiring an equal number of release fetches.`);
 
       // Concurrently request for all releases
       const releaseFetches = staleArtists
@@ -198,6 +199,7 @@ export class DataController {
             assert(typeof releasesResult.done !== 'undefined');
 
             if (releasesResult.done) {
+              console.error(`Encountered an error while fetching ${artist.name}'s releases.`);
               releasesError = releasesResult.value;
               break;
             }
@@ -210,7 +212,6 @@ export class DataController {
           }
 
           await Promise.all(pendingOperations);
-          artist.retrievalDate = Date.now();
           return releasesError ?? artist;
         });
 
@@ -218,12 +219,15 @@ export class DataController {
       console.log('All fetches settled.');
 
       // Segregate successful fetches
+      const NOW = Date.now();
       const fetchResults = settledFetches
         .reduce((prev, curr) => {
           if (curr instanceof SpotifyAPIError)
             prev.errors.push(curr);
-          else
+          else {
+            curr.retrievalDate = NOW;
             prev.artists.push(curr);
+          }
           return prev;
         }, { artists: [] as ArtistObject[], errors: [] as SpotifyAPIError[] });
 
@@ -241,6 +245,5 @@ export class DataController {
       dateLastDone: fetchErrors.length < 1 ? Date.now() : user.job.dateLastDone,
     };
     await Cache.updateJobStatusForUser(this.#user);
-    return fetchErrors;
   }
 }

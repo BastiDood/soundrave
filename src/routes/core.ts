@@ -42,7 +42,7 @@ router
       const cachedData = await Cache.retrieveReleasesFromArtists(
         user.followedArtists.ids,
         user.profile.country,
-        env.MAX_RELEASES,
+        -env.MAX_RELEASES,
       );
       // TODO: Somehow update the access token here
       // TODO: Render a message indicating an ongoing process

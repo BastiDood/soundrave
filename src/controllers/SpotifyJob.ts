@@ -37,18 +37,18 @@ export class SpotifyJob extends EventEmitter {
     const releasesResult = await this.#iterator.next();
     assert(typeof releasesResult.done !== 'undefined');
 
+    if (this.#firstRun) {
+      console.log('Resolving the first run...');
+      this.#firstRun = false;
+      this.emit('first-run', releasesResult.value);
+    }
+
     if (releasesResult.done) {
       const errors = releasesResult.value;
       if (errors.length > 0)
         return this.handleError(errors);
       console.log('All jobs done.');
       return null;
-    }
-
-    if (this.#firstRun) {
-      console.log('Resolving the first run...');
-      this.#firstRun = false;
-      this.emit('first-run', releasesResult.value);
     }
 
     return this;
