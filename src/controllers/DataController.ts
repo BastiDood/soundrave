@@ -199,10 +199,10 @@ export class DataController {
             assert(typeof releasesResult.done !== 'undefined');
 
             if (releasesResult.done) {
-              const releaseError = releasesResult.value;
-              if (releaseError) {
+              const lastValue = releasesResult.value;
+              if (lastValue) {
                 console.error(`Encountered an error while fetching ${artist.name}'s releases.`);
-                fetchErrors.push(releaseError);
+                releasesError = lastValue;
               }
               break;
             }
