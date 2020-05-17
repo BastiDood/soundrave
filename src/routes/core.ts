@@ -34,11 +34,26 @@ router
       return;
     }
 
-    // Bypass the scheduling of a background job if the cache is still fresh
+    // Temporarily return all known releases thus far if the user currently has pending jobs
     const { user, token } = session;
     const { isRunning } = user.job;
+    if (isRunning) {
+      console.log(`Retrieving all known releases for ${user.profile.name.toUpperCase()} thus far...`);
+      const cachedData = await Cache.retrieveReleasesFromArtists(
+        user.followedArtists.ids,
+        user.profile.country,
+        env.MAX_RELEASES,
+      );
+      // TODO: Somehow update the access token here
+      // TODO: Render a message indicating an ongoing process
+      res.render('index', { releases: cachedData });
+      return;
+    }
+
+    // Bypass the scheduling of a background job if the cache is still fresh
     const hasStaleData = Date.now() > user.job.dateLastDone + DataController.STALE_PERIOD.LAST_DONE;
     if (!isRunning && !hasStaleData) {
+      console.log('Bypassing the scheduling of a background job...');
       const cachedData = await Cache.retrieveReleasesFromArtists(
         user.followedArtists.ids,
         user.profile.country,
