@@ -28,14 +28,17 @@ router
     const { session } = req;
 
     // Reject all users that have not been logged in
-    if (!session?.user || !session?.token) {
+    if (!session?.userID || !session?.token) {
       console.log('Received a user that is not logged in.');
       res.render('init');
       return;
     }
 
+    // Synchronize the session user object with the database user object
+    const user = await Cache.retrieveUser(session.userID);
+    assert(user);
+
     // Temporarily return all known releases thus far if the user currently has pending jobs
-    const { user, token } = session;
     const { isRunning } = user.job;
     if (isRunning) {
       console.log(`Retrieving all known releases for ${user.profile.name.toUpperCase()} thus far...`);
@@ -66,7 +69,7 @@ router
     // TODO: Figure out how to notify the route-level on `maxAge` changes
     // Retrieve first batch of releases
     console.log('Scheduling background job...');
-    const retrieval = await backgroundJobHandler.addJob(new SpotifyJob({ user, token }, env.MAX_RELEASES));
+    const retrieval = await backgroundJobHandler.addJob(new SpotifyJob(user, session.token.spotify, env.MAX_RELEASES));
     console.log('First run completed.');
 
     // Forward any errors to the centralized handler
@@ -147,7 +150,7 @@ router
     }
 
     // Store the user object to the session cache
-    session.user = user;
+    session.userID = user._id;
 
     // Explicitly save session data due to redirect
     saveOperations.push(promisify(session.save.bind(session))());

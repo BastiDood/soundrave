@@ -11,7 +11,7 @@ interface BaseRetrieval {
 declare global {
   interface BaseSession {
     /** Spotify ID of the current user */
-    user?: UserObject;
+    userID?: string;
     token?: { spotify: SpotifyAccessToken };
   }
 

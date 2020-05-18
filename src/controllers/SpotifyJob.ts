@@ -25,9 +25,9 @@ export class SpotifyJob extends EventEmitter {
   readonly #controller: DataController;
   #iterator: AsyncGenerator<ReleasesRetrieval>;
 
-  constructor(sessionData: Required<BaseSession>, maxReleasesLimit: number) {
+  constructor(user: UserObject, token: SpotifyAccessToken, maxReleasesLimit: number) {
     super();
-    this.#controller = new DataController(sessionData);
+    this.#controller = new DataController(user, token);
     this.#maxReleasesLimit = maxReleasesLimit;
     this.#iterator = this.#controller.getReleases(maxReleasesLimit);
   }

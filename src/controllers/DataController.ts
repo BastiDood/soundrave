@@ -26,9 +26,9 @@ export class DataController {
   /** Handler for all API fetches */
   #api: SpotifyAPI;
 
-  constructor(sessionData: Required<BaseSession>) {
-    this.#user = sessionData.user;
-    this.#api = SpotifyAPI.restore(sessionData.token.spotify);
+  constructor(user: UserObject, token: SpotifyAccessToken) {
+    this.#user = user;
+    this.#api = SpotifyAPI.restore(token);
   }
 
   get tokenInfo(): Readonly<SpotifyAccessToken> { return this.#api.tokenInfo; }
@@ -131,7 +131,7 @@ export class DataController {
     const existingIDs = existingArtists.map(artist => artist._id);
     console.log(`Found ${existingIDs.length} existing artists in the CACHE.`);
 
-    // TODO: Optimize this to be more efficient
+    // TODO: Optimize this to be more efficient (particularly check if the length of two arrays are equal)
     // Find the difference between known IDs and new IDs
     const unknownIDs = ids.filter(id => !existingIDs.includes(id));
 
