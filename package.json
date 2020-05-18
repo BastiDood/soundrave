@@ -1,6 +1,8 @@
 {
   "name": "spotify-timeline",
   "version": "0.3.0",
+  "author": "Basti Ortiz <ortizbasti16@gmail.com>",
+  "license": "GPL-3.0-or-later",
   "homepage": "https://github.com/Some-Dood/spotify-timeline",
   "description": "This is an app that plops down recent releases from your followed artists.",
   "private": true,
@@ -22,8 +24,10 @@
     "start:prod": "webpack --config webpack.prod.js && node . --tls-min-v1.3",
     "test": "tsc --build tests/tsconfig.json && jest build/jest/tests"
   },
-  "author": "Basti Ortiz <ortizbasti16@gmail.com>",
-  "license": "GPL-3.0-or-later",
+  "engines": {
+    "node": "^12.16",
+    "npm": "^6.14"
+  },
   "dependencies": {
     "compression": "^1.7.4",
     "connect-mongo": "^3.2.0",
