@@ -299,7 +299,10 @@ export class SpotifyAPI {
    * @param ids - List of Spotify artist IDs
    */
   async fetchSeveralArtists(ids: string[]): Promise<Result<ArtistObject[], SpotifyAPIError>[]> {
-    // TODO: Decide on whether to leave this check outside or inside the main fetching loop
+    // If no artists were given, simply resolve with an empty array.
+    if (ids.length < 1)
+      return [];
+
     if (this.isExpired) {
       const refreshResult = await this.refreshAccessToken();
       if (!refreshResult.ok)
@@ -332,7 +335,7 @@ export class SpotifyAPI {
       .map(result => {
         if (result.status === 'fulfilled')
           return { ok: true, value: result.value };
-        return { ok: false, error: result.reason };
+        return { ok: false, error: result.reason as SpotifyAPIError };
       });
   }
 

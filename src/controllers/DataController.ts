@@ -134,19 +134,20 @@ export class DataController {
     // TODO: Optimize this to be more efficient
     // Find the difference between known IDs and new IDs
     const unknownIDs = ids.filter(id => !existingIDs.includes(id));
-    console.log(`Now fetching ${unknownIDs.length} artists from the Spotify API...`);
 
     // Fetch the unknown artists
+    console.log(`Now fetching ${unknownIDs.length} artists from the Spotify API...`);
     const errors: SpotifyAPIError[] = [];
     const artistsResultBatches = await this.#api.fetchSeveralArtists(unknownIDs);
     for (const batch of artistsResultBatches) {
-      if (!batch.ok) {
-        console.log('Encountered an error while fetching for a batch of artists.');
-        console.error(batch.error);
-        errors.push(batch.error);
+      if (batch.ok) {
+        existingArtists.splice(existingArtists.length, 0, ...batch.value);
         continue;
       }
-      existingArtists.splice(existingArtists.length, 0, ...batch.value);
+
+      console.log('Encountered an error while fetching for a batch of artists.');
+      console.error(batch.error);
+      errors.push(batch.error);
     }
 
     return {
@@ -228,7 +229,7 @@ export class DataController {
           }
 
           await Promise.all(pendingOperations);
-          console.log(`Finished updating database information for ${artist.name}`);
+          console.log(`Finished updating database information for ${artist.name}.`);
           return releasesError ?? artist;
         });
 
