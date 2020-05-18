@@ -67,10 +67,11 @@ router
     // Retrieve first batch of releases
     console.log('Scheduling background job...');
     const retrieval = await backgroundJobHandler.addJob(new SpotifyJob({ user, token }, env.MAX_RELEASES));
-    console.log('Background job successfully scheduled.');
+    console.log('First run completed.');
 
     // Forward any errors to the centralized handler
     if (retrieval.errors.length > 0) {
+      console.log('Some errors were encountered in the first run.');
       next(retrieval);
       return;
     }
@@ -78,6 +79,7 @@ router
     // In the best-case scenario when there are no errors,
     // respond to the user as soon as possible.
     res.render('index', { releases: retrieval.releases });
+    console.log('Sent the response to the user.');
   })
   .get('/login', ({ session }, res) => {
     if (session?.user && session?.token)

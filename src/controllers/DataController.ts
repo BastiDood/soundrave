@@ -55,10 +55,13 @@ export class DataController {
       };
     }
 
-    console.log('Retrieving user profile from Spotify API...');
+    console.log('Fetching user profile from Spotify API...');
     const partial = await this.#api.fetchUserProfile();
-    if (!partial.ok)
+    if (!partial.ok) {
+      console.log(`Encountered an error while fetching the user profile for ${this.#user.profile.name.toUpperCase()}.`);
+      console.error(partial.error);
       return partial;
+    }
 
     const { value: user } = partial;
     this.#user._id = user._id;
@@ -78,8 +81,7 @@ export class DataController {
       return;
     }
 
-    console.log('Retrieving followed artist IDs from the Spotify API...');
-
+    console.log('Fetching followed artist IDs from the Spotify API...');
     const iterator = this.#api.fetchFollowedArtists(user.followedArtists.etag);
     const ids: string[] = [];
     let error: SpotifyAPIError|undefined;
@@ -89,15 +91,20 @@ export class DataController {
 
       if (result.done) {
         const followedArtistsError = result.value;
-        if (followedArtistsError)
+        if (followedArtistsError) {
+          console.log(`Encountered an error while fetching ${this.#user.profile.name.toUpperCase()}'s followed artist IDs.`);
+          console.error(followedArtistsError);
           error = followedArtistsError;
+        }
         break;
       }
 
       console.log('One batch of followed artist IDs successfully pulled.');
       const { resource, etag } = result.value;
       if (resource) {
+        console.log('Setting the new followed artists from the fetch...');
         const idsBatch = resource.map(artist => artist._id);
+        // TODO: Optimize this by creating a specific query for appending multiple elements
         ids.splice(ids.length, 0, ...idsBatch);
         this.#user.followedArtists = {
           ids,
@@ -110,8 +117,10 @@ export class DataController {
           Cache.updateFollowedArtistsByUserObject(user),
         ]);
         yield idsBatch;
-      } else
+      } else {
+        console.log('Retrieving from CACHE due to matching ETag...');
         yield user.followedArtists.ids;
+      }
     }
 
     return error;
@@ -132,6 +141,8 @@ export class DataController {
     const artistsResultBatches = await this.#api.fetchSeveralArtists(unknownIDs);
     for (const batch of artistsResultBatches) {
       if (!batch.ok) {
+        console.log('Encountered an error while fetching for a batch of artists.');
+        console.error(batch.error);
         errors.push(batch.error);
         continue;
       }
@@ -217,6 +228,7 @@ export class DataController {
           }
 
           await Promise.all(pendingOperations);
+          console.log(`Finished updating database information for ${artist.name}`);
           return releasesError ?? artist;
         });
 
@@ -239,6 +251,7 @@ export class DataController {
       // Save all artists to the database cache
       await Cache.upsertManyArtistObjects(fetchResults.artists);
 
+      console.log(`Releases of one batch of followed artists retrieved: ${fetchResults.artists.length} successes and ${fetchResults.errors.length} errors.`)
       yield {
         releases: await Cache.retrieveReleasesFromArtists(artistIDs, country, -limit),
         errors: fetchResults.errors,

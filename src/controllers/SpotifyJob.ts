@@ -59,12 +59,7 @@ export class SpotifyJob extends EventEmitter {
 
   private async handleErrors(errors: SpotifyAPIError[]): Promise<SpotifyJob> {
     // TODO: Test assumption that any error must be about rate limits
-    console.log('These errors were encountered in the background:');
-    assert(errors.every(err => {
-      console.error(err);
-      return err.status === 429
-        && err.retryAfter > 0;
-    }));
+    assert(errors.every(err => err.status === 429 && err.retryAfter > 0));
 
     // TODO: Consider the situation when the permissions fail (due to unexpected user tampering
     // with the authorization redirection link)
