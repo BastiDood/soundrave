@@ -1,15 +1,13 @@
 <!-- Render the release timeline -->
-{{#if releases}}
+{{#if releases~}}
   <ul>
     {{#each releases}}
         <li>
-          {{spotifyLink 'album' this._id this.title}}
-          by
+          {{spotifyLink 'album' this._id this.title}} by
           {{#each artists}}
             {{spotifyLink 'artist' this._id this.name}}
           {{/each}}
-          on
-          {{formatDate this.datePrecision this.releaseDate}}
+          on {{formatDate this.datePrecision this.releaseDate}}
         </li>
     {{/each}}
   </ul>
