@@ -183,7 +183,16 @@ export class SpotifyAPI {
     };
   }
 
-  /** @param etag - Associated ETag of the request */
+  /**
+   * This generator gradually accumulates the current user's followed artists. If provided an ETag,
+   * the Spotify API may quickly respond with a `304 Not Modified`, which means that it is safe to
+   * use the cached version from the database. In this case, the generator immediately yields `null`,
+   * which should signal to the caller that it is safe to use the locally cached version.
+   *
+   * Otherwise, it will return a list of artist objects each iteration.
+   *
+   * @param etag - Associated ETag of the request
+   */
   async *fetchFollowedArtists(etag?: string): AsyncGenerator<ETagBasedResource<ArtistObject[]|null>, SpotifyAPIError|undefined> {
     if (!this.#token.scope.includes('user-follow-read'))
       return new SpotifyAPIError({
@@ -245,9 +254,17 @@ export class SpotifyAPI {
   }
 
   /**
+   * This generator gradually accumulates all the releases of a given artist.
+   * It does not take into account the available markets so that all fetches
+   * are globally available.
+   *
+   * For example, a user from the Philippines who follows a certain can initiate
+   * the fetch for that artist. When another user from another country attempts to
+   * fetch the same artist, they can simply retrieve from the cache instead.
+   * See the `DataController` class for this implementation.
+   *
    * @param id - Spotify ID of artist
-   * @param market - ISO 3166-1 alpha-2 country code
-   */
+   * */
   async *fetchReleasesByArtistID(id: string): AsyncGenerator<NonPopulatedReleaseObject[], SpotifyAPIError|undefined> {
     let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
       include_groups: 'album,single',
