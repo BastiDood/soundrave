@@ -59,6 +59,7 @@ export class SpotifyAPI {
    */
   static async init(code: string): Promise<Result<SpotifyAPI, SpotifyAPIError>> {
     const response = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
+      compress: true,
       method: 'POST',
       body: new URLSearchParams({
         code,
@@ -99,6 +100,7 @@ export class SpotifyAPI {
     // Retrieve new access token
     const credentials = Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64');
     const response = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
+      compress: true,
       method: 'POST',
       headers: { Authorization: `Basic ${credentials}` },
       body: new URLSearchParams({
@@ -393,11 +395,14 @@ export class SpotifyAPI {
    */
   get isExpired(): boolean { return Date.now() > this.#token.expiresAt - FIVE_MINUTES; }
 
-  get fetchOptionsForGet(): { method: 'GET'; headers: Record<string, string> } {
-    // TODO: `Accept-Encoding: gz, deflate, br`
+  get fetchOptionsForGet(): { headers: Record<string, string> } & import('node-fetch').RequestInit {
     return {
+      compress: true,
       method: 'GET',
-      headers: { Authorization: `Bearer ${this.#token.accessToken}` },
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${this.#token.accessToken}`,
+      },
     };
   }
 
