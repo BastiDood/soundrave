@@ -20,16 +20,20 @@ import { SpotifyAPI } from '../fetchers/Spotify';
 
 // GLOBAL VARIABLES
 const ONE_DAY = 24 * 60 * 60 * 1e3;
+const CACHE_CONTROL_OPTIONS = [ 'private', `max-age=${ONE_DAY / 1e3}` ].join(',');
 const router = express.Router();
 
 router
   .get('/', async (req, res, next) => {
+    // Set `Cache-Control` directives
+    res.setHeader('Cache-Control', CACHE_CONTROL_OPTIONS);
+
     // Shorthand for session object
     const { session } = req;
 
     // Reject all users that have not been logged in
     if (!session?.userID || !session?.token) {
-      console.log('Received a user that is not logged in.');
+      console.log(`Received a user that is not logged in: ${session?.sessionID}`);
       res.render('init');
       return;
     }
