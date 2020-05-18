@@ -9,6 +9,7 @@ import connectMongo from 'connect-mongo';
 import cors from 'cors';
 import express from 'express';
 import exphbs from 'express-handlebars';
+import Handlebars from 'handlebars';
 import helmet from 'helmet';
 import mongoose from 'mongoose';
 import noCache from 'nocache';
@@ -35,8 +36,14 @@ const MongoStore = connectMongo(session);
 const app = express();
 
 // Set render engine
+const engine = exphbs({
+  handlebars: Handlebars,
+  extname: '.hbs',
+  defaultLayout: 'main',
+  helpers,
+});
 app
-  .engine('hbs', exphbs({ extname: '.hbs', defaultLayout: 'main', helpers }))
+  .engine('hbs', engine)
   .set('view engine', 'hbs')
   .set('views', path.join(__dirname, 'views'));
 

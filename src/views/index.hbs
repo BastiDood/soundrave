@@ -3,10 +3,10 @@
   <ul>
     {{#each releases}}
         <li>
-          <a href="https://open.spotify.com/album/{{ this._id }}">"{{ this.title }}"</a>
+          {{spotifyLink 'album' this._id this.title}}
           by
-          {{#each artists }}
-            <a href="https://open.spotify.com/artist/{{ this._id }}">{{ this.name }}</a>
+          {{#each artists}}
+            {{spotifyLink 'artist' this._id this.name}}
           {{/each}}
           on
           {{formatDate this.datePrecision this.releaseDate}}

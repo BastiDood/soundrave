@@ -1,3 +1,4 @@
 import { formatDate } from './formatDate';
+import { spotifyLink } from './spotifyLink';
 
-export { formatDate };
+export { formatDate, spotifyLink };

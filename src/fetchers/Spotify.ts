@@ -358,19 +358,7 @@ export class SpotifyAPI {
       });
   }
 
-  static getURLfromArtist(artist: ArtistObject): string {
-    return formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/artist/${artist._id}`);
-  }
-
-  static getURLfromRelease(release: PopulatedReleaseObject|NonPopulatedReleaseObject): string {
-    return formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/album/${release._id}`);
-  }
-
-  static getURLfromUser(user: UserObject): string {
-    return formatEndpoint(SpotifyAPI.RESOURCE_ENDPOINT, `/user/${user._id}`);
-  }
-
-  protected static transformToArtistObject = (artist: SpotifyApi.ArtistObjectFull): ArtistObject => ({
+  private static transformToArtistObject = (artist: SpotifyApi.ArtistObjectFull): ArtistObject => ({
     _id: artist.id,
     name: artist.name,
     images: artist.images,
@@ -378,13 +366,13 @@ export class SpotifyAPI {
     retrievalDate: -Infinity,
   });
 
-  protected static transformToNonPopulatedReleaseObject = (release: SpotifyApi.AlbumObjectSimplified): NonPopulatedReleaseObject => ({
+  private static transformToNonPopulatedReleaseObject = (release: SpotifyApi.AlbumObjectSimplified): NonPopulatedReleaseObject => ({
     _id: release.id,
     title: release.name,
     albumType: release.album_type,
     releaseDate: Number(Date.parse(release.release_date)),
     datePrecision: release.release_date_precision,
-    availableCountries: release.available_markets ?? [],
+    availableCountries: release.available_markets!,
     images: release.images,
     artists: release.artists.map(artist => artist.id),
   });
@@ -393,9 +381,9 @@ export class SpotifyAPI {
    * Consider tokens that are 5 minutes to expiry as "expired"
    * and thus eligible to be refreshed.
    */
-  get isExpired(): boolean { return Date.now() > this.#token.expiresAt - FIVE_MINUTES; }
+  private get isExpired(): boolean { return Date.now() > this.#token.expiresAt - FIVE_MINUTES; }
 
-  get fetchOptionsForGet(): { headers: Record<string, string> } & import('node-fetch').RequestInit {
+  private get fetchOptionsForGet(): { headers: Record<string, string> } & import('node-fetch').RequestInit {
     return {
       compress: true,
       method: 'GET',
