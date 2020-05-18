@@ -88,7 +88,9 @@ export class DataController {
       assert(typeof result.done !== 'undefined');
 
       if (result.done) {
-        error = result.value;
+        const followedArtistsError = result.value;
+        if (followedArtistsError)
+          error = followedArtistsError;
         break;
       }
 
