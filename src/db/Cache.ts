@@ -1,8 +1,6 @@
 // MODELS
 import { User, Artist, Release } from './models';
 
-// TODO: Ensure that IDs and dates are indexed in MongoDB
-
 export class Cache {
   static async upsertUserObject(user: UserObject): Promise<void> {
     await User

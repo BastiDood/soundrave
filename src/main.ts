@@ -1,4 +1,3 @@
-// TODO: Update to v0.3.0
 // NODE CORE IMPORT
 import { strict as assert } from 'assert';
 import { createServer } from 'http';

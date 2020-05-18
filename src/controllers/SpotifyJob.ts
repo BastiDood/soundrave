@@ -58,11 +58,10 @@ export class SpotifyJob extends EventEmitter {
   }
 
   private async handleErrors(errors: SpotifyAPIError[]): Promise<SpotifyJob> {
+    // TODO: Consider the situation when the permissions fail (due to deliberate user tampering
+    // with the authorization redirection link)
     // TODO: Test assumption that any error must be about rate limits
     assert(errors.every(err => err.status === 429 && err.retryAfter > 0));
-
-    // TODO: Consider the situation when the permissions fail (due to unexpected user tampering
-    // with the authorization redirection link)
     const maxRetryAfter = Math.max(...errors.map(err => err.retryAfter));
 
     // Add one second of cooldown after Spotify's recommended retry period (just to be sure)

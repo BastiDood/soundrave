@@ -34,6 +34,7 @@ router
       return;
     }
 
+    // TODO: Somehow update the access token here
     // Synchronize the session user object with the database user object
     const user = await Cache.retrieveUser(session.userID);
     assert(user);
@@ -47,7 +48,6 @@ router
         user.profile.country,
         -env.MAX_RELEASES,
       );
-      // TODO: Somehow update the access token here
       // TODO: Render a message indicating an ongoing process
       res.render('index', { releases: cachedData });
       return;
@@ -125,7 +125,6 @@ router
     // TODO: Handle errors when initializing the user profile
     assert(userResult.ok);
 
-    // TODO: store user in the request scope
     // Check if the user has previously logged in to the service
     let user = await Cache.retrieveUser(userResult.value._id);
 

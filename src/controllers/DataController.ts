@@ -107,7 +107,6 @@ export class DataController {
       if (resource) {
         console.log('Setting the new followed artists from the fetch...');
         const idsBatch = resource.map(artist => artist._id);
-        // TODO: Optimize this by creating a specific query for appending multiple elements
         ids.splice(ids.length, 0, ...idsBatch);
         this.#user.followedArtists = {
           ids,
