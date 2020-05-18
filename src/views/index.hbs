@@ -8,6 +8,8 @@
           {{#each artists }}
             <a href="https://open.spotify.com/artist/{{ this._id }}">{{ this.name }}</a>
           {{/each}}
+          on
+          {{formatDate this.datePrecision this.releaseDate}}
         </li>
     {{/each}}
   </ul>

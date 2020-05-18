@@ -20,6 +20,9 @@ import { env } from './loaders/env';
 // ROUTES
 import { coreHandler, errorHandler } from './routes';
 
+// HELPERS
+import * as helpers from './views/helpers';
+
 // GLOBAL VARIABLES
 const ONE_HOUR = 60;
 const PORT = process.env.PORT ?? 3000;
@@ -33,7 +36,7 @@ const app = express();
 
 // Set render engine
 app
-  .engine('hbs', exphbs({ extname: '.hbs', defaultLayout: 'main' }))
+  .engine('hbs', exphbs({ extname: '.hbs', defaultLayout: 'main', helpers }))
   .set('view engine', 'hbs')
   .set('views', path.join(__dirname, 'views'));
 
