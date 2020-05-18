@@ -251,7 +251,7 @@ export class DataController {
       // Save all artists to the database cache
       await Cache.upsertManyArtistObjects(fetchResults.artists);
 
-      console.log(`Releases of one batch of followed artists retrieved: ${fetchResults.artists.length} successes and ${fetchResults.errors.length} errors.`)
+      console.log(`Releases of one batch of followed artists retrieved: ${fetchResults.artists.length} successes and ${fetchResults.errors.length} errors.`);
       yield {
         releases: await Cache.retrieveReleasesFromArtists(artistIDs, country, -limit),
         errors: fetchResults.errors,
