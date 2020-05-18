@@ -11,6 +11,9 @@ export class Cache {
   }
 
   static async upsertManyUserObjects(users: UserObject[]): Promise<void> {
+    if (users.length < 1)
+      return;
+
     const operations = users.map(user => ({
       updateOne: {
         filter: { _id: user._id },
@@ -28,6 +31,9 @@ export class Cache {
   }
 
   static async upsertManyArtistObjects(artists: ArtistObject[]): Promise<void> {
+    if (artists.length < 1)
+      return;
+
     const operations = artists.map(artist => ({
       updateOne: {
         filter: { _id: artist._id },
@@ -45,6 +51,9 @@ export class Cache {
   }
 
   static async upsertManyReleaseObjects(releases: NonPopulatedReleaseObject[]): Promise<void> {
+    if (releases.length < 1)
+      return;
+
     const operations = releases.map(release => ({
       updateOne: {
         filter: { _id: release._id },
@@ -108,6 +117,9 @@ export class Cache {
   }
 
   static async updateManyRetrievalDatesForArtists(artists: ArtistObject[]): Promise<void> {
+    if (artists.length < 1)
+      return;
+
     const operations = artists.map(({ _id, retrievalDate }) => ({
       updateOne: {
         filter: { _id },
