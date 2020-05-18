@@ -1,4 +1,4 @@
-import { formatEndpoint } from '../../src/util/formatEndpoint';
+import { formatEndpoint } from '../../src/util';
 
 describe('Test URL resolvers', () => {
   test('Specify base, path, and query', () => {

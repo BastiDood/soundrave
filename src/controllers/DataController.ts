@@ -7,6 +7,9 @@ import { SpotifyAPI } from '../fetchers/Spotify';
 // CACHE
 import { Cache } from '../db/Cache';
 
+// UTILITY FUNTIONS
+import { getArrayDifference } from '../util';
+
 // ERRORS
 import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
@@ -131,9 +134,8 @@ export class DataController {
     const existingIDs = existingArtists.map(artist => artist._id);
     console.log(`Found ${existingIDs.length} existing artists in the CACHE.`);
 
-    // TODO: Optimize this to be more efficient (particularly check if the length of two arrays are equal)
     // Find the difference between known IDs and new IDs
-    const unknownIDs = ids.filter(id => !existingIDs.includes(id));
+    const unknownIDs = getArrayDifference(ids, existingIDs);
 
     // Fetch the unknown artists
     console.log(`Now fetching ${unknownIDs.length} artists from the Spotify API...`);
