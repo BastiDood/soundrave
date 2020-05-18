@@ -91,7 +91,7 @@ jspm_packages/
 # End of https://www.gitignore.io/api/node
 
 # Ignore dummy data for development
-dummy.json
+dummy/
 
 # Ignore TypeScript build files
 build/
