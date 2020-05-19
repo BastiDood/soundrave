@@ -111,21 +111,24 @@ router
       .update(req.sessionID)
       .update(await generate16RandomBytes())
       .digest('hex');
+
+    // Only keep uninitialized log-in sessions for five minutes
+    session.cookie.maxAge = 60 * 5;
     session.loginNonce = hash;
+
     console.log(`Login Attempt: ${req.sessionID}`);
     console.log(`State Hash: ${hash}`);
-
     res.redirect(SpotifyAPI.generateAuthEndpoint(hash));
   })
   .get('/callback', async (req: express.Request<{}, {}, {}, AuthorizationResult>, res, next) => {
     const { session: oldSession } = req;
     const authorization = req.query;
 
-    // Block all requests with invalid `state` parameters
+    // Deflect all requests with invalid `state` parameters
     const hasExistingState = authorization.state && oldSession?.loginNonce;
     const hasValidState = authorization.state! === oldSession!.loginNonce!;
     if (!hasExistingState || !hasValidState) {
-      res.sendStatus(404);
+      res.redirect('/');
       return;
     }
 
@@ -168,8 +171,9 @@ router
     // Initialize session data
     const token = api.tokenInfo;
     newSession.token = { spotify: token };
-    const remainingTime = token.expiresAt - Date.now();
-    newSession.cookie.maxAge = remainingTime + ONE_DAY * 10;
+    const remainingMilliseconds = token.expiresAt - Date.now();
+    const remainingSeconds = Math.floor(remainingMilliseconds / 1e3);
+    newSession.cookie.maxAge = remainingSeconds + ONE_DAY / 1e2;
 
     // Check if the user has previously logged in to the service
     let user = await Cache.retrieveUser(userResult.value._id);
