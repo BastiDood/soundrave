@@ -96,8 +96,9 @@ app.use(express.static(PUBLIC_DIRECTORY, {
 }));
 
 // Delegate endpoint logic to `Router` controllers
-app.use('/', coreHandler);
-app.use('/', errorHandler);
+app
+  .use('/', coreHandler)
+  .use('/', errorHandler);
 
 // Initialize server
 const server = createServer(app);
