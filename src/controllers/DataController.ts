@@ -18,10 +18,11 @@ const ONE_DAY = 24 * 60 * 60 * 1e3;
 
 export class DataController {
   static readonly STALE_PERIOD = {
+    /** This should only be queried by the route-level. */
+    LAST_DONE: ONE_DAY,
     FOLLOWED_ARTISTS: ONE_DAY * 3,
-    USER_OBJ: ONE_DAY * 7,
-    ARTIST_OBJ: ONE_DAY * 4,
-    LAST_DONE: ONE_DAY * 5,
+    ARTIST_RELEASES: ONE_DAY * 5,
+    USER_PROFILE: ONE_DAY * 7,
   };
 
   /** Copy of the current user's session */
@@ -37,16 +38,11 @@ export class DataController {
   get tokenInfo(): Readonly<SpotifyAccessToken> { return this.#api.tokenInfo; }
 
   private get isUserObjectStale(): boolean {
-    return Date.now() > this.#user.profile.retrievalDate + DataController.STALE_PERIOD.USER_OBJ;
+    return Date.now() > this.#user.profile.retrievalDate + DataController.STALE_PERIOD.USER_PROFILE;
   }
 
   private get areFollowedArtistsStale(): boolean {
     return Date.now() > this.#user.followedArtists.retrievalDate + DataController.STALE_PERIOD.FOLLOWED_ARTISTS;
-  }
-
-  private get isLastDoneStale(): boolean {
-    return !this.#user.job.isRunning
-      && Date.now() > this.#user.job.dateLastDone + DataController.STALE_PERIOD.LAST_DONE;
   }
 
   private async getUserProfile(): Promise<Result<Readonly<UserProfileInfo>, SpotifyAPIError>> {
@@ -178,16 +174,6 @@ export class DataController {
         break;
       }
 
-      const artistIDs = artistIDsResult.value;
-      if (!this.isLastDoneStale) {
-        console.log(`Retrieving the releases of ${artistIDs.length} artists from the database CACHE...`);
-        yield {
-          releases: await Cache.retrieveReleasesFromArtists(artistIDs, country, -limit),
-          errors: [],
-        };
-        break;
-      }
-
       // Officially begin a new job
       console.log(`Beginning new job for ${user.profile.name.toUpperCase()}...`);
       user.job.isRunning = true;
@@ -195,12 +181,13 @@ export class DataController {
 
       // TODO: Optimize this by batching together multiple batches of followed artists
       // Retrieve followed artists, even those who do not exist from the cache yet
+      const artistIDs = artistIDsResult.value;
       const { artists, errors } = await this.getSeveralArtists(artistIDs);
       fetchErrors.splice(fetchErrors.length, 0, ...errors);
 
       // Segregate the stale artist objects
       const staleArtists = artists
-        .filter(artist => Date.now() > artist.retrievalDate + DataController.STALE_PERIOD.ARTIST_OBJ);
+        .filter(artist => Date.now() > artist.retrievalDate + DataController.STALE_PERIOD.ARTIST_RELEASES);
       console.log(`${staleArtists.length} followed artists are considered new or stale, thus requiring an equal number of release fetches.`);
 
       // Concurrently request for all releases

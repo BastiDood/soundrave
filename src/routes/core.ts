@@ -20,7 +20,7 @@ import { SpotifyAPI } from '../fetchers/Spotify';
 
 // GLOBAL VARIABLES
 const ONE_DAY = 24 * 60 * 60 * 1e3;
-const CACHE_CONTROL_OPTIONS = [ 'private', `max-age=${ONE_DAY / 1e3}` ].join(',');
+const CACHE_CONTROL_OPTIONS = [ 'private', `max-age=${60 * 60}` ].join(',');
 const router = express.Router();
 
 router
