@@ -175,7 +175,6 @@ router
     let user = await Cache.retrieveUser(userResult.value._id);
 
     // Initialize the new user otherwise
-    const saveOperations: Promise<void>[] = [];
     if (!user) {
       user = {
         ...userResult.value,
