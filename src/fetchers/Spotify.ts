@@ -180,7 +180,7 @@ export class SpotifyAPI {
         _id,
         profile: {
           name: display_name ?? 'User',
-          country,
+          country: country.toUpperCase(),
           retrievalDate: Date.now(),
           // TODO: Add a default profile picture
           images: images ?? [],
@@ -373,10 +373,10 @@ export class SpotifyAPI {
   private static transformToNonPopulatedReleaseObject = (release: SpotifyApi.AlbumObjectSimplified): NonPopulatedReleaseObject => ({
     _id: release.id,
     title: release.name,
-    albumType: release.album_type,
+    albumType: release.album_type.toLowerCase() as 'album'|'single'|'compilation',
     releaseDate: Number(Date.parse(release.release_date)),
-    datePrecision: release.release_date_precision,
-    availableCountries: release.available_markets!,
+    datePrecision: release.release_date_precision.toLowerCase() as 'year'|'month'|'day',
+    availableCountries: release.available_markets!.map(market => market.toUpperCase()),
     images: release.images,
     artists: release.artists.map(artist => artist.id),
   });
