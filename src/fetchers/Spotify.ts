@@ -15,8 +15,9 @@ import { formatEndpoint, subdivideArray } from '../util';
 import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
 // GLOBAL VARIABLES
-const FIVE_MINUTES = 5 * 60 * 1e3;
+const FIFTEEN_MINUTES = 15 * 60 * 1e3;
 
+// TYPES
 interface ETagBasedResource<ResourceType> {
   resource: ResourceType;
   etag: string;
@@ -382,10 +383,10 @@ export class SpotifyAPI {
   });
 
   /**
-   * Consider tokens that are 5 minutes to expiry as "expired"
+   * Consider tokens that are 15 minutes to expiry as "expired"
    * and thus eligible to be refreshed.
    */
-  private get isExpired(): boolean { return Date.now() > this.#token.expiresAt - FIVE_MINUTES; }
+  private get isExpired(): boolean { return Date.now() > this.#token.expiresAt - FIFTEEN_MINUTES; }
 
   private get fetchOptionsForGet(): { headers: Record<string, string> } & import('node-fetch').RequestInit {
     return {
