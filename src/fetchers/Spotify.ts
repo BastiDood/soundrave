@@ -46,7 +46,7 @@ export class SpotifyAPI {
    */
   private constructor(token: SpotifyAccessToken) { this.#token = token; }
 
-  static generateAuthEndpoint(state: string) {
+  static generateAuthEndpoint(state: string): string {
     return formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/authorize', {
       state,
       client_id: env.CLIENT_ID,
