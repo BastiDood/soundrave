@@ -35,12 +35,6 @@ export class SpotifyAPI {
   static readonly MAIN_API_ENDPOINT = formatEndpoint(SpotifyAPI.BASE_ENDPOINT, SpotifyAPI.API_VERSION);
   static readonly ACCOUNTS_ENDPOINT = 'https://accounts.spotify.com';
   static readonly RESOURCE_ENDPOINT = 'https://open.spotify.com';
-  static readonly AUTH_ENDPOINT = formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/authorize', {
-    client_id: env.CLIENT_ID,
-    response_type: 'code',
-    redirect_uri: SpotifyAPI.REDIRECT_URI,
-    scope: 'user-follow-read user-read-email user-read-private',
-  });
   static readonly TOKEN_ENDPOINT = formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/api/token');
 
   /** Reference to the user's access token (from the session) */
@@ -51,6 +45,16 @@ export class SpotifyAPI {
    * to mutate the session.
    */
   private constructor(token: SpotifyAccessToken) { this.#token = token; }
+
+  static generateAuthEndpoint(state: string) {
+    return formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/authorize', {
+      state,
+      client_id: env.CLIENT_ID,
+      response_type: 'code',
+      redirect_uri: SpotifyAPI.REDIRECT_URI,
+      scope: 'user-follow-read user-read-email user-read-private',
+    });
+  }
 
   /**
    * Initialize API by exchanging an authorization code for

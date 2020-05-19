@@ -11,6 +11,7 @@ interface AuthorizationSuccess extends Authorization {
 interface AuthorizationError extends Authorization {
   /** The reason authorization failed, for example: `access_denied`. */
   error: string;
+  error_description: string;
 }
 
 declare type AuthorizationResult = AuthorizationSuccess|AuthorizationError;

@@ -1,4 +1,5 @@
 // NODE CORE IMPORTS
+import { createHash, randomBytes } from 'crypto';
 import { strict as assert } from 'assert';
 import { promisify } from 'util';
 
@@ -18,6 +19,12 @@ import { Cache } from '../db/Cache';
 // FETCHERS
 import { SpotifyAPI } from '../fetchers/Spotify';
 
+// ERRORS
+import { SpotifyAPIError } from '../errors/SpotifyAPIError';
+
+// UTILITY FUNCTIONS
+const generateRandomBytes = promisify(randomBytes);
+
 // GLOBAL VARIABLES
 const ONE_DAY = 24 * 60 * 60 * 1e3;
 const CACHE_CONTROL_OPTIONS = [ 'private', `max-age=${60 * 60}` ].join(',');
@@ -34,7 +41,6 @@ router
     // Reject all users that have not been logged in
     if (!session?.userID || !session?.token) {
       console.log(`Received a user that is not logged in: ${req.sessionID}`);
-      console.log(req.session);
       res.render('init');
       return;
     }
@@ -89,46 +95,82 @@ router
     res.render('index', { releases: retrieval.releases });
     console.log('Sent the response to the user.');
   })
-  .get('/login', ({ session }, res) => {
-    if (session?.user && session?.token)
+  .get('/login', async (req, res) => {
+    // Block this route for anyone who is already logged in
+    const { session } = req;
+    if (req.session?.userID && req.session?.token) {
       res.sendStatus(404);
-    else
-      res.redirect(SpotifyAPI.AUTH_ENDPOINT);
+      return;
+    }
+
+    assert(session);
+    assert(req.sessionID);
+
+    // Generate nonce for the `state` parameter
+    const hash = createHash('md5')
+      .update(req.sessionID)
+      .update(await generateRandomBytes(16))
+      .digest('hex');
+    session.loginNonce = hash;
+    console.log(`Login Attempt: ${req.sessionID}`);
+    console.log(`State Hash: ${hash}`);
+
+    await promisify(session.save.bind(session))();
+    res.redirect(SpotifyAPI.generateAuthEndpoint(hash));
   })
-  .get('/callback', async (req: express.Request<{}, {}, {}, AuthorizationResult>, res) => {
+  .get('/callback', async (req: express.Request<{}, {}, {}, AuthorizationResult>, res, next) => {
+    const { session: oldSession } = req;
     const authorization = req.query;
 
-    // TODO: Check if request is from Spotify accounts using `state` parameter
-    // Check if authorization code exists
-    if (!req.session || !('code' in authorization)) {
+    // Block all requests with invalid `state` parameters
+    const hasExistingState = authorization.state && oldSession?.loginNonce;
+    const hasValidState = authorization.state! === oldSession!.loginNonce!;
+    if (!hasExistingState || !hasValidState) {
       res.sendStatus(404);
+      return;
+    }
+
+    // Handle the authorization error elsewhere
+    if ('error' in authorization || 'error_description' in authorization) {
+      next(new SpotifyAPIError({
+        status: 403,
+        message: `[${authorization.error}]: ${authorization.error_description}`,
+      }, 0));
       return;
     }
 
     // Exchange the authorization code for an access token
     const tokenResult = await SpotifyAPI.init(authorization.code);
 
-    // TODO: Handle any authorization errors
-    assert(tokenResult.ok);
-
-    // Generate new session when the user logs in
-    await promisify(req.session.regenerate.bind(req.session))();
-    const { session } = req;
+    // Handle any initialization errors elsewhere
+    if (!tokenResult.ok) {
+      next(tokenResult.error);
+      return;
+    }
 
     // Initialize reference to Spotify API
     const api = tokenResult.value;
 
-    // Initialize session data
-    const token = api.tokenInfo;
-    session.token = { spotify: token };
-    const remainingTime = token.expiresAt - Date.now();
-    session.cookie.maxAge = remainingTime + ONE_DAY * 10;
-
     // Initialize the user object
     const userResult = await api.fetchUserProfile();
 
-    // TODO: Handle errors when initializing the user profile
-    assert(userResult.ok);
+    // Handle the first-pull fetch error elsewhere
+    if (!userResult.ok) {
+      next(userResult.error);
+      return;
+    }
+
+    // Generate new session when the user is deemed legit
+    assert(oldSession);
+    await promisify(oldSession.regenerate.bind(oldSession))();
+    const { session: newSession } = req;
+    assert(newSession);
+
+    // Initialize session data
+    const token = api.tokenInfo;
+    newSession.token = { spotify: token };
+    const remainingTime = token.expiresAt - Date.now();
+    newSession.cookie.maxAge = remainingTime + ONE_DAY * 10;
 
     // Check if the user has previously logged in to the service
     let user = await Cache.retrieveUser(userResult.value._id);
@@ -154,13 +196,11 @@ router
     }
 
     // Store the user object to the session cache
-    session.userID = user._id;
+    newSession.userID = user._id;
 
     // Explicitly save session data due to redirect
-    saveOperations.push(promisify(session.save.bind(session))());
+    saveOperations.push(promisify(newSession.save.bind(newSession))());
     await Promise.all(saveOperations);
-
-    // TODO: Handle error if `error in authorization`
 
     res.redirect('/');
   });

@@ -13,6 +13,8 @@ declare global {
     /** Spotify ID of the current user */
     userID?: string;
     token?: { spotify: SpotifyAccessToken };
+    /** Nonce to be used during first log in. This is to be disposed of after logging in. */
+    loginNonce?: string;
   }
 
   interface ArtistsRetrieval extends BaseRetrieval {
