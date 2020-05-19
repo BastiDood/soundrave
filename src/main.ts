@@ -77,10 +77,8 @@ app.use(session({
   unset: 'destroy',
   store: new MongoStore({
     url: env.MONGO_DB_SESSION_URL,
-    collection: env.NODE_ENV === 'production' ? 'sessions' : 'devsessions',
     secret: env.MONGO_DB_SESSION_SECRET,
     autoRemove: 'native',
-    stringify: false,
   }),
   cookie: {
     httpOnly: true,

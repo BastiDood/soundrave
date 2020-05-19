@@ -115,7 +115,6 @@ router
     console.log(`Login Attempt: ${req.sessionID}`);
     console.log(`State Hash: ${hash}`);
 
-    await promisify(session.save.bind(session))();
     res.redirect(SpotifyAPI.generateAuthEndpoint(hash));
   })
   .get('/callback', async (req: express.Request<{}, {}, {}, AuthorizationResult>, res, next) => {
@@ -189,18 +188,14 @@ router
           dateLastDone: -Infinity,
         },
       };
-      saveOperations.push(Cache.upsertUserObject(user));
+      await Cache.upsertUserObject(user);
     } else {
       user.profile = userResult.value.profile;
-      saveOperations.push(Cache.updateUserProfile(user));
+      await Cache.updateUserProfile(user);
     }
 
     // Store the user object to the session cache
     newSession.userID = user._id;
-
-    // Explicitly save session data due to redirect
-    saveOperations.push(promisify(newSession.save.bind(newSession))());
-    await Promise.all(saveOperations);
 
     res.redirect('/');
   });
