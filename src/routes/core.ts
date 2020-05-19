@@ -33,7 +33,8 @@ router
 
     // Reject all users that have not been logged in
     if (!session?.userID || !session?.token) {
-      console.log(`Received a user that is not logged in: ${session?.sessionID}`);
+      console.log(`Received a user that is not logged in: ${req.sessionID}`);
+      console.log(req.session);
       res.render('init');
       return;
     }

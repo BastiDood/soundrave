@@ -25,7 +25,6 @@ import { coreHandler, errorHandler } from './routes';
 import * as helpers from './views/helpers';
 
 // GLOBAL VARIABLES
-const ONE_HOUR = 60;
 const PORT = process.env.PORT ?? 3000;
 const PUBLIC_DIRECTORY = path.join(__dirname, '../public');
 
@@ -78,9 +77,10 @@ app.use(session({
   unset: 'destroy',
   store: new MongoStore({
     url: env.MONGO_DB_SESSION_URL,
+    collection: env.NODE_ENV === 'production' ? 'sessions' : 'devsessions',
     secret: env.MONGO_DB_SESSION_SECRET,
-    autoRemove: 'interval',
-    autoRemoveInterval: ONE_HOUR,
+    autoRemove: 'native',
+    stringify: false,
   }),
   cookie: {
     httpOnly: true,
