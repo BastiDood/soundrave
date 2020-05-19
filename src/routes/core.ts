@@ -64,7 +64,7 @@ router
       const cachedData = await Cache.retrieveReleasesFromArtists(
         user.followedArtists.ids,
         user.profile.country,
-        env.MAX_RELEASES,
+        -env.MAX_RELEASES,
       );
       res.render('index', { releases: cachedData });
       return;
