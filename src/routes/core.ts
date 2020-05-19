@@ -23,7 +23,7 @@ import { SpotifyAPI } from '../fetchers/Spotify';
 import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
 // UTILITY FUNCTIONS
-const generateRandomBytes = promisify(randomBytes);
+const generate16RandomBytes = promisify(randomBytes.bind(null, 16));
 
 // GLOBAL VARIABLES
 const ONE_DAY = 24 * 60 * 60 * 1e3;
@@ -109,7 +109,7 @@ router
     // Generate nonce for the `state` parameter
     const hash = createHash('md5')
       .update(req.sessionID)
-      .update(await generateRandomBytes(16))
+      .update(await generate16RandomBytes())
       .digest('hex');
     session.loginNonce = hash;
     console.log(`Login Attempt: ${req.sessionID}`);
