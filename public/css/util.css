@@ -1,0 +1,11 @@
+.flex { display: flex; }
+.block { display: block; }
+
+.height-100vh { height: 100vh; }
+.rounded-4 { border-radius: 4rem; }
+
+.centered {
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}

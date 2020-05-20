@@ -58,6 +58,8 @@ app
     directives: {
       formAction: [ '\'self\'' ],
       defaultSrc: [ '\'self\'' ],
+      styleSrc: [ '\'self\'', 'https://fonts.googleapis.com/css2' ],
+      fontSrc: [ 'https://fonts.googleapis.com/css2', 'https://fonts.gstatic.com' ],
       frameAncestors: [ '\'none\'' ],
     },
   }))

@@ -15,7 +15,7 @@
     "url": "https://github.com/Some-Dood/spotify-timeline/issues"
   },
   "scripts": {
-    "build:dev": "webpack --config webpack.dev.js",
+    "build:dev": "webpack --config webpack.dev.js --watch",
     "build:prod": "webpack --config webpack.prod.js",
     "lint": "eslint src/**/*.ts tests/**/*.test.ts",
     "lint:fix": "eslint --fix src/**/*.ts tests/**/*.test.ts",

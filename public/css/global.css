@@ -1,25 +1,21 @@
 /* Global Variables */
 :root {
-  --main-bg-color: #ffffff;
+  /** Themes */
+  --main-bg-color: #172b30;
+  
+  /** Fonts */
+  --ui-main-font: 'Fira Sans';
+  --ui-header-font: 'Lexend Deca';
 }
 
 /* Global Styles */
 * {
   box-sizing: border-box;
-  font-family: Arial;
+  font-family: var(--ui-header-font), sans-serif;
 }
 html, body {
   margin: 0;
   padding: 0;
   cursor: default;
   background-color: var(--main-bg-color);
-}
-html {
-  height: 100%;
-}
-body {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  min-height: 100%;
 }
