@@ -32,11 +32,10 @@ const router = express.Router();
 
 router
   .get('/', async (req, res, next) => {
-    // Set `Cache-Control` directives
-    res.setHeader('Cache-Control', CACHE_CONTROL_OPTIONS);
-
     // Shorthand for session object
     const { session } = req;
+
+    // TODO: redirect user to a dedicated `/timeline` route
 
     // Reject all users that have not been logged in
     if (!session?.userID || !session?.token) {
@@ -44,6 +43,9 @@ router
       res.render('init', { layout: 'home' });
       return;
     }
+
+    // Set `Cache-Control` directives
+    res.setHeader('Cache-Control', CACHE_CONTROL_OPTIONS);
 
     // TODO: Somehow update the access token here
     // Synchronize the session user object with the database user object
