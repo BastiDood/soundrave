@@ -129,8 +129,8 @@ router
     const hasValidState = authorization.state! === oldSession!.loginNonce!;
     if (!hasExistingState || !hasValidState) {
       console.log('Invalid login attempt.');
-      console.log(`Spotify State: ${authorzation.state}`);
-      console.log(`Login Nonce: ${oldSession.loginNonce}`);
+      console.log(`Spotify State: ${authorization.state}`);
+      console.log(`Login Nonce: ${oldSession!.loginNonce}`);
       res.redirect('/');
       return;
     }
