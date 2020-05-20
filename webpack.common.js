@@ -13,7 +13,7 @@ const nodeModulesPattern = /node_modules/;
 
 const web = {
   context: PUBLIC_DIR,
-  entry: './js/main.ts',
+  entry: './js/login.ts',
   target: 'web',
   module: {
     rules: [
