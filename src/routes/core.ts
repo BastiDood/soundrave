@@ -26,7 +26,6 @@ import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 const generate16RandomBytes = promisify(randomBytes.bind(null, 16));
 
 // GLOBAL VARIABLES
-const ONE_DAY = 24 * 60 * 60 * 1e3;
 const CACHE_CONTROL_OPTIONS = [ 'private', `max-age=${60 * 60}` ].join(',');
 const router = express.Router();
 
@@ -111,13 +110,13 @@ router
       .update(req.sessionID)
       .update(await generate16RandomBytes())
       .digest('hex');
+    console.log(`Login Attempt: ${req.sessionID}`);
+    console.log(`State Hash: ${hash}`);
 
     // Only keep uninitialized log-in sessions for five minutes
     session.cookie.maxAge = 60 * 5;
     session.loginNonce = hash;
 
-    console.log(`Login Attempt: ${req.sessionID}`);
-    console.log(`State Hash: ${hash}`);
     res.redirect(SpotifyAPI.generateAuthEndpoint(hash));
   })
   .get('/callback', async (req: express.Request<{}, {}, {}, AuthorizationResult>, res, next) => {
@@ -182,13 +181,12 @@ router
     newSession.token = { spotify: token };
     const remainingMilliseconds = token.expiresAt - Date.now();
     const remainingSeconds = Math.floor(remainingMilliseconds / 1e3);
-    newSession.cookie.maxAge = remainingSeconds + ONE_DAY / 1e2;
+    newSession.cookie.maxAge = remainingSeconds + 60 * 60 * 24 * 10;
 
     // Check if the user has previously logged in to the service
     let user = await Cache.retrieveUser(userResult.value._id);
 
     // Initialize the new user otherwise
-    const saveOperations: Promise<void>[] = [];
     if (!user) {
       console.log('Initializing new user...');
       user = {
@@ -202,21 +200,15 @@ router
           dateLastDone: -Infinity,
         },
       };
-      saveOperations.push(Cache.upsertUserObject(user));
+      await Cache.upsertUserObject(user);
     } else {
       console.log('Found returning user.');
       user.profile = userResult.value.profile;
-      saveOperations.push(Cache.updateUserProfile(user));
+      await Cache.updateUserProfile(user);
     }
 
     // Store the user object to the session cache
-    console.log('Saving session and user data to the cache...');
     newSession.userID = user._id;
-    saveOperations.push(promisify(newSession.save.bind(newSession))());
-    await Promise.all(saveOperations);
-
-    console.log(newSession);
-    console.log('Redirecting to home page...');
     res.redirect('/');
   });
 
