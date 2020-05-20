@@ -36,7 +36,7 @@ const web = {
     extensions: [ '.tsx', '.ts', '.js' ],
   },
   output: {
-    filename: 'main.js',
+    filename: 'login.js',
     path: path.join(OUTPUT_DIR, 'public/js'),
   },
 };
