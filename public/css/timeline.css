@@ -1,0 +1,13 @@
+.card {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.card > img {
+  margin: 0.25rem auto;
+  width: 50%;
+  height: 50%;
+}
+
+.card > p {
+  margin: 0;
+}

@@ -1,3 +1,6 @@
+/* Display */
+.block { display: block; }
+
 /* Flexbox */
 .flex, .flex-column { display: flex; }
 .flex-column { flex-direction: column; }
@@ -19,6 +22,7 @@
 .m2-tb { margin: 2rem 0; }
 
 /* Corners */
+.rounded-2 { border-radius: 2rem; }
 .rounded-3 { border-radius: 3rem; }
 
 /* Text */
