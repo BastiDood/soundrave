@@ -128,12 +128,16 @@ router
     const hasExistingState = authorization.state && oldSession?.loginNonce;
     const hasValidState = authorization.state! === oldSession!.loginNonce!;
     if (!hasExistingState || !hasValidState) {
+      console.log('Invalid login attempt.');
+      console.log(`Spotify State: ${authorzation.state}`);
+      console.log(`Login Nonce: ${oldSession.loginNonce}`);
       res.redirect('/');
       return;
     }
 
     // Handle the authorization error elsewhere
     if ('error' in authorization || 'error_description' in authorization) {
+      console.log('Errors were found in the callback query parameters.');
       next(new SpotifyAPIError({
         status: 403,
         message: `[${authorization.error}]: ${authorization.error_description}`,
@@ -146,11 +150,13 @@ router
 
     // Handle any initialization errors elsewhere
     if (!tokenResult.ok) {
+      console.log('Failed to initialize Spotify API fetcher.');
       next(tokenResult.error);
       return;
     }
 
     // Initialize reference to Spotify API
+    console.log('Spotify API fetcher initialized.');
     const api = tokenResult.value;
 
     // Initialize the user object
@@ -158,15 +164,18 @@ router
 
     // Handle the first-pull fetch error elsewhere
     if (!userResult.ok) {
+      console.log('Failed to fetch user profile.');
       next(userResult.error);
       return;
     }
 
     // Generate new session when the user is deemed legit
+    console.log('User profile fetched.');
     assert(oldSession);
     await promisify(oldSession.regenerate.bind(oldSession))();
     const { session: newSession } = req;
     assert(newSession);
+    console.log('New session generated.');
 
     // Initialize session data
     const token = api.tokenInfo;
@@ -181,6 +190,7 @@ router
     // Initialize the new user otherwise
     const saveOperations: Promise<void>[] = [];
     if (!user) {
+      console.log('Initializing new user...');
       user = {
         ...userResult.value,
         followedArtists: {
@@ -194,15 +204,19 @@ router
       };
       saveOperations.push(Cache.upsertUserObject(user));
     } else {
+      console.log('Found returning user.');
       user.profile = userResult.value.profile;
       saveOperations.push(Cache.updateUserProfile(user));
     }
 
     // Store the user object to the session cache
+    console.log('Saving session and user data to the cache...');
+    newSession.userID = user._id;
     saveOperations.push(promisify(newSession.save.bind(newSession))());
     await Promise.all(saveOperations);
-    newSession.userID = user._id;
 
+    console.log(newSession);
+    console.log('Redirecting to home page...');
     res.redirect('/');
   });
 
