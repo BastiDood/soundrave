@@ -44,9 +44,6 @@ router
       return;
     }
 
-    // Set `Cache-Control` directives
-    res.setHeader('Cache-Control', CACHE_CONTROL_OPTIONS);
-
     // TODO: Somehow update the access token here
     // Synchronize the session user object with the database user object
     const user = await Cache.retrieveUser(session.userID);
@@ -94,6 +91,7 @@ router
 
     // In the best-case scenario when there are no errors,
     // respond to the user as soon as possible.
+    res.setHeader('Cache-Control', CACHE_CONTROL_OPTIONS);
     res.render('index', { releases: retrieval.releases });
     console.log('Sent the response to the user.');
   })
@@ -181,6 +179,7 @@ router
     let user = await Cache.retrieveUser(userResult.value._id);
 
     // Initialize the new user otherwise
+    const saveOperations: Promise<void>[] = [];
     if (!user) {
       user = {
         ...userResult.value,
@@ -193,13 +192,15 @@ router
           dateLastDone: -Infinity,
         },
       };
-      await Cache.upsertUserObject(user);
+      saveOperations.push(Cache.upsertUserObject(user));
     } else {
       user.profile = userResult.value.profile;
-      await Cache.updateUserProfile(user);
+      saveOperations.push(Cache.updateUserProfile(user));
     }
 
     // Store the user object to the session cache
+    saveOperations.push(promisify(newSession.save.bind(newSession))());
+    await Promise.all(saveOperations);
     newSession.userID = user._id;
 
     res.redirect('/');
