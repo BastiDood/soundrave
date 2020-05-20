@@ -58,6 +58,7 @@ app
     directives: {
       formAction: [ '\'self\'' ],
       defaultSrc: [ '\'self\'' ],
+      imgSrc: [ '\'self\'', 'https://i.scdn.co' ],
       styleSrc: [ '\'self\'', 'https://fonts.googleapis.com/css2' ],
       fontSrc: [ 'https://fonts.googleapis.com/css2', 'https://fonts.gstatic.com' ],
       frameAncestors: [ '\'none\'' ],
