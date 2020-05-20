@@ -1,14 +1,29 @@
 #login {
-  width: 50%;
-  height: 50%;
+  width: 90vw;
   background-color: #08323d;
 }
 
-#login > button {
-  border: 0;
-  padding: 1rem 4rem;
-  border-radius: 10% / 50%;
+#login > h1 {
   font-size: 2rem;
+}
+
+#login > p {
+  font-size: 1.25rem;
+}
+
+#login > button {
+  width: 90%;
+  border: 0;
+  padding: 0.75rem;
+  border-radius: 1.5rem / 50%;
 
   background-color: #fff;
+  font-size: 1.25rem;
+  
+  transition: background-color 0.1s linear;
+}
+
+#login > button:hover {
+  cursor: pointer;
+  background-color: #aaa;
 }

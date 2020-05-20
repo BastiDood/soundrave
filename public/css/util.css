@@ -1,11 +1,25 @@
-.flex { display: flex; }
-.block { display: block; }
-
-.height-100vh { height: 100vh; }
-.rounded-4 { border-radius: 4rem; }
-
+/* Flexbox */
+.flex, .flex-column { display: flex; }
+.flex-column { flex-direction: column; }
 .centered {
   align-items: center;
   align-content: center;
   justify-content: center;
 }
+
+/* Dimensions */
+.height-50v { height: 50vh; }
+.height-100v { height: 100vh; }
+
+/* Margin */
+.m1 { margin: 1rem; }
+.m1-lr { margin: 0 1rem; }
+.m2-t { margin-top: 2rem; }
+.m2-b { margin-bottom: 2rem; }
+.m2-tb { margin: 2rem 0; }
+
+/* Corners */
+.rounded-3 { border-radius: 3rem; }
+
+/* Text */
+.txt-center { text-align: center; }
