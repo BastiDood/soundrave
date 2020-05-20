@@ -33,14 +33,11 @@ export class SpotifyJob extends EventEmitter {
   }
 
   async execute(): Promise<SpotifyJob|null> {
-    console.log('Executing job in the background...');
     const retrievalResult = await this.#iterator.next();
     assert(typeof retrievalResult.done !== 'undefined');
 
-    if (retrievalResult.done) {
-      console.log('All jobs done.');
+    if (retrievalResult.done)
       return null;
-    }
 
     const retrieval = retrievalResult.value;
     if (this.#firstRun) {
@@ -53,7 +50,6 @@ export class SpotifyJob extends EventEmitter {
     if (retrieval.errors.length > 0)
       return this.handleErrors(retrieval.errors);
 
-    console.log('Background job successfully executed without any errors.');
     return this;
   }
 

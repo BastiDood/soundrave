@@ -35,6 +35,7 @@ export class JobHandler extends EventEmitter {
     // Stop processing if there are no more jobs
     const { length } = this.#jobQueue;
     if (length < 1) {
+      console.log('All jobs done.');
       this.#isBusy = false;
       return;
     }
@@ -44,6 +45,7 @@ export class JobHandler extends EventEmitter {
     this.#isBusy = true;
 
     // Concurrently execute the entire batch
+    console.log('Executing job in the background...');
     const promises = jobs.map(job => job.execute());
     const resolvedJobs = await Promise.all(promises);
     const pendingJobs = resolvedJobs.filter(Boolean) as SpotifyJob[];
