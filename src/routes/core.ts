@@ -30,16 +30,23 @@ const CACHE_CONTROL_OPTIONS = [ 'private', `max-age=${60 * 60}` ].join(',');
 const router = express.Router();
 
 router
-  .get('/', async (req, res, next) => {
+  .get('/', (req, res) => {
+    // Partially change the home page to invite logged-in user to view their timeline
+    // instead of the big login button
+    if (req.session?.userID && req.session.token)
+      // TODO: Change the button to reflect the context change
+      res.render('init', { layout: 'home' });
+    else
+      res.render('init', { layout: 'home' });
+  })
+  .get('/timeline', async (req, res, next) => {
     // Shorthand for session object
     const { session } = req;
-
-    // TODO: redirect user to a dedicated `/timeline` route
 
     // Reject all users that have not been logged in
     if (!session?.userID || !session?.token) {
       console.log(`Received a user that is not logged in: ${req.sessionID}`);
-      res.render('init', { layout: 'home' });
+      res.redirect('/');
       return;
     }
 
