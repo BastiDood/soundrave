@@ -215,7 +215,7 @@ router
 
     // Store the user object to the session cache
     newSession.userID = user._id;
-    res.redirect('/');
+    res.redirect('/timeline');
   });
 
 export { router as coreHandler };
