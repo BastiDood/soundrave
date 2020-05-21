@@ -34,10 +34,10 @@ router
     // Partially change the home page to invite logged-in user to view their timeline
     // instead of the big login button
     if (req.session?.userID && req.session.token)
-      // TODO: Change the button to reflect the context change
-      res.render('init', { layout: 'home' });
+      // TODO: Greet the user by name instead
+      res.render('init', { layout: 'home', isLoggedIn: true });
     else
-      res.render('init', { layout: 'home' });
+      res.render('init', { layout: 'home', isLoggedIn: false });
   })
   .get('/timeline', async (req, res, next) => {
     // Shorthand for session object

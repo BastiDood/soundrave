@@ -1,7 +1,11 @@
 <main class="flex centered height-100v">
   <div id="login" class="flex-column centered rounded-3">
     <h1 class="txt-center m1-lr m2-t">Release Timeline App</h1>
-    <button class="m2-tb" tabindex="0">Log in with Spotify</button>
+    {{#if isLoggedIn}}
+      <button class="m2-tb" tabindex="0" data-href="/timeline">Go to Your Timeline</button>
+    {{else}}
+      <button class="m2-tb" tabindex="0" data-href="/login">Log in with Spotify</button>
+    {{/if}}
     <p class="txt-center m1-lr m2-b">Subtitle.</p>
   </div>
 </main>
