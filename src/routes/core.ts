@@ -88,6 +88,18 @@ router
     res.render('index', { releases: retrieval.releases, user });
     console.log('Sent the response to the user.');
   })
+  .get('/logout', async (req, res) => {
+    // Block this route to those who have not logged in yet
+    const { session } = req;
+    if (!session?.userID || !session?.token) {
+      res.sendStatus(404);
+      return;
+    }
+
+    // Log the user out of their session
+    await promisify(session.destroy.bind(session))();
+    res.redirect('/');
+  })
   .get('/login', async (req, res) => {
     // Block this route for anyone who is already logged in
     const { session } = req;
