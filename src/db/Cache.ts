@@ -80,8 +80,8 @@ export class Cache {
     // @ts-ignore
     return Release
       .find({
-        availableCountries: countryCode,
         artists: { $in: ids },
+        availableCountries: countryCode,
       })
       .sort({ releaseDate: -1 })
       .limit(limit)

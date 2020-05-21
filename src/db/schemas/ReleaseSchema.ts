@@ -10,4 +10,6 @@ export const ReleaseSchema = new Schema({
   availableCountries: { type: [ String ], required: true },
   images: [ { type: ImageSchema, required: true } ],
   artists: { type: [ { type: String, ref: 'Artist', required: true } ], required: true },
-});
+})
+  .index({ artists: 1, availableCountries: 1, releaseDate: -1 });
+
