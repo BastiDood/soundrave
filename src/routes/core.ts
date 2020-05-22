@@ -122,6 +122,8 @@ router
     // Only keep uninitialized log-in sessions for five minutes
     session.cookie.maxAge = 60 * 5;
     session.loginNonce = hash;
+    session.touch();
+    console.log('Temporary session touched');
 
     res.redirect(SpotifyAPI.generateAuthEndpoint(hash));
   })
@@ -188,6 +190,8 @@ router
     const remainingMilliseconds = token.expiresAt - Date.now();
     const remainingSeconds = Math.floor(remainingMilliseconds / 1e3);
     newSession.cookie.maxAge = remainingSeconds + 60 * 60 * 24 * 10;
+    newSession.touch();
+    console.log('New session touched');
 
     // Check if the user has previously logged in to the service
     let user = await Cache.retrieveUser(userResult.value._id);

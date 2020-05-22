@@ -10,7 +10,7 @@
       "name": "Launch Server",
       "skipFiles": [
         "${workspaceFolder}/node_modules/**/*",
-        "<node_internals>/**",
+        "<node_internals>/**"
       ],
       "program": "${workspaceFolder}/src/main.ts",
       "runtimeArgs": [ "--tls-min-v1.3" ],
