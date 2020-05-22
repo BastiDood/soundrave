@@ -1,7 +1,5 @@
 // NODE CORE IMPORTS
-import { createHash, randomBytes } from 'crypto';
 import { strict as assert } from 'assert';
-import { promisify } from 'util';
 
 // DEPENDENCIES
 import express from 'express';
@@ -15,6 +13,7 @@ import { DataController, SpotifyJob } from '../controllers';
 
 // CACHE
 import { Cache } from '../db/Cache';
+import { Session } from '../db/Session';
 
 // FETCHERS
 import { SpotifyAPI } from '../fetchers/Spotify';
@@ -22,38 +21,50 @@ import { SpotifyAPI } from '../fetchers/Spotify';
 // ERRORS
 import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
-// UTILITY FUNCTIONS
-const generate16RandomBytes = promisify(randomBytes.bind(null, 16));
-
 // GLOBAL VARIABLES
-const CACHE_CONTROL_OPTIONS = [ 'private', `max-age=${60 * 60}` ].join(',');
+const defaultCookieOptions: express.CookieOptions = {
+  httpOnly: true,
+  sameSite: 'lax',
+  signed: true,
+};
 const router = express.Router();
 
 router
   .get('/', (req, res) => {
-    // Partially change the home page to invite logged-in user to view their timeline
-    // instead of the big login button
-    if (req.session?.userID && req.session.token)
-      // TODO: Greet the user by name instead
-      res.render('index', { layout: 'home', isLoggedIn: true });
-    else
+    if (!req.session || 'loginNonce' in req.session)
+      // Render the usual home page
       res.render('index', { layout: 'home', isLoggedIn: false });
+    else
+      // Partially change the home page to invite logged-in user to view their timeline
+      // instead of the big login button
+      res.render('index', { layout: 'home', isLoggedIn: true });
   })
   .get('/timeline', async (req, res, next) => {
     // Shorthand for session object
     const { session } = req;
 
-    // Reject all users that have not been logged in
-    if (!session?.userID || !session?.token) {
-      console.log(`Received a user that is not logged in: ${req.sessionID}`);
+    // Deflect all users that have not been logged in
+    if (!session || 'loginNonce' in session) {
+      console.log('Received a user that is not logged in.');
       res.redirect('/');
       return;
     }
 
-    // TODO: Somehow update the access token here
     // Synchronize the session user object with the database user object
     const user = await Cache.retrieveUser(session.userID);
     assert(user);
+
+    // Retrieve the access token
+    const spotifyToken = session.token.get('spotify');
+    assert(spotifyToken);
+
+    // Synchronize the cookie's `maxAge`
+    const remainingTime = spotifyToken.expiresAt - Date.now();
+    const remainingSeconds = Math.floor(remainingTime / 1e3);
+    res.cookie('sid', session._id, {
+      ...defaultCookieOptions,
+      maxAge: 60 * 60 * 24 * 14 - remainingSeconds,
+    });
 
     // Temporarily return all known releases thus far if the user currently has pending jobs
     const hasStaleData = Date.now() > user.job.dateLastDone + DataController.STALE_PERIOD.LAST_DONE;
@@ -72,7 +83,7 @@ router
     // TODO: Figure out how to notify the route-level on `maxAge` changes
     // Retrieve first batch of releases
     console.log('Scheduling background job...');
-    const retrieval = await backgroundJobHandler.addJob(new SpotifyJob(user, session.token.spotify, env.MAX_RELEASES));
+    const retrieval = await backgroundJobHandler.addJob(new SpotifyJob(user, spotifyToken, env.MAX_RELEASES));
     console.log('First run completed.');
 
     // Forward any errors to the centralized handler
@@ -84,60 +95,72 @@ router
 
     // In the best-case scenario when there are no errors,
     // respond to the user as soon as possible.
-    res.setHeader('Cache-Control', CACHE_CONTROL_OPTIONS);
     res.render('timeline', { releases: retrieval.releases, user });
     console.log('Sent the response to the user.');
   })
+  // TODO: Convert this to a POST route
   .get('/logout', async (req, res) => {
-    // Block this route to those who have not logged in yet
+    // Shorthand for session object
     const { session } = req;
-    if (!session?.userID || !session?.token) {
-      res.sendStatus(404);
+
+    // Log the user out of their session
+    if (session && 'userID' in session) {
+      await Session.destroy(session);
+      res.clearCookie('sid');
       return;
     }
 
-    // Log the user out of their session
-    await promisify(session.destroy.bind(session))();
     res.redirect('/');
   })
   .get('/login', async (req, res) => {
-    // Block this route for anyone who is already logged in
+    // Shorthand for session object
     const { session } = req;
-    if (req.session?.userID && req.session?.token) {
-      res.sendStatus(404);
+
+    // Deflect this route for anyone who is already logged in
+    if (session && 'userID' in session) {
+      res.redirect('/timeline');
       return;
     }
 
-    assert(session);
-    assert(req.sessionID);
-
-    // Generate nonce for the `state` parameter
-    const hash = createHash('md5')
-      .update(req.sessionID)
-      .update(await generate16RandomBytes())
-      .digest('hex');
-    console.log(`Login Attempt: ${req.sessionID}`);
-    console.log(`State Hash: ${hash}`);
+    // Generate new session
+    const newSession = await Session.initialize();
+    console.log(`Login Attempt: ${newSession._id}`);
+    console.log(`State Hash: ${newSession.loginNonce}`);
 
     // Only keep uninitialized log-in sessions for five minutes
-    session.cookie.maxAge = 60 * 5;
-    session.loginNonce = hash;
-    session.touch();
-    console.log('Temporary session touched');
+    res.cookie('sid', newSession._id, {
+      ...defaultCookieOptions,
+      maxAge: 60 * 5,
+    });
+    console.log('Temporary session cookie set.');
 
-    res.redirect(SpotifyAPI.generateAuthEndpoint(hash));
+    res.redirect(SpotifyAPI.generateAuthEndpoint(newSession.loginNonce));
   })
   .get('/callback', async (req: express.Request<{}, {}, {}, AuthorizationResult>, res, next) => {
     const { session: oldSession } = req;
-    const authorization = req.query;
+
+    // Deflect users without session details
+    if (!oldSession) {
+      console.log('Deflecting user without any session details whatsoever...');
+      res.redirect('/');
+      return;
+    }
+
+    // Deflect users who are already logged in
+    if ('userID' in oldSession) {
+      console.log('Deflecting user who is already logged in...');
+      res.redirect('/timeline');
+      return;
+    }
 
     // Deflect all requests with invalid `state` parameters
-    const hasExistingState = authorization.state && oldSession?.loginNonce;
-    const hasValidState = authorization.state! === oldSession!.loginNonce!;
-    if (!hasExistingState || !hasValidState) {
+    const authorization = req.query;
+    if (!authorization.state || authorization.state !== oldSession.loginNonce) {
       console.log('Invalid login attempt.');
       console.log(`Spotify State: ${authorization.state}`);
-      console.log(`Login Nonce: ${oldSession!.loginNonce}`);
+      console.log(`Login Nonce: ${oldSession.loginNonce}`);
+      await Session.destroy(oldSession);
+      res.clearCookie('sid');
       res.redirect('/');
       return;
     }
@@ -176,24 +199,8 @@ router
       return;
     }
 
-    // Generate new session when the user is deemed legit
-    console.log('User profile fetched.');
-    assert(oldSession);
-    await promisify(oldSession.regenerate.bind(oldSession))();
-    const { session: newSession } = req;
-    assert(newSession);
-    console.log('New session generated.');
-
-    // Initialize session data
-    const token = api.tokenInfo;
-    newSession.token = { spotify: token };
-    const remainingMilliseconds = token.expiresAt - Date.now();
-    const remainingSeconds = Math.floor(remainingMilliseconds / 1e3);
-    newSession.cookie.maxAge = remainingSeconds + 60 * 60 * 24 * 10;
-    newSession.touch();
-    console.log('New session touched');
-
     // Check if the user has previously logged in to the service
+    console.log('User profile fetched.');
     let user = await Cache.retrieveUser(userResult.value._id);
 
     // Initialize the new user otherwise
@@ -217,8 +224,21 @@ router
       await Cache.updateUserProfile(user);
     }
 
-    // Store the user object to the session cache
-    newSession.userID = user._id;
+    // Initialize new session data
+    const token = api.tokenInfo;
+    const newSession = await Session.upgrade(oldSession, {
+      userID: user._id,
+      token: new Map<'spotify', AccessToken>([ [ 'spotify', token ] ]),
+    });
+    req.session = newSession;
+
+    // Compute `maxAge`
+    const remainingTime = token.expiresAt - Date.now();
+    const remainingSeconds = Math.floor(remainingTime / 1e3);
+    res.cookie('sid', newSession._id, {
+      ...defaultCookieOptions,
+      maxAge: 60 * 60 * 24 * 14 - remainingSeconds,
+    });
     res.redirect('/timeline');
   });
 

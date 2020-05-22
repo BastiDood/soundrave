@@ -2,7 +2,7 @@ type MongoDocument = import('mongoose').Document;
 type SupportedPlatforms = 'spotify';
 
 interface MongoBaseSession extends MongoDocument {
-  _id: import('mongoose').Types.ObjectId;
+  _id: string;
 }
 
 interface MongoValidSession extends MongoBaseSession {

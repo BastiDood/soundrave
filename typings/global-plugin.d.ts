@@ -2,6 +2,12 @@ import 'express';
 
 declare global {
   namespace Express {
-    interface Session extends BaseSession { }
+    interface Request {
+      session: ValidSessionObject|LoginSessionObject|null;
+      signedCookies: {
+        sid?: string;
+        mode?: string;
+      };
+    }
   }
 }
