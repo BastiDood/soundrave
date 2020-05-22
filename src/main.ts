@@ -5,6 +5,7 @@ import path from 'path';
 
 // DEPENDENCIES
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import exphbs from 'express-handlebars';
@@ -14,6 +15,7 @@ import noCache from 'nocache';
 
 // GLOBALS
 import { cacheDB, sessionDB } from './globals/db';
+import { env } from './globals/env';
 
 // ROUTES
 import { coreHandler, errorHandler } from './routes';
@@ -42,6 +44,9 @@ app
 
 // Compress responses
 app.use(compression({ level: 9 }));
+
+// Parse signed cookies
+app.use(cookieParser(env.COOKIE_SECRET));
 
 // Activate security headers
 app
