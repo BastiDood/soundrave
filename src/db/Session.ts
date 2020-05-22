@@ -37,6 +37,18 @@ export class Session {
   }
 
   /**
+   * Destroy a `ValidSession` from the database.
+   * @param id - ID of the `ValidSession` to be destroyed
+   */
+  static async destroy(id: Types.ObjectId): Promise<void> {
+    const result = await ValidSession
+      .findByIdAndDelete(id)
+      .lean()
+      .exec();
+    assert(result);
+  }
+
+  /**
    * @param id - ID of the `ValidSession` with the token to be updated
    * @param platform - Service from which the API token belongs to
    */
