@@ -11,12 +11,12 @@ import express from 'express';
 import exphbs from 'express-handlebars';
 import Handlebars from 'handlebars';
 import helmet from 'helmet';
-import mongoose from 'mongoose';
 import noCache from 'nocache';
 import session from 'express-session';
 
 // LOADERS
 import { env } from './loaders/env';
+import { cacheDB, sessionDB } from './loaders/db';
 
 // ROUTES
 import { coreHandler, errorHandler } from './routes';
@@ -104,24 +104,28 @@ app
 // Initialize server
 const server = createServer(app);
 
-// Initialize Mongoose connection
-mongoose.connect(env.MONGO_DB_CACHE_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  useFindAndModify: false,
-  useCreateIndex: true,
-})
-  .then(() => {
-    // Log successful connection
-    console.log('Established database connection to cache.');
-    console.log(`Serving public directory from: ${PUBLIC_DIRECTORY}`);
+function startServer(port: number, hostname: string): Promise<void> {
+  return new Promise(
+    resolve => server.listen(port, hostname, resolve),
+  );
+}
 
-    // Listen to the assigned port for HTTP connections
-    server.listen(Number(PORT), '0.0.0.0', () => {
-      const addressInfo = server.address()!;
-      assert(typeof addressInfo !== 'string');
-      const { address, port } = addressInfo;
-      console.log(`Server started at ${address}:${port}`);
-    });
-  })
-  .catch(console.error);
+// Initialize Mongoose connections
+async function init(): Promise<void> {
+  await Promise.all([ cacheDB, sessionDB ]);
+
+  // Log successful connection
+  console.log('Established both database connections to cache and session store.');
+  console.log(`Serving public directory from: ${PUBLIC_DIRECTORY}`);
+
+  // Listen to the assigned port for HTTP connections
+  await startServer(Number(PORT), '0.0.0.0');
+
+  // Log server information
+  const addressInfo = server.address()!;
+  assert(typeof addressInfo !== 'string');
+  const { address, port } = addressInfo;
+  console.log(`Server started at ${address}:${port}`);
+}
+
+init().catch(console.error);
