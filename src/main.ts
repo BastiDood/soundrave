@@ -103,7 +103,6 @@ app
 
 // Initialize server
 const server = createServer(app);
-
 function startServer(port: number, hostname: string): Promise<void> {
   return new Promise(
     resolve => server.listen(port, hostname, resolve),
