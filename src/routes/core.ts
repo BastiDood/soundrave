@@ -35,9 +35,9 @@ router
     // instead of the big login button
     if (req.session?.userID && req.session.token)
       // TODO: Greet the user by name instead
-      res.render('init', { layout: 'home', isLoggedIn: true });
+      res.render('index', { layout: 'home', isLoggedIn: true });
     else
-      res.render('init', { layout: 'home', isLoggedIn: false });
+      res.render('index', { layout: 'home', isLoggedIn: false });
   })
   .get('/timeline', async (req, res, next) => {
     // Shorthand for session object
@@ -65,7 +65,7 @@ router
         -env.MAX_RELEASES,
       );
       // TODO: Render a message indicating an ongoing process
-      res.render('index', { releases: cachedData, user });
+      res.render('timeline', { releases: cachedData, user });
       return;
     }
 
@@ -85,7 +85,7 @@ router
     // In the best-case scenario when there are no errors,
     // respond to the user as soon as possible.
     res.setHeader('Cache-Control', CACHE_CONTROL_OPTIONS);
-    res.render('index', { releases: retrieval.releases, user });
+    res.render('timeline', { releases: retrieval.releases, user });
     console.log('Sent the response to the user.');
   })
   .get('/logout', async (req, res) => {

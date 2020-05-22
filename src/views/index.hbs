@@ -1,20 +1,11 @@
-<!-- Render the release timeline -->
-<main>
-  {{#if releases}}
-    {{#each releases}}
-      <div class="card m1 rounded-2">
-        <img src="{{ this.images.1.url }}" alt="{{ this.title }}" class="block" />
-        <p class="txt-center">{{spotifyLink 'album' this._id this.title}}</p>
-        <p class="txt-center">{{#each artists}}{{spotifyLink 'artist' this._id this.name}}{{/each}}</p>
-        <p class="txt-center">{{formatDate this.datePrecision this.releaseDate}}</p>
-      </div>
-    {{/each}}
-  {{else}}
-    No releases found. This is probably because you haven't followed any artist on Spotify yet.
-  {{/if}}
+<main class="flex centered height-100v">
+  <div id="login" class="flex-column centered rounded-3">
+    <h1 class="txt-center m1-lr m2-t">Release Timeline App</h1>
+    {{#if isLoggedIn}}
+      <button class="m2-tb" tabindex="0" data-href="/timeline">Go to Your Timeline</button>
+    {{else}}
+      <button class="m2-tb" tabindex="0" data-href="/login">Log in with Spotify</button>
+    {{/if}}
+    <p class="txt-center m1-lr m2-b">Subtitle.</p>
+  </div>
 </main>
-
-<!-- Render any of the possible errors as a modal or pop-up -->
-{{#if highestSeverityError}}
-<p>{{ status }}: {{ message }}</p>
-{{/if}}
