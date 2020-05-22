@@ -5,7 +5,7 @@ type SupportedPlatforms = 'spotify';
 interface MongoBaseSession extends MongoDocument {
   /** Spotify ID of the current user */
   userID?: string;
-  token?: Record<SupportedPlatforms, SpotifyAccessToken>;
+  token?: Map<SupportedPlatforms, SpotifyAccessToken>;
   /** Nonce to be used during first log in. This is to be disposed of after logging in. */
   loginNonce?: string;
 }
