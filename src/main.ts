@@ -14,9 +14,9 @@ import helmet from 'helmet';
 import noCache from 'nocache';
 import session from 'express-session';
 
-// LOADERS
-import { env } from './loaders/env';
-import { cacheDB, sessionDB } from './loaders/db';
+// GLOBALS
+import { env } from './globals/env';
+import { cacheDB, sessionDB } from './globals/db';
 
 // ROUTES
 import { coreHandler, errorHandler } from './routes';

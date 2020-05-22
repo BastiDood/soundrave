@@ -5,8 +5,8 @@ import { URLSearchParams } from 'url';
 // DEPENDENCIES
 import fetch from 'node-fetch';
 
-// LOADERS
-import { env } from '../loaders/env';
+// GLOBALS
+import { env } from '../globals/env';
 
 // UTILITY FUNCTIONS
 import { formatEndpoint, subdivideArray } from '../util';

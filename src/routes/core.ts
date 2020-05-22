@@ -6,9 +6,9 @@ import { promisify } from 'util';
 // DEPENDENCIES
 import express from 'express';
 
-// LOADERS
-import { backgroundJobHandler } from '../loaders/backgroundJobHandler';
-import { env } from '../loaders/env';
+// GLOBALS
+import { backgroundJobHandler } from '../globals/backgroundJobHandler';
+import { env } from '../globals/env';
 
 // CONTROLLERS
 import { DataController, SpotifyJob } from '../controllers';

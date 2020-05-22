@@ -1,5 +1,5 @@
-// LOADERS
-import { cacheDB, sessionDB } from '../../loaders/db';
+// GLOBALS
+import { cacheDB, sessionDB } from '../../globals/db';
 
 // SCHEMAS
 import { UserSchema, ArtistSchema, ReleaseSchema } from '../schemas/cache';
