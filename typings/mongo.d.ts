@@ -1,6 +1,15 @@
 type MongoDocument = import('mongoose').Document;
 type MongoKeys = Exclude<keyof MongoDocument, '_id'>;
 
+type SupportedPlatforms = 'spotify';
+interface MongoBaseSession extends MongoDocument {
+  /** Spotify ID of the current user */
+  userID?: string;
+  token?: Record<SupportedPlatforms, SpotifyAccessToken>;
+  /** Nonce to be used during first log in. This is to be disposed of after logging in. */
+  loginNonce?: string;
+}
+
 interface Cacheable {
   /** Represented as milliseconds since Unix time (in milliseconds) */
   retrievalDate: number;
