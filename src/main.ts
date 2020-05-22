@@ -5,17 +5,14 @@ import path from 'path';
 
 // DEPENDENCIES
 import compression from 'compression';
-import connectMongo from 'connect-mongo';
 import cors from 'cors';
 import express from 'express';
 import exphbs from 'express-handlebars';
 import Handlebars from 'handlebars';
 import helmet from 'helmet';
 import noCache from 'nocache';
-import session from 'express-session';
 
 // GLOBALS
-import { env } from './globals/env';
 import { cacheDB, sessionDB } from './globals/db';
 
 // ROUTES
@@ -27,9 +24,6 @@ import * as helpers from './views/helpers';
 // GLOBAL VARIABLES
 const PORT = process.env.PORT ?? 3000;
 const PUBLIC_DIRECTORY = path.join(__dirname, '../public');
-
-// Initialize `MongoStore`
-const MongoStore = connectMongo(session);
 
 // Initialize Express server
 const app = express();
@@ -70,24 +64,6 @@ app
   .use(helmet.noSniff())
   .use(helmet.ieNoOpen())
   .use(cors({ methods: 'GET' }));
-
-// Activate `express-session`
-app.use(session({
-  name: 'sid',
-  secret: env.COOKIE_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  unset: 'destroy',
-  store: new MongoStore({
-    url: env.MONGO_DB_SESSION_URL,
-    secret: env.MONGO_DB_SESSION_SECRET,
-    autoRemove: 'native',
-  }),
-  cookie: {
-    httpOnly: true,
-    sameSite: 'lax',
-  },
-}));
 
 // Set public files directory
 app.use(express.static(PUBLIC_DIRECTORY, {
