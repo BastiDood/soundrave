@@ -1,3 +1,3 @@
-import { BaseSessionSchema, LoginSessionSchema } from './SessionSchema';
+import { ValidSessionSchema, LoginSessionSchema } from './SessionSchema';
 
-export { BaseSessionSchema, LoginSessionSchema };
+export { ValidSessionSchema, LoginSessionSchema };

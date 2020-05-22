@@ -7,5 +7,5 @@ declare interface NonPopulatedReleaseObject extends Omit<MongoNonPopulatedReleas
 declare interface PopulatedReleaseObject extends Omit<MongoPopulatedReleaseObject, MongoKeys> { }
 
 // Session
-declare interface BaseSession extends Omit<MongoBaseSession, MongoKeys> { }
-declare interface LoginSession extends Omit<MongoLoginSession, MongoKeys> { }
+declare interface ValidSessionObject extends Omit<MongoValidSession, MongoKeys> { }
+declare interface LoginSessionObject extends Omit<MongoLoginSession, MongoKeys> { }

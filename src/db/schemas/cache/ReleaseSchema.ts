@@ -2,7 +2,7 @@ import { Schema } from 'mongoose';
 import { ImageSchema } from './ImageSchema';
 
 export const ReleaseSchema = new Schema({
-  _id: { type: String, required: true },
+  _id: { type: String, unique: true, required: true },
   title: { type: String, required: true },
   albumType: { type: String, enum: [ 'album', 'single', 'compilation' ], required: true },
   releaseDate: { type: Number, required: true },

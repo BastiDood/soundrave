@@ -1,15 +1,19 @@
 type MongoDocument = import('mongoose').Document;
-
 type SupportedPlatforms = 'spotify';
+
 interface MongoBaseSession extends MongoDocument {
-  /** Spotify ID of the current user */
-  userID: string;
-  token: Map<SupportedPlatforms, SpotifyAccessToken>;
+  _id: import('mongoose').Types.ObjectId;
 }
 
-interface MongoLoginSession extends MongoDocument {
+interface MongoValidSession extends MongoBaseSession {
+  /** Spotify ID of the current user */
+  userID: string;
+  token: Map<SupportedPlatforms, AccessToken>;
+}
+
+interface MongoLoginSession extends MongoBaseSession {
   /** Nonce to be used during first log in. This is to be disposed of after logging in. */
-  loginNonce?: string;
+  loginNonce: string;
 }
 
 interface Cacheable {

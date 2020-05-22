@@ -16,7 +16,7 @@ declare interface OAuthError {
   error_description: string;
 }
 
-declare interface SpotifyAccessToken {
+declare interface AccessToken {
   accessToken: string;
   refreshToken: string;
   scope: string[];

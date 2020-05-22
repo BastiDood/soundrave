@@ -2,8 +2,7 @@ import { Schema } from 'mongoose';
 import { AccessTokenSchema } from './AccessTokenSchema';
 
 // Long-lived Sessions
-export const BaseSessionSchema = new Schema({
-  _id: { type: String, required: true },
+export const ValidSessionSchema = new Schema({
   userID: { type: String, required: true },
   token: { type: Map, of: AccessTokenSchema, required: true },
   createdAt: { type: Date, default: Date.now, expires: '14d' },

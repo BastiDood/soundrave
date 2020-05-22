@@ -39,13 +39,13 @@ export class SpotifyAPI {
   static readonly TOKEN_ENDPOINT = formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/api/token');
 
   /** Reference to the user's access token (from the session) */
-  #token: SpotifyAccessToken;
+  #token: AccessToken;
 
   /**
    * **NOTE:** This takes in a token by reference. This should be able
    * to mutate the session.
    */
-  private constructor(token: SpotifyAccessToken) { this.#token = token; }
+  private constructor(token: AccessToken) { this.#token = token; }
 
   static generateAuthEndpoint(state: string): string {
     return formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/authorize', {
@@ -98,10 +98,10 @@ export class SpotifyAPI {
   }
 
   /** Restore an already instantiated instance of the fetcher. */
-  static restore(token: SpotifyAccessToken): SpotifyAPI { return new SpotifyAPI(token); }
+  static restore(token: AccessToken): SpotifyAPI { return new SpotifyAPI(token); }
 
   /** Refresh the token associated with this instance. */
-  async refreshAccessToken(): Promise<Result<Readonly<SpotifyAccessToken>, SpotifyAPIError>> {
+  async refreshAccessToken(): Promise<Result<Readonly<AccessToken>, SpotifyAPIError>> {
     // Retrieve new access token
     const credentials = Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64');
     const response = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
@@ -399,5 +399,5 @@ export class SpotifyAPI {
     };
   }
 
-  get tokenInfo(): Readonly<SpotifyAccessToken> { return this.#token; }
+  get tokenInfo(): Readonly<AccessToken> { return this.#token; }
 }

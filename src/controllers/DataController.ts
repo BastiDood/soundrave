@@ -30,12 +30,12 @@ export class DataController {
   /** Handler for all API fetches */
   #api: SpotifyAPI;
 
-  constructor(user: UserObject, token: SpotifyAccessToken) {
+  constructor(user: UserObject, token: AccessToken) {
     this.#user = user;
     this.#api = SpotifyAPI.restore(token);
   }
 
-  get tokenInfo(): Readonly<SpotifyAccessToken> { return this.#api.tokenInfo; }
+  get tokenInfo(): Readonly<AccessToken> { return this.#api.tokenInfo; }
 
   private get isUserObjectStale(): boolean {
     return Date.now() > this.#user.profile.retrievalDate + DataController.STALE_PERIOD.USER_PROFILE;
