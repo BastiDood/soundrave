@@ -1,4 +1,3 @@
-import { SessionSchema } from './SessionSchema';
-import { AccessTokenSchema } from './AccessTokenSchema';
+import { BaseSessionSchema, LoginSessionSchema } from './SessionSchema';
 
-export { SessionSchema, AccessTokenSchema };
+export { BaseSessionSchema, LoginSessionSchema };
