@@ -57,8 +57,7 @@ router
     assert(user);
 
     // Retrieve the access token
-    const spotifyToken = session.token.get('spotify');
-    assert(spotifyToken);
+    const spotifyToken = session.token.spotify;
 
     // Synchronize the cookie's `maxAge`
     const remainingTime = spotifyToken.expiresAt - Date.now();
@@ -236,7 +235,7 @@ router
     const token = api.tokenInfo;
     const newSession = await Session.upgrade(oldSession, {
       userID: user._id,
-      token: new Map<'spotify', AccessToken>([ [ 'spotify', token ] ]),
+      token: { spotify: token },
     });
     req.session = newSession;
 

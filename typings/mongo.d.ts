@@ -8,7 +8,7 @@ interface MongoBaseSession extends MongoDocument {
 interface MongoValidSession extends MongoBaseSession {
   /** Spotify ID of the current user */
   userID: string;
-  token: Map<SupportedPlatforms, AccessToken>;
+  token: Record<SupportedPlatforms, AccessToken>;
 }
 
 interface MongoLoginSession extends MongoBaseSession {

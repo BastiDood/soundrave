@@ -38,7 +38,7 @@ export class Session {
    */
   static async upgrade({ _id }: LoginSessionObject, data: Omit<ValidSessionObject, '_id'>): Promise<ValidSessionObject> {
     const [ base ] = await Promise.all([
-      ValidSession.create(data),
+      ValidSession.create({ ...data, _id: uuid() }),
       LoginSession.findByIdAndDelete(_id).lean().exec(),
     ]);
     return base;
