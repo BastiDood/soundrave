@@ -61,10 +61,9 @@ router
     // Synchronize the cookie's `maxAge`
     const remainingTime = spotifyToken.expiresAt - Date.now();
     const remainingSeconds = Math.floor(remainingTime / 1e3);
-    res.cookie('sid', session._id, {
-      ...defaultCookieOptions,
-      maxAge: 60 * 60 * 24 * 14 - remainingSeconds,
-    });
+    const options = { ...defaultCookieOptions, maxAge: 60 * 60 * 24 * 14 - remainingSeconds };
+    res.cookie('sid', session._id, options);
+    res.cookie('mode', 'session', options);
 
     // Temporarily return all known releases thus far if the user currently has pending jobs
     const hasStaleData = Date.now() > user.job.dateLastDone + DataController.STALE_PERIOD.LAST_DONE;
@@ -106,6 +105,7 @@ router
     if (session && 'userID' in session) {
       await Session.destroy(session);
       res.clearCookie('sid');
+      res.clearCookie('mode');
       return;
     }
 
@@ -127,10 +127,9 @@ router
     console.log(`State Hash: ${newSession.loginNonce}`);
 
     // Only keep uninitialized log-in sessions for five minutes
-    res.cookie('sid', newSession._id, {
-      ...defaultCookieOptions,
-      maxAge: 60 * 5,
-    });
+    const options = { ...defaultCookieOptions, maxAge: 60 * 5 };
+    res.cookie('sid', newSession._id, options);
+    res.cookie('mode', 'login', options);
     console.log('Temporary session cookie set.');
 
     res.redirect(SpotifyAPI.generateAuthEndpoint(newSession.loginNonce));
@@ -234,10 +233,11 @@ router
     // Compute `maxAge`
     const remainingTime = token.expiresAt - Date.now();
     const remainingSeconds = Math.floor(remainingTime / 1e3);
-    res.cookie('sid', newSession._id, {
-      ...defaultCookieOptions,
-      maxAge: 60 * 60 * 24 * 14 - remainingSeconds,
-    });
+
+    // Set relevant cookies
+    const options = { ...defaultCookieOptions, maxAge: 60 * 60 * 24 * 14 - remainingSeconds };
+    res.cookie('sid', newSession._id, options);
+    res.cookie('mode', 'session', options);
     res.redirect('/timeline');
   });
 
