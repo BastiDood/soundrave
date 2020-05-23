@@ -197,10 +197,16 @@ export class DataController {
         .filter(artist => Date.now() > artist.retrievalDate + DataController.STALE_PERIOD.ARTIST_RELEASES);
       console.log(`${staleArtists.length} followed artists are considered new or stale, thus requiring an equal number of release fetches.`);
 
+      // Declare interface for the results
+      interface ReleaseFetchResult {
+        result: ArtistObject|SpotifyAPIError;
+        releases: NonPopulatedReleaseObject[];
+      }
+
       // Concurrently request for all releases
       const releaseFetches = staleArtists
-        .map(async (artist): Promise<ArtistObject|SpotifyAPIError> => {
-          const pendingOperations: Promise<void>[] = [];
+        .map(async (artist): Promise<ReleaseFetchResult> => {
+          const artistReleases: NonPopulatedReleaseObject[] = [];
           const releaseIterator = this.#api.fetchReleasesByArtistID(artist._id);
           let releasesError: SpotifyAPIError|undefined;
           while (true) {
@@ -219,13 +225,12 @@ export class DataController {
             // TODO: For v1.0, make sure to query for other featured artists
             // who are not necessarily followed by the current user
 
-            pendingOperations.push(Cache.upsertManyReleaseObjects(releasesResult.value));
+            artistReleases.splice(artistReleases.length, 0, ...releasesResult.value);
             console.log(`Fetched ${releasesResult.value.length} releases from ${artist.name}.`);
           }
 
-          await Promise.all(pendingOperations);
-          console.log(`Finished updating database information for ${artist.name}.`);
-          return releasesError ?? artist;
+          console.log(`Finished fetching data for ${artist.name} with ${releasesError ? 'some' : 'no'} errors.`);
+          return { result: releasesError ?? artist, releases: artistReleases };
         });
 
       const settledFetches = await Promise.all(releaseFetches);
@@ -235,17 +240,21 @@ export class DataController {
       const NOW = Date.now();
       const fetchResults = settledFetches
         .reduce((prev, curr) => {
-          if (curr instanceof SpotifyAPIError)
-            prev.errors.push(curr);
+          if (curr.result instanceof SpotifyAPIError)
+            prev.errors.push(curr.result);
           else {
-            curr.retrievalDate = NOW;
-            prev.artists.push(curr);
+            curr.result.retrievalDate = NOW;
+            prev.artists.push(curr.result);
           }
+          prev.releases.splice(prev.releases.length, 0, ...curr.releases);
           return prev;
-        }, { artists: [] as ArtistObject[], errors: [] as SpotifyAPIError[] });
+        }, { artists: [] as ArtistObject[], releases: [] as NonPopulatedReleaseObject[], errors: [] as SpotifyAPIError[] });
 
-      // Save all artists to the database cache
-      await Cache.upsertManyArtistObjects(fetchResults.artists);
+      // Save all artists and releases to the database cache
+      await Promise.all([
+        Cache.upsertManyArtistObjects(fetchResults.artists),
+        Cache.upsertManyReleaseObjects(fetchResults.releases),
+      ]);
 
       console.log(`Releases of one batch of followed artists retrieved: ${fetchResults.artists.length} successes and ${fetchResults.errors.length} errors.`);
       yield {
