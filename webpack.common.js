@@ -33,7 +33,8 @@ const web = {
     ]
   },
   resolve: {
-    extensions: [ '.tsx', '.ts', '.js' ],
+    symlinks: false,
+    extensions: [ '.ts' ],
   },
   output: {
     filename: 'login.js',
