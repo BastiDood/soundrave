@@ -81,9 +81,17 @@ router
       return;
     }
 
+    // Make sure that the background job handler is not stalling
+    if (backgroundJobHandler.isStalling) {
+      console.log('Deflecting a user because the background job handler is stalling...');
+      // TODO: Render a message indicating a stalling process
+      res.render('timeline', { releases: [], user });
+      return;
+    }
+
     // Retrieve first batch of releases
     console.log('Scheduling background job...');
-    const retrieval = await backgroundJobHandler.addJob(new SpotifyJob(session._id, user, spotifyToken, env.MAX_RELEASES));
+    const retrieval = await backgroundJobHandler.addJob(new SpotifyJob(session._id, user, spotifyToken));
     console.log('First run completed.');
 
     // Forward any errors to the centralized handler

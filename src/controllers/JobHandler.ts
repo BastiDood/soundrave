@@ -13,11 +13,14 @@ import type { SpotifyJob } from './SpotifyJob';
 export class JobHandler extends EventEmitter {
   #jobQueue: SpotifyJob[] = [];
   #isBusy = false;
+  #stallPeriod = 0;
 
   constructor() {
     super();
     this.prependListener('__process__', this.handleProcessing.bind(this));
   }
+
+  get isStalling(): boolean { return this.#stallPeriod > 0; }
 
   /**
    * Adds a job to the job handler queue, then once the job finishes its first run,
@@ -30,6 +33,8 @@ export class JobHandler extends EventEmitter {
       this.emit('__process__');
     return new Promise(resolve => job.once('first-run', resolve));
   }
+
+  private notifyStall(ms: number): void { this.#stallPeriod = ms; }
 
   private async handleProcessing(): Promise<void> {
     // Stop processing if there are no more jobs
@@ -46,7 +51,13 @@ export class JobHandler extends EventEmitter {
 
     // Concurrently execute the entire batch
     console.log('Executing job in the background...');
-    const promises = jobs.map(job => job.execute());
+    const stallHandler = this.notifyStall.bind(this);
+    const promises = jobs.map(
+      job => job
+        .once('__stall__', stallHandler)
+        .once('__resume__', stallHandler)
+        .execute(),
+    );
     const resolvedJobs = await Promise.all(promises);
     const pendingJobs = resolvedJobs.filter(Boolean) as SpotifyJob[];
 

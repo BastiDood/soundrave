@@ -17,19 +17,21 @@ const sleep = promisify(setTimeout);
  * as specified in the `Retry-After` header sent by the Spotify API. Once it
  * stops blocking execution, the `SpotifyJob` shall be sent to the back of the queue
  * to give the blocked requests a chance to execute.
+ *
+ * The ideal lifecycle of a `SpotifyJob` is to keep executing. In the case of any errors,
+ * it shall emit a `__stall__` event with the number of milliseconds until it resumes.
+ * After the stall period, it emits the `__resume__` event to continue the looping.
  */
 export class SpotifyJob extends EventEmitter {
   /** Indicates if the current iteration was the first execution */
   #firstRun = true;
   readonly #controller: DataController;
-  readonly #maxReleasesLimit: number;
   #iterator: AsyncGenerator<ReleasesRetrieval>;
 
-  constructor(sessionID: string, user: UserObject, token: AccessToken, maxReleasesLimit: number) {
+  constructor(sessionID: string, user: UserObject, token: AccessToken) {
     super();
     this.#controller = new DataController(sessionID, user, token);
-    this.#maxReleasesLimit = maxReleasesLimit;
-    this.#iterator = this.#controller.getReleases(maxReleasesLimit);
+    this.#iterator = this.#controller.getReleases();
   }
 
   async execute(): Promise<SpotifyJob|null> {
@@ -62,11 +64,13 @@ export class SpotifyJob extends EventEmitter {
 
     // Add one second of cooldown after Spotify's recommended retry period (just to be sure)
     const sleepPeriod = maxRetryAfter + 1e3;
+    this.emit('__stall__', sleepPeriod);
     console.log(`Now sleeping for ${maxRetryAfter} seconds...`);
     await sleep(sleepPeriod);
+    this.emit('__resume__', 0);
 
     console.log('Resuming background processing...');
-    this.#iterator = this.#controller.getReleases(this.#maxReleasesLimit);
+    this.#iterator = this.#controller.getReleases();
 
     return this;
   }

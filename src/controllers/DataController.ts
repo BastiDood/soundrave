@@ -1,6 +1,9 @@
 // NODE CORE IMPORTS
 import { strict as assert } from 'assert';
 
+// GLOBALS
+import { env } from '../globals/env';
+
 // FETCHERS
 import { SpotifyAPI } from '../fetchers/Spotify';
 
@@ -157,7 +160,7 @@ export class DataController {
     };
   }
 
-  async *getReleases(limit = 0): AsyncGenerator<ReleasesRetrieval> {
+  async *getReleases(): AsyncGenerator<ReleasesRetrieval> {
     const profileResult = await this.getUserProfile();
     if (!profileResult.ok)
       return { releases: [], errors: [ profileResult.error ] };
@@ -246,7 +249,8 @@ export class DataController {
 
       console.log(`Releases of one batch of followed artists retrieved: ${fetchResults.artists.length} successes and ${fetchResults.errors.length} errors.`);
       yield {
-        releases: await Cache.retrieveReleasesFromArtists(artistIDs, country, -limit),
+        // TODO: Determine limit of releases based on user's premium status
+        releases: await Cache.retrieveReleasesFromArtists(artistIDs, country, -env.MAX_RELEASES),
         errors: fetchResults.errors,
       };
     }
