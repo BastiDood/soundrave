@@ -3,11 +3,10 @@
 }
 
 .card > img {
-  margin: 0.25rem auto;
   width: 50%;
   height: 50%;
 }
 
-.card > p {
+.card > div > p {
   margin: 0;
 }
