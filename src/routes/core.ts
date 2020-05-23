@@ -22,12 +22,14 @@ import { SpotifyAPI } from '../fetchers/Spotify';
 import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
 // GLOBAL VARIABLES
+const router = express.Router();
+const ONE_MINUTE = 60 * 1e3;
+const ONE_DAY = ONE_MINUTE * 60 * 24;
 const defaultCookieOptions: express.CookieOptions = {
   httpOnly: true,
   sameSite: 'lax',
   signed: true,
 };
-const router = express.Router();
 
 router
   .get('/', (req, res) => {
@@ -61,7 +63,7 @@ router
     // Synchronize the cookie's `maxAge`
     const remainingTime = spotifyToken.expiresAt - Date.now();
     const remainingSeconds = Math.floor(remainingTime / 1e3);
-    const options = { ...defaultCookieOptions, maxAge: 60 * 60 * 24 * 14 - remainingSeconds };
+    const options = { ...defaultCookieOptions, maxAge: ONE_DAY * 14 - remainingSeconds };
     res.cookie('sid', session._id, options);
     res.cookie('mode', 'session', options);
 
@@ -127,7 +129,7 @@ router
     console.log(`State Hash: ${newSession.loginNonce}`);
 
     // Only keep uninitialized log-in sessions for five minutes
-    const options = { ...defaultCookieOptions, maxAge: 60 * 5 };
+    const options = { ...defaultCookieOptions, maxAge: ONE_MINUTE * 5 };
     res.cookie('sid', newSession._id, options);
     res.cookie('mode', 'login', options);
     console.log('Temporary session cookie set.');
@@ -235,7 +237,7 @@ router
     const remainingSeconds = Math.floor(remainingTime / 1e3);
 
     // Set relevant cookies
-    const options = { ...defaultCookieOptions, maxAge: 60 * 60 * 24 * 14 - remainingSeconds };
+    const options = { ...defaultCookieOptions, maxAge: ONE_DAY * 14 - remainingSeconds };
     res.cookie('sid', newSession._id, options);
     res.cookie('mode', 'session', options);
     res.redirect('/timeline');
