@@ -10,6 +10,7 @@ export const populateSessionData = async (req: Express.Request & Request, res: E
   req.session = null;
 
   // Skip any requests without any signed cookies
+  console.log('Populating session data...');
   const { sid, mode } = req.signedCookies;
   if (sid && (mode === 'session' || mode === 'login'))
     req.session = await Session.check(mode, sid);
