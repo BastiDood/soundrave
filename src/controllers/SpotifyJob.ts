@@ -21,13 +21,13 @@ const sleep = promisify(setTimeout);
 export class SpotifyJob extends EventEmitter {
   /** Indicates if the current iteration was the first execution */
   #firstRun = true;
-  readonly #maxReleasesLimit: number;
   readonly #controller: DataController;
+  readonly #maxReleasesLimit: number;
   #iterator: AsyncGenerator<ReleasesRetrieval>;
 
-  constructor(user: UserObject, token: AccessToken, maxReleasesLimit: number) {
+  constructor(sessionID: string, user: UserObject, token: AccessToken, maxReleasesLimit: number) {
     super();
-    this.#controller = new DataController(user, token);
+    this.#controller = new DataController(sessionID, user, token);
     this.#maxReleasesLimit = maxReleasesLimit;
     this.#iterator = this.#controller.getReleases(maxReleasesLimit);
   }

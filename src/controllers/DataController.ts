@@ -6,6 +6,7 @@ import { SpotifyAPI } from '../fetchers/Spotify';
 
 // CACHE
 import { Cache } from '../db/Cache';
+import { Session } from '../db/Session';
 
 // UTILITY FUNTIONS
 import { getArrayDifference } from '../util';
@@ -30,9 +31,12 @@ export class DataController {
   /** Handler for all API fetches */
   #api: SpotifyAPI;
 
-  constructor(user: UserObject, token: AccessToken) {
+  constructor(sessionID: string, user: UserObject, token: AccessToken) {
     this.#user = user;
     this.#api = SpotifyAPI.restore(token);
+
+    // Listen for any access token updates
+    this.#api.on('__token_update__', Session.updateToken.bind(Session, sessionID, 'spotify'));
   }
 
   get tokenInfo(): Readonly<AccessToken> { return this.#api.tokenInfo; }

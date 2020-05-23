@@ -1,4 +1,5 @@
 // NODE CORE IMPORTS
+import { EventEmitter } from 'events';
 import { strict as assert } from 'assert';
 import { URLSearchParams } from 'url';
 
@@ -29,7 +30,7 @@ interface ETagBasedResource<ResourceType> {
  * lazily fetches resources. It is the consumer's responsibility to continually
  * request for the next step.
  */
-export class SpotifyAPI {
+export class SpotifyAPI extends EventEmitter {
   static readonly REDIRECT_URI = 'http://localhost:3000/callback';
   static readonly API_VERSION = 'v1';
   static readonly BASE_ENDPOINT = 'https://api.spotify.com';
@@ -45,7 +46,10 @@ export class SpotifyAPI {
    * **NOTE:** This takes in a token by reference. This should be able
    * to mutate the session.
    */
-  private constructor(token: AccessToken) { this.#token = token; }
+  private constructor(token: AccessToken) {
+    super();
+    this.#token = token;
+  }
 
   static generateAuthEndpoint(state: string): string {
     return formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/authorize', {
@@ -132,6 +136,7 @@ export class SpotifyAPI {
     this.#token.accessToken = access_token;
     this.#token.scope = scope.split(' ');
     this.#token.expiresAt = Date.now() + expires_in * 1e3;
+    this.emit('__token_update__', this.#token);
 
     return {
       ok: response.ok,

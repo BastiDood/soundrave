@@ -80,10 +80,9 @@ router
       return;
     }
 
-    // TODO: Figure out how to notify the route-level on `maxAge` changes
     // Retrieve first batch of releases
     console.log('Scheduling background job...');
-    const retrieval = await backgroundJobHandler.addJob(new SpotifyJob(user, spotifyToken, env.MAX_RELEASES));
+    const retrieval = await backgroundJobHandler.addJob(new SpotifyJob(session._id, user, spotifyToken, env.MAX_RELEASES));
     console.log('First run completed.');
 
     // Forward any errors to the centralized handler
