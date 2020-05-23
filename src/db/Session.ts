@@ -26,7 +26,7 @@ export class Session {
   static check(mode: string, id: string): Promise<ValidSessionObject|LoginSessionObject|null> {
     switch (mode) {
       case 'session': return ValidSession.findById(id).lean().exec();
-      case 'login': return LoginSession.findById(IDBObjectStore).lean().exec();
+      case 'login': return LoginSession.findById(id).lean().exec();
       default: return Promise.resolve(null);
     }
   }
