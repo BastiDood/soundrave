@@ -1,8 +1,9 @@
 /* Display */
 .block { display: block; }
+.flex, .flex-column { display: flex; }
+.grid { display: grid; }
 
 /* Flexbox */
-.flex, .flex-column { display: flex; }
 .flex-column { flex-direction: column; }
 .centered {
   align-items: center;

@@ -2,6 +2,7 @@
 :root {
   /** Themes */
   --main-bg-color: #172b30;
+  --back-bg-color: #1b3937;
   
   /** Fonts */
   --ui-main-font: 'Fira Sans';

@@ -2,13 +2,14 @@
 <main>
   {{#if releases}}
     {{#each releases}}
-      <div class="flex card m1 rounded-2">
-        <img src="{{ this.images.1.url }}" alt="{{ this.title }}" class="block" loading="lazy" />
-        <div>
+      <div class="grid card">
+        <img src="{{ this.images.1.url }}" alt="{{ this.title }}" loading="lazy" />
+        <p class="icon">Icon</p>
+        <div class="details">
           <p>{{spotifyLink 'album' this._id this.title}}</p>
           <p>{{#each artists}}{{spotifyLink 'artist' this._id this.name}}{{/each}}</p>
-          <p>{{formatDate this.datePrecision this.releaseDate}}</p>
         </div>
+        <p class="date">{{formatDate this.datePrecision this.releaseDate}}</p>
       </div>
     {{/each}}
   {{else}}
