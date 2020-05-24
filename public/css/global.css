@@ -7,6 +7,8 @@
   /** Fonts */
   --ui-main-font: 'Fira Sans';
   --ui-header-font: 'Lexend Deca';
+  --ui-main-font-color: #fff;
+  --ui-back-font-color: #888;
 }
 
 /* Global Styles */
