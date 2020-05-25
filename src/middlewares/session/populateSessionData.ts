@@ -2,10 +2,10 @@
 import { Session } from '../../db/Session';
 
 // TYPES
-import type { Request, Response, NextFunction } from 'express';
+import type { NextFunction } from 'express';
 
 // @ts-expect-error
-export const populateSessionData = async (req: Express.Request & Request, res: Express.Response & Response, next: NextFunction): Promise<void> => {
+export const populateSessionData = async (req: Express.Request, res: Express.Response, next: NextFunction): Promise<void> => {
   // Initialize session object
   req.session = null;
 

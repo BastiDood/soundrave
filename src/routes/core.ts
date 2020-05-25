@@ -143,7 +143,7 @@ router
 
     res.redirect(SpotifyAPI.generateAuthEndpoint(newSession.loginNonce));
   })
-  .get('/callback', async (req: express.Request<{}, {}, {}, AuthorizationResult>, res, next) => {
+  .get('/callback', async (req: express.Request<Record<string, string>, unknown, unknown, AuthorizationResult>, res, next) => {
     const { session: oldSession } = req;
 
     // Deflect users without session details
@@ -164,7 +164,7 @@ router
     const authorization = req.query;
     if (!authorization.state || authorization.state !== oldSession.loginNonce) {
       console.log('Invalid login attempt.');
-      console.log(`Spotify State: ${authorization.state}`);
+      console.log(`Spotify State: ${authorization.state ?? 'NONE_RECEIVED'}`);
       console.log(`Login Nonce: ${oldSession.loginNonce}`);
       await Session.destroy(oldSession);
       res.clearCookie('sid');

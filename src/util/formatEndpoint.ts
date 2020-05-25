@@ -1,7 +1,6 @@
 // NODE CORE IMPORTS
 import { posix as path } from 'path';
-import { stringify } from 'querystring';
-import url from 'url';
+import { URL } from 'url';
 
 /**
  * Format an absolute URL given an endpoint and
@@ -13,18 +12,17 @@ import url from 'url';
  */
 export function formatEndpoint(base: string, endpoint: string, query?: Record<string, string>): string {
   // Parse the base URL as an object
-  const urlBase = url.parse(base);
+  const urlBase = new URL(base);
 
   // Merge the original query parameters with the new one,
   // which will overwrite the original
-  const originalQuery = new url.URLSearchParams(urlBase.query!);
-  const originalQueryObj = Object.fromEntries(originalQuery.entries());
-  const queryStr = stringify({ ...originalQueryObj, ...query });
+  if (query)
+    for (const [ key, value ] of Object.entries(query))
+      urlBase.searchParams.set(key, value);
 
   // Derive the new path name by joining the base path name
   // with the specified endpoint
-  const newPathname = path.join(urlBase.pathname!, endpoint);
+  urlBase.pathname = path.join(urlBase.pathname, endpoint);
 
-  // Construct the new absolute URL
-  return url.resolve(urlBase.href, newPathname) + (queryStr ? `?${queryStr}` : '');
+  return urlBase.href;
 }

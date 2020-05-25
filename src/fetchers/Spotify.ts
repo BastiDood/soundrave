@@ -1,4 +1,5 @@
 // NODE CORE IMPORTS
+import { Buffer } from 'buffer';
 import { EventEmitter } from 'events';
 import { strict as assert } from 'assert';
 import { URLSearchParams } from 'url';
