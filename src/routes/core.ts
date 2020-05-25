@@ -113,8 +113,8 @@ router
     // Log the user out of their session
     if (session && 'userID' in session) {
       await Session.destroy(session);
-      res.clearCookie('sid');
-      res.clearCookie('mode');
+      res.clearCookie('sid', defaultCookieOptions);
+      res.clearCookie('mode', defaultCookieOptions);
     }
 
     res.redirect('/');
