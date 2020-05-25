@@ -1,6 +1,7 @@
 // TYPES
 import type { Request, Response, NextFunction } from 'express';
 
+// @ts-expect-error
 export const handleReleaseRetrievalErrors = (err: ReleasesRetrieval|Error, req: Request, res: Response, next: NextFunction): void => {
   if ('releases' in err && 'errors' in err) {
     const { releases, errors } = err;
