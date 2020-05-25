@@ -1,6 +1,7 @@
 main {
   margin: 0.75rem;
   justify-content: stretch;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   grid-gap: 0.75rem;
 }
 
@@ -52,28 +53,7 @@ main {
 }
 
 @media only screen
-  and (min-device-width: 1051px) {
-    main { grid-template-columns: repeat(5, 1fr); }
-}
-
-@media only screen
-  and (max-device-width: 1050px) {
-    main { grid-template-columns: repeat(4, 1fr); }
-}
-
-@media only screen
-  and (max-device-width: 850px) {
-    main { grid-template-columns: repeat(3, 1fr); }
-
-@media only screen
-  and (max-device-width: 550px) {
-    main { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media only screen
-  and (max-width: 415px) {
-    main { grid-template-columns: 1fr }
-
+  and (max-width: 435px) {
     .card {
       grid-template-columns: minmax(min-content, 2fr) 3fr;
       grid-template-rows: 1fr 3fr 1fr;
