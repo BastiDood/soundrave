@@ -1,14 +1,12 @@
-.card {
+main {
   margin: 0.75rem;
+  justify-content: stretch;
+  grid-gap: 0.75rem;
+}
+
+.card {
   padding: 0.75rem;
   background-color: var(--back-bg-color);
-  grid-template-columns: minmax(min-content, 2fr) 3fr;
-  grid-template-rows: 1fr 3fr 1fr;
-  grid-template-areas:
-    'image icon'
-    'image details'
-    'image date';
-  grid-column-gap: 0.5rem;
   align-items: center;
 }
 
@@ -44,4 +42,58 @@
 .card > p {
   margin: 0;
   font-size: 0.75rem;
+}
+
+@media only screen
+  and (min-device-width: 1051px) {
+    main { grid-template-columns: repeat(5, 1fr); }
+
+    .card {
+      grid-template-columns: minmax(min-content, 1fr);
+      grid-template-areas:
+        'image'
+        'icon'
+        'details'
+        'date';
+      grid-row-gap: 0.5rem;
+    }
+}
+
+@media only screen
+  and (max-device-width: 1050px) {
+    main { grid-template-columns: repeat(4, 1fr); }
+    
+    .card {
+      grid-template-columns: minmax(min-content, 1fr);
+      grid-template-areas:
+        'image'
+        'icon'
+        'details'
+        'date';
+      grid-row-gap: 0.5rem;
+    }
+}
+
+@media only screen
+  and (max-device-width: 850px) {
+    main { grid-template-columns: repeat(3, 1fr); }
+
+@media only screen
+  and (max-device-width: 550px) {
+    main { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media only screen
+  and (max-width: 415px) {
+    main { grid-template-columns: 1fr }
+
+    .card {
+      grid-template-columns: minmax(min-content, 2fr) 3fr;
+      grid-template-rows: 1fr 3fr 1fr;
+      grid-template-areas:
+        'image icon'
+        'image details'
+        'image date';
+      grid-column-gap: 0.5rem;
+    }
 }
