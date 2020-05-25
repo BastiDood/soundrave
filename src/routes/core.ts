@@ -115,7 +115,6 @@ router
       await Session.destroy(session);
       res.clearCookie('sid');
       res.clearCookie('mode');
-      return;
     }
 
     res.redirect('/');
