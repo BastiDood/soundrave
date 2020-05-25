@@ -8,6 +8,13 @@ main {
   padding: 0.75rem;
   background-color: var(--back-bg-color);
   align-items: center;
+  grid-template-columns: minmax(min-content, 1fr);
+  grid-template-areas:
+    'image'
+    'icon'
+    'details'
+    'date';
+  grid-row-gap: 0.75rem;
 }
 
 .icon {
@@ -47,31 +54,11 @@ main {
 @media only screen
   and (min-device-width: 1051px) {
     main { grid-template-columns: repeat(5, 1fr); }
-
-    .card {
-      grid-template-columns: minmax(min-content, 1fr);
-      grid-template-areas:
-        'image'
-        'icon'
-        'details'
-        'date';
-      grid-row-gap: 0.5rem;
-    }
 }
 
 @media only screen
   and (max-device-width: 1050px) {
     main { grid-template-columns: repeat(4, 1fr); }
-    
-    .card {
-      grid-template-columns: minmax(min-content, 1fr);
-      grid-template-areas:
-        'image'
-        'icon'
-        'details'
-        'date';
-      grid-row-gap: 0.5rem;
-    }
 }
 
 @media only screen
@@ -94,6 +81,6 @@ main {
         'image icon'
         'image details'
         'image date';
-      grid-column-gap: 0.5rem;
+      grid-column-gap: 0.75rem;
     }
 }
