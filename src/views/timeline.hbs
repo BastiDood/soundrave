@@ -3,7 +3,7 @@
   {{#if releases}}
     {{#each releases}}
       <div class="grid card">
-        <img src="{{ this.images.1.url }}" alt="{{ this.title }}" loading="lazy" />
+        <img src="{{ this.images.1.url }}" alt="{{ this.title }}" loading="lazy" class="block" />
         <p class="icon">{{ this.albumType }}</p>
         <div class="details">
           {{spotifyLink 'album' this._id this.title}}
