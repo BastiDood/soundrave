@@ -21,7 +21,7 @@ import { env } from './globals/env';
 import { coreHandler, errorHandler } from './routes';
 
 // MIDDLEWARES
-import { populateSessionData } from './middlewares/session';
+import { populateSessionData, populateUserData } from './middlewares/session';
 
 // HELPERS
 import * as helpers from './views/helpers';
@@ -83,6 +83,7 @@ app.use(express.static(PUBLIC_DIRECTORY, {
 // Delegate endpoint logic to `Router` controllers
 app
   .use(populateSessionData)
+  .use(populateUserData)
   .use('/', coreHandler)
   .use('/', errorHandler);
 
