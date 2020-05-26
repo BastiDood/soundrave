@@ -19,6 +19,7 @@ import { Session } from '../db/Session';
 import { SpotifyAPI } from '../fetchers/Spotify';
 
 // ERRORS
+import { OAuthError } from '../errors/OAuthError';
 import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
 // GLOBAL VARIABLES
@@ -157,10 +158,7 @@ router
     // Handle the authorization error elsewhere
     if ('error' in authorization || 'error_description' in authorization) {
       console.log('Errors were found in the callback query parameters.');
-      next(new SpotifyAPIError({
-        status: 403,
-        message: `[${authorization.error}]: ${authorization.error_description}`,
-      }, 0));
+      next(new OAuthError(null, authorization));
       return;
     }
 

@@ -85,7 +85,7 @@ export class SpotifyAPI extends EventEmitter {
     if (!response.ok)
       return {
         ok: response.ok,
-        error: new OAuthError(response.status, await json as OAuthErrorStruct),
+        error: new OAuthError(response.status, await json as AuthorizationError),
       };
 
     const token = await json as OAuthToken;
@@ -122,7 +122,7 @@ export class SpotifyAPI extends EventEmitter {
     if (!response.ok)
       return {
         ok: response.ok,
-        error: new OAuthError(response.status, await json as OAuthErrorStruct),
+        error: new OAuthError(response.status, await json as AuthorizationError),
       };
 
     // Update token
