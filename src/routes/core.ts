@@ -97,12 +97,11 @@ router
     const { session } = req;
 
     // Log the user out of their session
-    if (session && 'userID' in session) {
+    if (session)
       await Session.destroy(session);
-      res.clearCookie('sid', defaultCookieOptions);
-      res.clearCookie('mode', defaultCookieOptions);
-    }
 
+    res.clearCookie('sid', defaultCookieOptions);
+    res.clearCookie('mode', defaultCookieOptions);
     res.redirect('/');
   })
   .get('/login', async (req, res) => {
@@ -151,9 +150,7 @@ router
       console.log('Invalid login attempt.');
       console.log(`Spotify State: ${authorization.state ?? 'NONE_RECEIVED'}`);
       console.log(`Login Nonce: ${oldSession.loginNonce}`);
-      await Session.destroy(oldSession);
-      res.clearCookie('sid');
-      res.redirect('/');
+      res.redirect('/logout');
       return;
     }
 
