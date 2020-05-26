@@ -20,7 +20,6 @@ import { SpotifyAPI } from '../fetchers/Spotify';
 
 // ERRORS
 import { OAuthError } from '../errors/OAuthError';
-import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
 // GLOBAL VARIABLES
 const router = express.Router();
