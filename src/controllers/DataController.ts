@@ -14,8 +14,9 @@ import { Session } from '../db/Session';
 // UTILITY FUNTIONS
 import { getArrayDifference } from '../util';
 
-// ERRORS
+// TYPES
 import { SpotifyAPIError } from '../errors/SpotifyAPIError';
+import { OAuthError } from '../errors/OAuthError';
 
 // GLOBAL VARIABLES
 const ONE_DAY = 24 * 60 * 60 * 1e3;
@@ -52,7 +53,7 @@ export class DataController {
     return Date.now() > this.#user.followedArtists.retrievalDate + DataController.STALE_PERIOD.FOLLOWED_ARTISTS;
   }
 
-  private async getUserProfile(): Promise<Result<Readonly<UserProfileInfo>, SpotifyAPIError>> {
+  private async getUserProfile(): Promise<Result<Readonly<UserProfileInfo>, OAuthError|SpotifyAPIError>> {
     if (!this.isUserObjectStale) {
       console.log('Retrieving user profile from the session CACHE...');
       return {
@@ -79,7 +80,7 @@ export class DataController {
     };
   }
 
-  private async *getFollowedArtistsIDs(): AsyncGenerator<string[], SpotifyAPIError|undefined> {
+  private async *getFollowedArtistsIDs(): AsyncGenerator<string[], OAuthError|SpotifyAPIError|undefined> {
     const user = this.#user;
     if (!this.areFollowedArtistsStale) {
       console.log('Retrieving followed artist IDs from the session CACHE...');
@@ -90,7 +91,7 @@ export class DataController {
     console.log('Fetching followed artist IDs from the Spotify API...');
     const iterator = this.#api.fetchFollowedArtists(user.followedArtists.etag);
     const ids: string[] = [];
-    let error: SpotifyAPIError|undefined;
+    let error: OAuthError|SpotifyAPIError|undefined;
     while (true) {
       const result = await iterator.next();
       assert(typeof result.done !== 'undefined');
@@ -141,7 +142,7 @@ export class DataController {
 
     // Fetch the unknown artists
     console.log(`Now fetching ${unknownIDs.length} artists from the Spotify API...`);
-    const errors: SpotifyAPIError[] = [];
+    const errors: (OAuthError|SpotifyAPIError)[] = [];
     const artistsResultBatches = await this.#api.fetchSeveralArtists(unknownIDs);
     for (const batch of artistsResultBatches) {
       if (batch.ok) {
@@ -167,7 +168,7 @@ export class DataController {
     const { country } = profileResult.value;
     const user = this.#user;
 
-    const fetchErrors: SpotifyAPIError[] = [];
+    const fetchErrors: (OAuthError|SpotifyAPIError)[] = [];
     const artistIDsIterator = this.getFollowedArtistsIDs();
     while (true) {
       const artistIDsResult = await artistIDsIterator.next();
@@ -199,7 +200,7 @@ export class DataController {
 
       // Declare interface for the results
       interface ReleaseFetchResult {
-        result: ArtistObject|SpotifyAPIError;
+        result: ArtistObject|OAuthError|SpotifyAPIError;
         releases: NonPopulatedReleaseObject[];
       }
 
@@ -208,7 +209,7 @@ export class DataController {
         .map(async (artist): Promise<ReleaseFetchResult> => {
           const artistReleases: NonPopulatedReleaseObject[] = [];
           const releaseIterator = this.#api.fetchReleasesByArtistID(artist._id);
-          let releasesError: SpotifyAPIError|undefined;
+          let releasesError: OAuthError|SpotifyAPIError|undefined;
           while (true) {
             const releasesResult = await releaseIterator.next();
             assert(typeof releasesResult.done !== 'undefined');
@@ -240,7 +241,7 @@ export class DataController {
       const NOW = Date.now();
       const fetchResults = settledFetches
         .reduce((prev, curr) => {
-          if (curr.result instanceof SpotifyAPIError)
+          if (curr.result instanceof Error)
             prev.errors.push(curr.result);
           else {
             curr.result.retrievalDate = NOW;
@@ -248,7 +249,7 @@ export class DataController {
           }
           prev.releases.splice(prev.releases.length, 0, ...curr.releases);
           return prev;
-        }, { artists: [] as ArtistObject[], releases: [] as NonPopulatedReleaseObject[], errors: [] as SpotifyAPIError[] });
+        }, { artists: [] as ArtistObject[], releases: [] as NonPopulatedReleaseObject[], errors: [] as (OAuthError|SpotifyAPIError)[] });
 
       // Save all artists and releases to the database cache
       await Promise.all([

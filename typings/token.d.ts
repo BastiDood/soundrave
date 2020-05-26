@@ -11,7 +11,7 @@ declare interface OAuthToken {
   refresh_token: string;
 }
 
-declare interface OAuthError {
+declare interface OAuthErrorStruct {
   error: string;
   error_description: string;
 }

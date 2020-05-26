@@ -33,13 +33,8 @@ const defaultCookieOptions: express.CookieOptions = {
 
 router
   .get('/', (req, res) => {
-    if (!req.session || 'loginNonce' in req.session)
-      // Render the usual home page
-      res.render('index', { layout: 'home', isLoggedIn: false });
-    else
-      // Partially change the home page to invite logged-in user to view their timeline
-      // instead of the big login button
-      res.render('index', { layout: 'home', isLoggedIn: true });
+    const isLoggedIn = Boolean(req.session && 'userID' in req.session);
+    res.render('index', { layout: 'home', isLoggedIn } as Render.HomeContext);
   })
   .get('/timeline', async (req, res, next) => {
     // Shorthand for session object
@@ -53,7 +48,7 @@ router
     }
 
     // Synchronize the session user object with the database user object
-    const user = await Cache.retrieveUser(session.userID);
+    const { user } = req;
     assert(user);
 
     // Retrieve the access token
@@ -68,23 +63,15 @@ router
 
     // Temporarily return all known releases thus far if the user currently has pending jobs
     const hasStaleData = Date.now() > user.job.dateLastDone + DataController.STALE_PERIOD.LAST_DONE;
-    if (user.job.isRunning || !hasStaleData) {
+    if (backgroundJobHandler.isStalling || user.job.isRunning || !hasStaleData) {
       console.log(`Retrieving all known releases for ${user.profile.name.toUpperCase()} thus far...`);
       const cachedData = await Cache.retrieveReleasesFromArtists(
         user.followedArtists.ids,
         user.profile.country,
         -env.MAX_RELEASES,
       );
-      // TODO: Render a message indicating an ongoing process
-      res.render('timeline', { releases: cachedData, user });
-      return;
-    }
-
-    // Make sure that the background job handler is not stalling
-    if (backgroundJobHandler.isStalling) {
-      console.log('Deflecting a user because the background job handler is stalling...');
-      // TODO: Render a message indicating a stalling process
-      res.render('timeline', { releases: [], user });
+      // TODO: Render a message indicating a stalling/ongoing process
+      res.render('timeline', { releases: cachedData, user } as Render.TimelineContext);
       return;
     }
 
@@ -102,10 +89,9 @@ router
 
     // In the best-case scenario when there are no errors,
     // respond to the user as soon as possible.
-    res.render('timeline', { releases: retrieval.releases, user });
+    res.render('timeline', { releases: retrieval.releases, user } as Render.TimelineContext);
     console.log('Sent the response to the user.');
   })
-  // TODO: Convert this to a POST route
   .get('/logout', async (req, res) => {
     // Shorthand for session object
     const { session } = req;
@@ -207,12 +193,12 @@ router
 
     // Check if the user has previously logged in to the service
     console.log('User profile fetched.');
-    let user = await Cache.retrieveUser(userResult.value._id);
+    req.user = await Cache.retrieveUser(userResult.value._id);
 
     // Initialize the new user otherwise
-    if (!user) {
+    if (!req.user) {
       console.log('Initializing new user...');
-      user = {
+      req.user = {
         ...userResult.value,
         followedArtists: {
           ids: [],
@@ -223,17 +209,17 @@ router
           dateLastDone: -Infinity,
         },
       };
-      await Cache.upsertUserObject(user);
+      await Cache.upsertUserObject(req.user);
     } else {
       console.log('Found returning user.');
-      user.profile = userResult.value.profile;
-      await Cache.updateUserProfile(user);
+      req.user.profile = userResult.value.profile;
+      await Cache.updateUserProfile(req.user);
     }
 
     // Initialize new session data
     const token = api.tokenInfo;
     const newSession = await Session.upgrade(oldSession, {
-      userID: user._id,
+      userID: req.user._id,
       token: { spotify: token },
     });
     req.session = newSession;

@@ -14,6 +14,7 @@ import { env } from '../globals/env';
 import { formatEndpoint, subdivideArray } from '../util';
 
 // ERRORS
+import { OAuthError } from '../errors/OAuthError';
 import { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
 // GLOBAL VARIABLES
@@ -67,7 +68,7 @@ export class SpotifyAPI extends EventEmitter {
    * an access token.
    * @param code - Valid authorization code sent to the callback URI
    */
-  static async init(code: string): Promise<Result<SpotifyAPI, SpotifyAPIError>> {
+  static async init(code: string): Promise<Result<SpotifyAPI, OAuthError>> {
     const response = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
       compress: true,
       method: 'POST',
@@ -84,10 +85,7 @@ export class SpotifyAPI extends EventEmitter {
     if (!response.ok)
       return {
         ok: response.ok,
-        error: new SpotifyAPIError(
-          await json as SpotifyApi.ErrorObject,
-          Number(response.headers.get('Retry-After')) * 1e3,
-        ),
+        error: new OAuthError(response.status, await json as OAuthErrorStruct),
       };
 
     const token = await json as OAuthToken;
@@ -106,7 +104,7 @@ export class SpotifyAPI extends EventEmitter {
   static restore(token: AccessToken): SpotifyAPI { return new SpotifyAPI(token); }
 
   /** Refresh the token associated with this instance. */
-  async refreshAccessToken(): Promise<Result<Readonly<AccessToken>, SpotifyAPIError>> {
+  async refreshAccessToken(): Promise<Result<Readonly<AccessToken>, OAuthError>> {
     // Retrieve new access token
     const credentials = Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64');
     const response = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
@@ -121,16 +119,11 @@ export class SpotifyAPI extends EventEmitter {
     const json = response.json();
 
     // This should be a rare occurrence (i.e. Spotify Service is unavailable)
-    if (!response.ok) {
-      const { error, error_description } = await json as OAuthError;
+    if (!response.ok)
       return {
         ok: response.ok,
-        error: new SpotifyAPIError({
-          status: response.status,
-          message: `[${error}]: ${error_description}`,
-        }, Number(response.headers.get('Retry-After')) * 1e3),
+        error: new OAuthError(response.status, await json as OAuthErrorStruct),
       };
-    }
 
     // Update token
     const { access_token, scope, expires_in } = await json as Omit<OAuthToken, 'refresh_token'>;
@@ -145,7 +138,7 @@ export class SpotifyAPI extends EventEmitter {
     };
   }
 
-  async fetchUserProfile(): Promise<Result<Pick<UserObject, '_id'|'profile'>, SpotifyAPIError>> {
+  async fetchUserProfile(): Promise<Result<Pick<UserObject, '_id'|'profile'>, OAuthError|SpotifyAPIError>> {
     const { scope } = this.#token;
     if (!scope.includes('user-read-private') || !scope.includes('user-read-email'))
       return {
@@ -206,7 +199,7 @@ export class SpotifyAPI extends EventEmitter {
    *
    * @param etag - Associated ETag of the request
    */
-  async *fetchFollowedArtists(etag?: string): AsyncGenerator<ETagBasedResource<ArtistObject[]|null>, SpotifyAPIError|undefined> {
+  async *fetchFollowedArtists(etag?: string): AsyncGenerator<ETagBasedResource<ArtistObject[]|null>, OAuthError|SpotifyAPIError|undefined> {
     if (!this.#token.scope.includes('user-follow-read'))
       return new SpotifyAPIError({
         status: 401,
@@ -222,7 +215,7 @@ export class SpotifyAPI extends EventEmitter {
       limit: '50',
     });
 
-    let error: SpotifyAPIError|undefined;
+    let error: OAuthError|SpotifyAPIError|undefined;
     while (next) {
       if (this.isExpired) {
         const refreshResult = await this.refreshAccessToken();
@@ -278,13 +271,13 @@ export class SpotifyAPI extends EventEmitter {
    *
    * @param id - Spotify ID of artist
    * */
-  async *fetchReleasesByArtistID(id: string): AsyncGenerator<NonPopulatedReleaseObject[], SpotifyAPIError|undefined> {
+  async *fetchReleasesByArtistID(id: string): AsyncGenerator<NonPopulatedReleaseObject[], OAuthError|SpotifyAPIError|undefined> {
     let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
       include_groups: 'album,single',
       limit: '50',
     });
 
-    let error: SpotifyAPIError|undefined;
+    let error: OAuthError|SpotifyAPIError|undefined;
     const fetchOpts = this.fetchOptionsForGet;
     while (next) {
       if (this.isExpired) {
@@ -328,7 +321,7 @@ export class SpotifyAPI extends EventEmitter {
    * minimize the number of actual requests to the API.
    * @param ids - List of Spotify artist IDs
    */
-  async fetchSeveralArtists(ids: string[]): Promise<Result<ArtistObject[], SpotifyAPIError>[]> {
+  async fetchSeveralArtists(ids: string[]): Promise<Result<ArtistObject[], OAuthError|SpotifyAPIError>[]> {
     // If no artists were given, simply resolve with an empty array.
     if (ids.length < 1)
       return [];

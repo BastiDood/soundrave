@@ -1,11 +1,13 @@
-import './api';
-import './auth';
-import './mongo';
-import './token';
-import './util';
+import './api.d.ts';
+import './auth.d.ts';
+import './mongo.d.ts';
+import './token.d.ts';
+import './util.d.ts';
 
+type OAuthError = import('../src/errors/OAuthError').OAuthError;
+type SpotifyAPIError = import('../src/errors/SpotifyAPIError').SpotifyAPIError;
 interface BaseRetrieval {
-  errors: import('../src/errors/SpotifyAPIError').SpotifyAPIError[];
+  errors: (OAuthError|SpotifyAPIError)[];
 }
 
 declare global {
