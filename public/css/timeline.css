@@ -1,6 +1,5 @@
 main {
   margin: 0.75rem;
-  justify-content: stretch;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   grid-gap: 0.75rem;
 }
@@ -8,26 +7,24 @@ main {
 .card {
   padding: 0.75rem;
   background-color: var(--back-bg-color);
-  align-items: center;
-  grid-template-columns: minmax(min-content, 1fr);
   grid-template-areas:
     'image'
     'icon'
     'details'
     'date';
-  grid-row-gap: 0.75rem;
+  grid-row-gap: 0.5rem;
 }
 
 .card > img {
-  width: 100%;
-  max-height: 100%;
+  max-width: 100%;
+  height: auto;
   object-fit: cover;
   grid-area: image;
 }
 
 .card > p {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 1.25vh;
 }
 
 .icon {
@@ -40,7 +37,7 @@ main {
 .details:first-child { color: var(--ui-main-font-color); }
 .details:last-child { color: var(--ui-main-font-color); }
 .details > a {
-  font-size: 1rem;
+  font-size: 1.75vh;
   color: var(--ui-main-font-color);
 }
 
