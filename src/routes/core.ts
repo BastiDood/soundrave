@@ -19,7 +19,7 @@ import { Session } from '../db/Session';
 import { SpotifyAPI } from '../fetchers/Spotify';
 
 // ERRORS
-import { OAuthError } from '../errors/OAuthError';
+import { OAuthError, API_ERROR_TYPES } from '../errors';
 
 // GLOBAL VARIABLES
 const router = express.Router();
@@ -157,7 +157,7 @@ router
     // Handle the authorization error elsewhere
     if ('error' in authorization || 'error_description' in authorization) {
       console.log('Errors were found in the callback query parameters.');
-      next(new OAuthError(null, authorization));
+      next(new OAuthError(401, authorization, API_ERROR_TYPES.ACCESS_DENIED));
       return;
     }
 

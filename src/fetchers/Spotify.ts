@@ -14,8 +14,7 @@ import { env } from '../globals/env';
 import { formatEndpoint, subdivideArray } from '../util';
 
 // ERRORS
-import { OAuthError } from '../errors/OAuthError';
-import { SpotifyAPIError } from '../errors/SpotifyAPIError';
+import { OAuthError, SpotifyAPIError, API_ERROR_TYPES } from '../errors';
 
 // GLOBAL VARIABLES
 const FIFTEEN_MINUTES = 15 * 60 * 1e3;
@@ -82,15 +81,13 @@ export class SpotifyAPI extends EventEmitter {
     });
     const json = response.json();
 
-    if (!response.ok)
-      return {
-        ok: response.ok,
-        error: new OAuthError(response.status, await json as AuthorizationError),
-      };
+    const { ok, status } = response;
+    if (!ok)
+      return { ok, error: new OAuthError(status, await json as AuthorizationError, API_ERROR_TYPES.INIT_FAILED) };
 
     const token = await json as OAuthToken;
     return {
-      ok: response.ok,
+      ok,
       value: new SpotifyAPI({
         accessToken: token.access_token,
         refreshToken: token.refresh_token,
@@ -118,12 +115,9 @@ export class SpotifyAPI extends EventEmitter {
     });
     const json = response.json();
 
-    // This should be a rare occurrence (i.e. Spotify Service is unavailable)
-    if (!response.ok)
-      return {
-        ok: response.ok,
-        error: new OAuthError(response.status, await json as AuthorizationError),
-      };
+    const { ok, status } = response;
+    if (!ok)
+      return { ok, error: new OAuthError(status, await json as AuthorizationError, API_ERROR_TYPES.REFRESH_FAILED) };
 
     // Update token
     const { access_token, scope, expires_in } = await json as Omit<OAuthToken, 'refresh_token'>;
@@ -133,7 +127,7 @@ export class SpotifyAPI extends EventEmitter {
     this.emit('__token_update__', this.#token);
 
     return {
-      ok: response.ok,
+      ok,
       value: this.#token,
     };
   }
@@ -143,10 +137,10 @@ export class SpotifyAPI extends EventEmitter {
     if (!scope.includes('user-read-private') || !scope.includes('user-read-email'))
       return {
         ok: false,
-        error: new SpotifyAPIError({
-          status: 401,
-          message: 'Access token does not have the permission to read the user\'s profile.',
-        }, 0),
+        error: new OAuthError(401, {
+          error: 'access_denied',
+          error_description: 'Access token does not have the permission to read the user\'s profile.',
+        }, API_ERROR_TYPES.NO_PERMISSION),
       };
 
     if (this.isExpired) {
@@ -201,10 +195,10 @@ export class SpotifyAPI extends EventEmitter {
    */
   async *fetchFollowedArtists(etag?: string): AsyncGenerator<ETagBasedResource<ArtistObject[]|null>, OAuthError|SpotifyAPIError|undefined> {
     if (!this.#token.scope.includes('user-follow-read'))
-      return new SpotifyAPIError({
-        status: 401,
-        message: 'Access token does not have the permission to read the list of followers.',
-      }, 0);
+      return new OAuthError(401, {
+        error: 'access_denied',
+        error_description: 'Access token does not have the permission to read the user\'s followed artists.',
+      }, API_ERROR_TYPES.NO_PERMISSION);
 
     const fetchOpts = this.fetchOptionsForGet;
     if (etag)
