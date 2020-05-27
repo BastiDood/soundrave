@@ -1,12 +1,8 @@
-// NODE CORE IMPORTS
-import { strict as assert } from 'assert';
-
 // DEPENDENCIES
 import { SafeString } from 'handlebars';
 
 // ERRORS
 import { API_ERROR_TYPES } from './ErrorTypes';
-import { SpotifyAPIError } from './SpotifyAPIError';
 
 export abstract class BaseError extends Error {
   /** Application-specific code for the error type. */
@@ -14,7 +10,7 @@ export abstract class BaseError extends Error {
   /** HTTP status code received in the failed fetch. */
   readonly status: number;
   /** The human-readable description to be presented in the UI. */
-  readonly description: SafeString;
+  description: SafeString;
 
   constructor(status: number, message: string, hint?: API_ERROR_TYPES) {
     super(message);
@@ -40,8 +36,7 @@ export abstract class BaseError extends Error {
         this.description = new SafeString('The Spotify platform is temporarily unavailable. Sorry for the inconvenience! Please try again later.');
         break;
       case API_ERROR_TYPES.RATE_LIMIT:
-        assert(this instanceof SpotifyAPIError);
-        this.description = new SafeString(`Our servers have received so many requests that we have reached the maximum rate at which Spotify allows us to operate. Due to rate limiting, we cannot serve you right now. Please wait ${this.retryAfter} seconds before trying again. Sorry for the inconvenience!`);
+        this.description = new SafeString('Our servers have received so many requests that we have reached the maximum rate at which Spotify allows us to operate. Due to rate limiting, we cannot serve you right now. Sorry for the inconvenience!');
         break;
       case API_ERROR_TYPES.INIT_FAILED:
         this.description = new SafeString('We have encountered an error while initializing your session. We did not expect this behavior, so we have logged you out just to be safe. You may <a href="/login">log back in</a>, but if this issue persists, please contact the webmaster.');
