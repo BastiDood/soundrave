@@ -9,3 +9,10 @@ interface FailedResult<T> {
 }
 
 type Result<SuccessType, FailureType> = SuccessfulResult<SuccessType>|FailedResult<FailureType>;
+
+type OAuthError = import('../src/errors/OAuthError').OAuthError;
+type SpotifyAPIError = import('../src/errors/SpotifyAPIError').SpotifyAPIError;
+interface SegregatedErrors {
+  oauth: OAuthError[];
+  api: SpotifyAPIError[];
+}

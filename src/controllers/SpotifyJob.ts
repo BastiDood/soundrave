@@ -6,7 +6,11 @@ import { promisify } from 'util';
 // CONTROLLERS
 import { DataController } from '.';
 
+// UTILITY FUNCTIONS
+import { findHighestSeverityError } from '../util';
+
 // TYPES
+import { OAuthError } from '../errors/OAuthError';
 import type { SpotifyAPIError } from '../errors/SpotifyAPIError';
 
 // GLOBAL VARIABLES
@@ -55,17 +59,19 @@ export class SpotifyJob extends EventEmitter {
     return this;
   }
 
-  private async handleErrors(errors: SpotifyAPIError[]): Promise<SpotifyJob> {
-    // TODO: Consider the situation when the permissions fail (due to deliberate user tampering
-    // with the authorization redirection link)
-    // TODO: Test assumption that any error must be about rate limits
-    assert(errors.every(err => err.status === 429 && err.retryAfter > 0));
-    const maxRetryAfter = Math.max(...errors.map(err => err.retryAfter));
+  // TODO: Consider the situation when the permissions fail (due to deliberate user tampering
+  // with the authorization redirection link)
+  private async handleErrors(errors: (OAuthError|SpotifyAPIError)[]): Promise<SpotifyJob|null> {
+    // Cancel job if OAuth errors were detected
+    const highestSeverityError = findHighestSeverityError(errors);
+    if (highestSeverityError instanceof OAuthError)
+      return null;
 
     // Add one second of cooldown after Spotify's recommended retry period (just to be sure)
-    const sleepPeriod = maxRetryAfter + 1e3;
+    assert(highestSeverityError.status === 429 && highestSeverityError.retryAfter > 0);
+    const sleepPeriod = highestSeverityError.retryAfter + 1e3;
     this.emit('__stall__', sleepPeriod);
-    console.log(`Now sleeping for ${maxRetryAfter} seconds...`);
+    console.log(`Now sleeping for ${highestSeverityError.retryAfter} seconds...`);
     await sleep(sleepPeriod);
     this.emit('__resume__', 0);
 
