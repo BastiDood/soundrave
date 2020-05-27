@@ -6,12 +6,8 @@ import { promisify } from 'util';
 // CONTROLLERS
 import { DataController } from '.';
 
-// UTILITY FUNCTIONS
-import { findHighestSeverityError } from '../util';
-
-// TYPES
-import { OAuthError } from '../errors/OAuthError';
-import type { SpotifyAPIError } from '../errors/SpotifyAPIError';
+// ERRORS
+import { OAuthError, SpotifyAPIError, API_ERROR_TYPES } from '../errors';
 
 // GLOBAL VARIABLES
 const sleep = promisify(setTimeout);
@@ -59,25 +55,31 @@ export class SpotifyJob extends EventEmitter {
     return this;
   }
 
-  // TODO: Consider the situation when the permissions fail (due to deliberate user tampering
-  // with the authorization redirection link)
   private async handleErrors(errors: (OAuthError|SpotifyAPIError)[]): Promise<SpotifyJob|null> {
-    // Cancel job if OAuth errors were detected
-    const highestSeverityError = findHighestSeverityError(errors);
-    if (highestSeverityError instanceof OAuthError)
-      return null;
+    const highestSeverityError = errors.reduce((max, curr) => {
+      if (curr.type > max.type)
+        return curr;
+      return max;
+    });
 
-    // Add one second of cooldown after Spotify's recommended retry period (just to be sure)
-    assert(highestSeverityError.status === 429 && highestSeverityError.retryAfter > 0);
-    const sleepPeriod = highestSeverityError.retryAfter + 1e3;
-    this.emit('__stall__', sleepPeriod);
-    console.log(`Now sleeping for ${highestSeverityError.retryAfter} seconds...`);
-    await sleep(sleepPeriod);
-    this.emit('__resume__', 0);
+    // Wait until the rate limit is done
+    if (highestSeverityError instanceof SpotifyAPIError && highestSeverityError.type === API_ERROR_TYPES.RATE_LIMIT) {
+      // Add one second of cooldown after Spotify's recommended retry period (just to be sure)
+      const sleepPeriod = highestSeverityError.retryAfter + 1e3;
+      this.emit('__stall__', sleepPeriod);
+      console.log(`Now sleeping for ${highestSeverityError.retryAfter} seconds...`);
+      await sleep(sleepPeriod);
+      this.emit('__resume__', 0);
 
-    console.log('Resuming background processing...');
-    this.#iterator = this.#controller.getReleases();
+      console.log('Resuming background processing...');
+      this.#iterator = this.#controller.getReleases();
 
-    return this;
+      return this;
+    }
+
+    // Cancel the job for any OAuth errors or external API errors
+    console.log('Unexpected errors were encountered in the background. The job has been cancelled.');
+    console.table(errors);
+    return null;
   }
 }
