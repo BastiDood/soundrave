@@ -1,32 +1,21 @@
+import { strict as assert } from 'assert';
 import { SafeString } from 'handlebars';
 
-// TODO: Optimize this implementation
+/**
+ * This function relies on the fact that the Spotify API
+ * always returns image objects in descending order by
+ * image width.
+ */
 export function responsiveImage(alt: string, images: SpotifyApi.ImageObject[]): SafeString {
-  // Construct the responsive images
-  const srcSets: string[] = [];
-  const sizes: string[] = [];
-  const fallbackImg = images.reduce((min, curr) => {
-    if (!min.width || !min.height)
-      return curr;
-    else if (!curr.width || !curr.height)
-      return min;
-
-    // Fill in the responsive data
-    srcSets.push(`${curr.url} ${curr.width}w`);
-    sizes.push(`(min-width: ${curr.width + 100}px) ${curr.width}px`);
-
-    // Determine the smallest image
-    const minArea = min.width * min.height;
-    const currentArea = curr.width * curr.height;
-    if (currentArea < minArea)
-      return curr;
-    return min;
-  });
-
+  assert(images.every(img => img.height && img.width));
+  const fallback = images[images.length - 1];
   return new SafeString(`<img
-    src="${fallbackImg.url}"
-    srcset="${srcSets.join(',')}"
-    sizes="${sizes.join(',')}"
+    src="${fallback.url}"
+    srcset="${images.map(img => `${img.url} ${img.width!}w`).join(',')}"
+    sizes="(min-width: 300px) 80px,
+      (min-width: 360px) 100px,
+      (min-width: 5000px) 640px,
+      55px"
     alt="${alt}"
     class="block"
   />`);
