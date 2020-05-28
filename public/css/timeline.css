@@ -35,8 +35,6 @@ main {
 }
 
 .details { grid-area: details; }
-.details:first-child { color: var(--ui-main-font-color); }
-.details:last-child { color: var(--ui-main-font-color); }
 .details > a {
   font-size: 0.75rem;
   color: var(--ui-main-font-color);
