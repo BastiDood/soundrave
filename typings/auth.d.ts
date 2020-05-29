@@ -14,4 +14,4 @@ interface AuthorizationError extends Authorization {
   error_description: string;
 }
 
-declare type AuthorizationResult = AuthorizationSuccess|AuthorizationError;
+type AuthorizationResult = AuthorizationSuccess|AuthorizationError;

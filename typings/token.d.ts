@@ -1,4 +1,4 @@
-declare interface OAuthToken {
+interface OAuthToken {
   /** An access token that can be provided in subsequent calls, for example to Spotify Web API services. */
   access_token: string;
   /** How the access token may be used: always “Bearer”. */
@@ -11,7 +11,7 @@ declare interface OAuthToken {
   refresh_token: string;
 }
 
-declare interface AccessToken {
+interface AccessToken {
   accessToken: string;
   refreshToken: string;
   scope: string[];
