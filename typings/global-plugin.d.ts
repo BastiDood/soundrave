@@ -5,12 +5,12 @@ type SpotifyAPIError = import('../src/errors/SpotifyAPIError').SpotifyAPIError;
 
 declare global {
   namespace Render {
-    export interface HomeContext {
+    interface HomeContext {
       layout: 'home';
       isLoggedIn: boolean;
     }
 
-    export interface TimelineContext {
+    interface TimelineContext {
       releases: PopulatedReleaseObject[];
       user: UserObject;
       highestSeverityError?: OAuthError|SpotifyAPIError;
@@ -18,7 +18,7 @@ declare global {
   }
 
   namespace Express {
-    export interface Request {
+    interface Request {
       session: ValidSessionObject|LoginSessionObject|null;
       signedCookies: {
         sid?: string;
