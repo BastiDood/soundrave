@@ -70,7 +70,7 @@ export class Session {
     assert(result);
   }
 
-  static async acknowledgeTokenUpdates(id: string, platform: SupportedPlatforms): Promise<void> {
+  static async acknowledgeTokenUpdate(id: string, platform: SupportedPlatforms): Promise<void> {
     const result = await ValidSession
       .findByIdAndUpdate(id, { $pull: { 'token.pendingTokenUpdates': platform } })
       .exec();

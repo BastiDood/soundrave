@@ -62,7 +62,7 @@ router
       const options = { ...defaultCookieOptions, maxAge: ONE_DAY * 14 - remainingSeconds };
       res.cookie('sid', session._id, options);
       res.cookie('mode', 'session', options);
-      await Session.acknowledgeTokenUpdates(session._id, 'spotify');
+      await Session.acknowledgeTokenUpdate(session._id, 'spotify');
     }
 
     // Temporarily return all known releases thus far if the user currently has pending jobs
