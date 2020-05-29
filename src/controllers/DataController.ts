@@ -26,7 +26,7 @@ export class DataController {
     /** This should only be queried by the route-level. */
     LAST_DONE: ONE_DAY,
     FOLLOWED_ARTISTS: ONE_DAY * 3,
-    ARTIST_RELEASES: ONE_DAY * 5,
+    ARTIST_RELEASES: ONE_DAY * 4,
     USER_PROFILE: ONE_DAY * 7,
   };
 
