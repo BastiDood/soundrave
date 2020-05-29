@@ -18,9 +18,6 @@ import { Session } from '../db/Session';
 // FETCHERS
 import { SpotifyAPI } from '../fetchers/Spotify';
 
-// UTILITY FUNCTIONS
-import { signJWT } from '../util';
-
 // ERRORS
 import { OAuthError, API_ERROR_TYPES } from '../errors';
 
@@ -31,6 +28,7 @@ const ONE_DAY = ONE_MINUTE * 60 * 24;
 const defaultCookieOptions: express.CookieOptions = {
   httpOnly: true,
   sameSite: 'lax',
+  signed: true,
 };
 
 router
@@ -61,21 +59,9 @@ router
     if (session.pendingTokenUpdates.includes('spotify')) {
       const remainingTime = spotifyToken.expiresAt - Date.now();
       const remainingSeconds = Math.floor(remainingTime / 1e3);
-
-      const signResult = await signJWT({ sid: session._id }, {
-        issuer: 'Release Timeline',
-        subject: 'spotify',
-        audience: 'login',
-        expiresIn: '14d',
-      });
-
-      // TODO: Address any signing errors
-      assert(signResult.ok);
-
-      res.cookie('sid', signResult.value, {
-        ...defaultCookieOptions,
-        maxAge: ONE_DAY * 14 - remainingSeconds,
-      });
+      const options = { ...defaultCookieOptions, maxAge: ONE_DAY * 14 - remainingSeconds };
+      res.cookie('sid', session._id, options);
+      res.cookie('mode', 'session', options);
       await Session.acknowledgeTokenUpdate(session._id, 'spotify');
     }
 
@@ -119,6 +105,7 @@ router
       await Session.destroy(session);
 
     res.clearCookie('sid', defaultCookieOptions);
+    res.clearCookie('mode', defaultCookieOptions);
     res.redirect('/');
   })
   .get('/login', async (req, res) => {
@@ -137,20 +124,9 @@ router
     console.log(`State Hash: ${newSession.loginNonce}`);
 
     // Only keep uninitialized log-in sessions for five minutes
-    const signResult = await signJWT({ sid: newSession._id }, {
-      issuer: 'Release Timeline',
-      subject: 'spotify',
-      audience: 'login',
-      expiresIn: '5m',
-    });
-
-    // TODO: Address any signing errors
-    assert(signResult.ok);
-
-    res.cookie('sid', signResult.value, {
-      ...defaultCookieOptions,
-      maxAge: ONE_MINUTE * 5,
-    });
+    const options = { ...defaultCookieOptions, maxAge: ONE_MINUTE * 5 };
+    res.cookie('sid', newSession._id, options);
+    res.cookie('mode', 'login', options);
     console.log('Temporary session cookie set.');
 
     res.redirect(SpotifyAPI.generateAuthEndpoint(newSession.loginNonce));
@@ -251,21 +227,10 @@ router
     const remainingTime = token.expiresAt - Date.now();
     const remainingSeconds = Math.floor(remainingTime / 1e3);
 
-    // Set JSON web token
-    const signResult = await signJWT({ sid: newSession._id }, {
-      issuer: 'Release Timeline',
-      subject: 'spotify',
-      audience: 'session',
-      expiresIn: '14d',
-    });
-
-    // TODO: Address any signing errors
-    assert(signResult.ok);
-
-    res.cookie('sid', signResult.value, {
-      ...defaultCookieOptions,
-      maxAge: ONE_DAY * 14 - remainingSeconds,
-    });
+    // Set relevant cookies
+    const options = { ...defaultCookieOptions, maxAge: ONE_DAY * 14 - remainingSeconds };
+    res.cookie('sid', newSession._id, options);
+    res.cookie('mode', 'session', options);
     res.redirect('/timeline');
   });
 
