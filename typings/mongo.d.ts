@@ -9,6 +9,11 @@ interface MongoValidSession extends MongoBaseSession {
   /** Spotify ID of the current user */
   userID: string;
   token: Record<SupportedPlatforms, AccessToken>;
+  /**
+   * Indicates whether the associated access token
+   * has been refreshed at some point in the background.
+   */
+  pendingTokenUpdates: SupportedPlatforms[];
 }
 
 interface MongoLoginSession extends MongoBaseSession {

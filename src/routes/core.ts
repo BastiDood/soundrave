@@ -36,6 +36,7 @@ router
     const isLoggedIn = Boolean(req.session && 'userID' in req.session);
     res.render('index', { layout: 'home', isLoggedIn } as Render.HomeContext);
   })
+  // TODO: Set a timeout for stalling requests
   .get('/timeline', async (req, res, next) => {
     // Shorthand for session object
     const { session } = req;
@@ -55,11 +56,14 @@ router
     const spotifyToken = session.token.spotify;
 
     // Synchronize the cookie's `maxAge`
-    const remainingTime = spotifyToken.expiresAt - Date.now();
-    const remainingSeconds = Math.floor(remainingTime / 1e3);
-    const options = { ...defaultCookieOptions, maxAge: ONE_DAY * 14 - remainingSeconds };
-    res.cookie('sid', session._id, options);
-    res.cookie('mode', 'session', options);
+    if (session.pendingTokenUpdates.includes('spotify')) {
+      const remainingTime = spotifyToken.expiresAt - Date.now();
+      const remainingSeconds = Math.floor(remainingTime / 1e3);
+      const options = { ...defaultCookieOptions, maxAge: ONE_DAY * 14 - remainingSeconds };
+      res.cookie('sid', session._id, options);
+      res.cookie('mode', 'session', options);
+      await Session.acknowledgeTokenUpdates(session._id, 'spotify');
+    }
 
     // Temporarily return all known releases thus far if the user currently has pending jobs
     const hasStaleData = Date.now() > user.job.dateLastDone + DataController.STALE_PERIOD.LAST_DONE;
@@ -215,6 +219,7 @@ router
     const newSession = await Session.upgrade(oldSession, {
       userID: req.user._id,
       token: { spotify: token },
+      pendingTokenUpdates: [],
     });
     req.session = newSession;
 

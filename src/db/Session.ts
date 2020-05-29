@@ -62,8 +62,17 @@ export class Session {
   static async updateToken(id: string, platform: SupportedPlatforms, token: AccessToken): Promise<void> {
     const key = `token.${platform}`;
     const result = await ValidSession
-      .findByIdAndUpdate(id, { $set: { [key]: token } })
-      .lean()
+      .findByIdAndUpdate(id, {
+        $set: { [key]: token },
+        $addToSet: { 'token.pendingTokenUpdates': platform },
+      })
+      .exec();
+    assert(result);
+  }
+
+  static async acknowledgeTokenUpdates(id: string, platform: SupportedPlatforms): Promise<void> {
+    const result = await ValidSession
+      .findByIdAndUpdate(id, { $pull: { 'token.pendingTokenUpdates': platform } })
       .exec();
     assert(result);
   }

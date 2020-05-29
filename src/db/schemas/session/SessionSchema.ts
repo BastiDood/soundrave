@@ -6,6 +6,7 @@ export const ValidSessionSchema = new Schema({
   _id: { type: String, required: true },
   userID: { type: String, required: true },
   token: { type: Map, of: AccessTokenSchema, required: true },
+  pendingTokenUpdates: [ { type: String, enum: [ 'spotify' ] as SupportedPlatforms[], required: true } ],
   createdAt: { type: Date, default: Date.now, expires: '14d' },
 });
 
