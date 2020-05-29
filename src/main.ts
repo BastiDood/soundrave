@@ -15,7 +15,6 @@ import noCache from 'nocache';
 
 // GLOBALS
 import { cacheDB, sessionDB } from './globals/db';
-import { env } from './globals/env';
 
 // ROUTES
 import { coreHandler, errorHandler } from './routes';
@@ -49,7 +48,7 @@ app
 app.use(compression({ level: 9 }));
 
 // Parse signed cookies
-app.use(cookieParser(env.COOKIE_SECRET));
+app.use(cookieParser());
 
 // Activate security headers
 app

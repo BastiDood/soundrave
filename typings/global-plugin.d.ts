@@ -20,10 +20,7 @@ declare global {
   namespace Express {
     interface Request {
       session: ValidSessionObject|LoginSessionObject|null;
-      signedCookies: {
-        sid?: string;
-        mode?: string;
-      };
+      cookies: { sid?: string; };
       user: UserObject|null;
     }
   }
