@@ -1,29 +1,9 @@
 /* Display */
 .block { display: block; }
-.flex, .flex-column { display: flex; }
 .grid { display: grid; }
 
-/* Flexbox */
-.flex-column { flex-direction: column; }
-.centered {
-  align-items: center;
-  align-content: center;
-  justify-content: center;
-}
+/* Reset */
+.m0 { margin: 0; }
 
-/* Dimensions */
-.height-50v { height: 50vh; }
-.height-100v { height: 100vh; }
-
-/* Margin */
-.m1 { margin: 1rem; }
-.m1-lr { margin: 0 1rem; }
-.m2-t { margin-top: 2rem; }
-.m2-b { margin-bottom: 2rem; }
-.m2-tb { margin: 2rem 0; }
-
-/* Corners */
-.rounded-3 { border-radius: 3rem; }
-
-/* Text */
+/* Text Center */
 .txt-center { text-align: center; }

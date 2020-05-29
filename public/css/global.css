@@ -8,7 +8,7 @@
   --ui-main-font: 'Fira Sans';
   --ui-header-font: 'Lexend Deca';
   --ui-main-font-color: #fff;
-  --ui-back-font-color: #888;
+  --ui-back-font-color: #111;
 }
 
 /* Global Styles */
@@ -19,6 +19,7 @@
 html, body {
   margin: 0;
   padding: 0;
+  height: 100vh;
   cursor: default;
   background-color: var(--main-bg-color);
 }

@@ -1,29 +1,43 @@
-#login {
-  width: 90vw;
-  background-color: #08323d;
+body {
+  display: grid;
+  grid-template-rows: min-content 9fr;
 }
 
-#login > h1 {
-  font-size: 2rem;
+nav {
+  display: grid;
+  align-items: center;
+  background-color: var(--ui-back-font-color);
 }
 
-#login > p {
+nav > p {
+  padding: 0.5rem;
+  color: #fff;
   font-size: 1.25rem;
 }
 
-#login > button {
-  width: 90%;
-  border: 0;
-  padding: 0.75rem;
-  border-radius: 1.5rem / 50%;
-
-  background-color: #fff;
-  font-size: 1.25rem;
-  
-  transition: background-color 0.1s linear;
+main {
+  align-items: center;
 }
 
-#login > button:hover {
-  cursor: pointer;
-  background-color: #aaa;
+#banner {
+  display: grid;
+  grid-template-rows: repeat(3, min-content);
+  align-items: center;
+  background-color: var(--back-bg-color);
+}
+
+#banner > h1 {
+  font-size: 1.75rem;
+}
+
+#banner > button {
+  margin: 0 7.5%;
+  padding: 0.5rem;
+  border: 0.25rem solid var(--ui-back-font-color);
+  border-radius: 1.25rem / 50%;
+  font-size: 1.25rem;
+}
+
+#banner > p {
+  font-size: 1rem;
 }
