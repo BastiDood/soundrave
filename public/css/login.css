@@ -1,18 +1,5 @@
 body {
-  display: grid;
-  grid-template-rows: min-content 9fr;
-}
-
-nav {
-  display: grid;
-  align-items: center;
-  background-color: var(--ui-back-font-color);
-}
-
-nav > p {
-  padding: 0.5rem;
-  color: #fff;
-  font-size: 1.25rem;
+  grid-template-rows: min-content 1fr;
 }
 
 main {
