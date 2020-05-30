@@ -8,7 +8,6 @@ declare global {
   namespace Render {
     interface HomeContext {
       layout: 'home';
-      isLoggedIn: boolean;
     }
 
     interface TimelineContext {

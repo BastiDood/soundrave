@@ -32,10 +32,8 @@ const defaultCookieOptions: express.CookieOptions = {
 };
 
 router
-  .get('/', (req, res) => {
-    const isLoggedIn = Boolean(req.session && 'userID' in req.session);
-    res.render('index', { layout: 'home', isLoggedIn } as Render.HomeContext);
-  })
+  // @ts-expect-error
+  .get('/', (req, res) => res.render('index', { layout: 'home' } as Render.HomeContext))
   // TODO: Set a timeout for stalling requests
   .get('/timeline', async (req, res, next) => {
     // Shorthand for session object

@@ -19,10 +19,10 @@
 html, body {
   margin: 0;
   padding: 0;
-  height: 100vh;
   cursor: default;
   background-color: var(--main-bg-color);
 }
 h1, h2, h3, h4, h5, h6 {
+  margin: 0;
   font-family: var(--ui-header-font);
 }

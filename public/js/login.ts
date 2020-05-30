@@ -1,7 +1,3 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const el_butt = document.getElementsByTagName('button')[0];
-  if (el_butt)
-    el_butt.addEventListener('click', () => {
-      window.location.href = el_butt.dataset.href!;
-    });
+  console.log('TODO: implementation for side drawer');
 }, { once: true, passive: true });

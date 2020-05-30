@@ -1,11 +1,12 @@
 nav {
-  display: grid;
+  display: flex;
   align-items: center;
   background-color: var(--ui-back-font-color);
 }
 
-nav > p {
-  padding: 0.5rem;
-  color: #fff;
+nav > a {
+  padding: 0.75rem;
+  color: var(--ui-main-font-color);
   font-size: 1.25rem;
+  text-decoration: none;
 }
