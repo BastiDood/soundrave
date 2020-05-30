@@ -4,10 +4,16 @@ body {
 }
 
 #banner {
-  padding: 1.25rem;
-  display: grid;
-  grid-row-gap: 1.25rem;
+  max-height: calc(100% - 2rem);
+  padding: 1rem 2rem 2rem 2rem;
+  justify-content: center;
+  grid-template-columns: minmax(auto, 400px);
+  grid-row-gap: 1rem;
   background-color: var(--back-bg-color);
+}
+
+#banner > * {
+  transform: translateY(50%);
 }
 
 #banner > h1 {
