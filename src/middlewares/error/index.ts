@@ -1,3 +1,4 @@
+import { handleFirstPullErrors } from './handleFirstPullErrors';
 import { handleReleaseRetrievalErrors } from './handleReleaseRetrievalErrors';
 
-export { handleReleaseRetrievalErrors };
+export { handleFirstPullErrors, handleReleaseRetrievalErrors };

@@ -2,12 +2,16 @@
 import express from 'express';
 
 // MIDDLEWARES
-import { handleReleaseRetrievalErrors } from '../middlewares/error';
+import {
+  handleFirstPullErrors,
+  handleReleaseRetrievalErrors,
+} from '../middlewares/error';
 
 // GLOBAL VARIABLES
 const router = express.Router();
 
 router
-  .use(handleReleaseRetrievalErrors);
+  .use(handleReleaseRetrievalErrors)
+  .use(handleFirstPullErrors);
 
 export { router as errorHandler };

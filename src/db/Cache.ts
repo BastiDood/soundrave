@@ -1,11 +1,15 @@
+// NODE CORE IMPORTS
+import { strict as assert } from 'assert';
+
 // MODELS
 import { User, Artist, Release } from './models';
 
 export class Cache {
   static async upsertUserObject(user: UserObject): Promise<void> {
-    await User
+    const result = await User
       .findByIdAndUpdate(user._id, user, { upsert: true })
       .exec();
+    assert(result);
   }
 
   static async upsertManyUserObjects(users: UserObject[]): Promise<void> {
@@ -22,10 +26,18 @@ export class Cache {
     await User.bulkWrite(operations, { ordered: false });
   }
 
+  static async deleteUserObject({ _id }: UserObject): Promise<void> {
+    const result = await User
+      .findByIdAndDelete(_id)
+      .exec();
+    assert(result);
+  }
+
   static async upsertArtistObject(artist: ArtistObject): Promise<void> {
-    await Artist
+    const result = await Artist
       .findByIdAndUpdate(artist._id, artist, { upsert: true })
       .exec();
+    assert(result);
   }
 
   static async upsertManyArtistObjects(artists: ArtistObject[]): Promise<void> {
@@ -43,9 +55,10 @@ export class Cache {
   }
 
   static async upsertReleaseObject(release: NonPopulatedReleaseObject): Promise<void> {
-    await Release
+    const result = await Release
       .findByIdAndUpdate(release._id, release, { upsert: true })
       .exec();
+    assert(result);
   }
 
   static async upsertManyReleaseObjects(releases: NonPopulatedReleaseObject[]): Promise<void> {
@@ -91,27 +104,31 @@ export class Cache {
   }
 
   static async updateUserProfile({ _id, profile }: UserObject): Promise<void> {
-    await User
+    const result = await User
       .findByIdAndUpdate(_id, { $set: { profile } })
       .exec();
+    assert(result);
   }
 
   static async updateJobStatusForUser({ _id, job }: UserObject): Promise<void> {
-    await User
+    const result = await User
       .findByIdAndUpdate(_id, { $set: { job } })
       .exec();
+    assert(result);
   }
 
   static async updateFollowedArtistsByUserObject({ _id, followedArtists }: UserObject): Promise<void> {
-    await User
+    const result = await User
       .findByIdAndUpdate(_id, { $set: { followedArtists } })
       .exec();
+    assert(result);
   }
 
   static async updateFollowedArtistsByID(id: string, followedArtists: FollowedArtistsInfo): Promise<void> {
-    await User
+    const result = await User
       .findByIdAndUpdate(id, { $set: { followedArtists } })
       .exec();
+    assert(result);
   }
 
   static async updateManyRetrievalDatesForArtists(artists: ArtistObject[]): Promise<void> {

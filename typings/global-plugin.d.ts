@@ -2,6 +2,7 @@ import 'express';
 
 type OAuthError = import('../src/errors/OAuthError').OAuthError;
 type SpotifyAPIError = import('../src/errors/SpotifyAPIError').SpotifyAPIError;
+type API_ERROR_TYPES = import('../src/errors/ErrorTypes').API_ERROR_TYPES;
 
 declare global {
   namespace Render {
@@ -14,6 +15,10 @@ declare global {
       releases: PopulatedReleaseObject[];
       user: UserObject;
       highestSeverityError?: OAuthError|SpotifyAPIError;
+    }
+
+    interface ErrorContext {
+      error: OAuthError|SpotifyAPIError;
     }
   }
 
