@@ -9,4 +9,9 @@ nav > a {
   color: var(--ui-main-font-color);
   font-size: 1.25rem;
   text-decoration: none;
+  transition: background-color 0.3s;
+}
+
+nav > a:hover {
+  color: #ccc;
 }
