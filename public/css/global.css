@@ -1,14 +1,15 @@
 /* Global Variables */
 :root {
   /** Themes */
-  --prim-theme-color: #2f3e42;
-  --scnd-theme-color: #2c5250;
+  --prim-theme-color: #2f3942;
+  --scnd-theme-color: #2c4a52;
   --alt-theme-color: #111;
 
   /** Fonts */
   --ui-header-font: 'Lexend Deca';
   --ui-main-font: 'Fira Sans';
   --ui-main-font-color: #fff;
+  --ui-fade-font-color: #b1fff8;
 
   /* Shadow/Depth */
   --depth-1: 0 4px 8px 0 rgba(0, 0, 0, 0.15), 0 2px 2px 0 rgba(0, 0, 0, 0.5);

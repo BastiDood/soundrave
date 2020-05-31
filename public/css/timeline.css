@@ -11,6 +11,7 @@ main {
 
 .card {
   padding: 0.75rem;
+  border-radius: 1rem;
   background-color: var(--scnd-theme-color);
   grid-template-rows: max-content;
   grid-template-areas:
@@ -18,12 +19,13 @@ main {
     'icon'
     'details'
     'date';
-  grid-row-gap: 0.25rem;
+  grid-row-gap: 0.5rem;
   box-shadow: var(--depth-1);
 }
 
 .card > img {
   width: 100%;
+  border-radius: inherit;
   max-height: 100%;
   object-fit: cover;
   grid-area: image;
@@ -36,8 +38,8 @@ main {
 
 .icon {
   grid-area: icon;
-  align-self: start;
-  color: var(--ui-main-font-color);
+  align-self: center;
+  color: var(--ui-fade-font-color);
 }
 
 .details { grid-area: details; }
@@ -49,7 +51,7 @@ main {
 .date {
   grid-area: date;
   align-self: end;
-  color: var(--ui-main-font-color)
+  color: var(--ui-fade-font-color)
 }
 
 .icon, .date { text-align: right; }
@@ -58,6 +60,7 @@ main {
   and (max-width: 435px) {
     .card {
       grid-template-columns: 1fr 2fr;
+      align-items: center;
       grid-template-areas:
         'image icon'
         'image details'
