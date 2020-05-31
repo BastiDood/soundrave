@@ -1,3 +1,8 @@
+body {
+  grid-template-rows: min-content;
+  grid-auto-rows: 1fr;
+}
+
 main {
   margin: 0.75rem;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -7,13 +12,14 @@ main {
 .card {
   padding: 0.75rem;
   background-color: var(--scnd-theme-color);
-  align-items: center;
+  grid-template-rows: max-content;
   grid-template-areas:
     'image'
     'icon'
     'details'
     'date';
   grid-row-gap: 0.25rem;
+  box-shadow: var(--depth-1);
 }
 
 .card > img {
@@ -31,7 +37,7 @@ main {
 .icon {
   grid-area: icon;
   align-self: start;
-  color: var(--alt-theme-color);
+  color: var(--ui-main-font-color);
 }
 
 .details { grid-area: details; }
@@ -43,7 +49,7 @@ main {
 .date {
   grid-area: date;
   align-self: end;
-  color: var(--alt-theme-color);
+  color: var(--ui-main-font-color)
 }
 
 .icon, .date { text-align: right; }

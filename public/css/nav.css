@@ -1,4 +1,7 @@
 nav {
+  -webkit-position: sticky;
+  position: sticky;
+  top: 0;
   display: flex;
   align-items: center;
   background-color: var(--alt-theme-color);
