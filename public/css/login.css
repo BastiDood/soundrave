@@ -1,22 +1,19 @@
-body {
-  grid-template-rows: min-content;
-  grid-auto-rows: auto;
-}
-
 #banner {
-  --spacing: 2rem;
-  max-height: calc(100% - var(--spacing));
-  padding: var(--spacing) 1.5rem;
-  justify-content: center;
-  grid-template-columns: minmax(auto, 400px);
+  height: 40vh;
+  align-content: center;
   background-color: var(--back-bg-color);
 }
 
-#banner > h1 {
-  font-size: 1.75rem;
+#banner > h1 { font-size: 1.75rem; }
+#banner > p { font-size: 1rem; }
+
+#floating-button {
+  grid-template-columns: minmax(auto, 400px);
+  justify-content: center;
 }
 
-#banner > a {
+#floating-button > a {
+  transform: translateY(-50%);
   padding: 0.5rem 0;
   border: 0.25rem solid currentcolor;
   border-radius: 1.25rem / 50%;
@@ -24,19 +21,13 @@ body {
   color: var(--ui-back-font-color);
   background-color: var(--ui-main-font-color);
   text-decoration: none;
-  transform-origin: center;
-  transform: translateY(50%);
   z-index: 2;
   box-shadow: var(--depth-1);
   transition: all 0.1s;
 }
 
-#banner > a:hover {
-  transform: translateY(50%) scale(1.05);
+#floating-button > a:hover {
+  transform: translateY(-50%) scale(1.05);
   background-color: #ccc;
   box-shadow: var(--depth-2);
-}
-
-#banner > p {
-  font-size: 1rem;
 }
