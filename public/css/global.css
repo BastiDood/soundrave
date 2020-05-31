@@ -1,18 +1,18 @@
 /* Global Variables */
 :root {
   /** Themes */
-  --main-bg-color: #2f3e42;
-  --back-bg-color: #2c5250;
-  
+  --prim-theme-color: #2f3e42;
+  --scnd-theme-color: #2c5250;
+  --alt-theme-color: #111;
+
   /** Fonts */
   --ui-header-font: 'Lexend Deca';
   --ui-main-font: 'Fira Sans';
   --ui-main-font-color: #fff;
-  --ui-back-font-color: #111;
-  
+
   /* Shadow/Depth */
   --depth-1: 0 4px 8px 0 rgba(0, 0, 0, 0.15), 0 2px 2px 0 rgba(0, 0, 0, 0.5);
-  --depth-2: 0 4px 8px 2px rgba(0, 0, 0, 0.15), 0 2px 2px 2px rgba(0, 0, 0, 0.2);
+  --depth-2: 0 6px 12px 4px rgba(0, 0, 0, 0.15), 0 2px 4px 0 rgba(0, 0, 0, 0.5);
 }
 
 /* Global Styles */
@@ -24,7 +24,7 @@ html, body {
   margin: 0;
   padding: 0;
   cursor: default;
-  background-color: var(--main-bg-color);
+  background-color: var(--prim-theme-color);
 }
 h1, h2, h3, h4, h5, h6 {
   margin: 0;

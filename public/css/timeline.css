@@ -6,7 +6,7 @@ main {
 
 .card {
   padding: 0.75rem;
-  background-color: var(--back-bg-color);
+  background-color: var(--scnd-theme-color);
   align-items: center;
   grid-template-areas:
     'image'
@@ -31,7 +31,7 @@ main {
 .icon {
   grid-area: icon;
   align-self: start;
-  color: var(--ui-back-font-color);
+  color: var(--alt-theme-color);
 }
 
 .details { grid-area: details; }
@@ -43,7 +43,7 @@ main {
 .date {
   grid-area: date;
   align-self: end;
-  color: var(--ui-back-font-color);
+  color: var(--alt-theme-color);
 }
 
 .icon, .date { text-align: right; }

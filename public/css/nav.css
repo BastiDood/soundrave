@@ -1,7 +1,8 @@
 nav {
   display: flex;
   align-items: center;
-  background-color: var(--ui-back-font-color);
+  background-color: var(--alt-theme-color);
+  box-shadow: var(--depth-1);
 }
 
 nav > a {
