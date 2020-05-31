@@ -1,5 +1,6 @@
 #banner {
   height: 40vh;
+  grid-row-gap: 1rem;
   align-content: center;
   background-color: var(--back-bg-color);
 }
@@ -8,7 +9,8 @@
 #banner > p { font-size: 1rem; }
 
 #floating-button {
-  grid-template-columns: minmax(auto, 400px);
+  margin: 0 1rem;
+  grid-template-columns: minmax(auto, calc(400px + 1rem));
   justify-content: center;
 }
 
@@ -17,13 +19,13 @@
   padding: 0.5rem 0;
   border: 0.25rem solid currentcolor;
   border-radius: 1.25rem / 50%;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   color: var(--ui-back-font-color);
   background-color: var(--ui-main-font-color);
   text-decoration: none;
   z-index: 2;
   box-shadow: var(--depth-1);
-  transition: all 0.1s;
+  transition: all 0.2s;
 }
 
 #floating-button > a:hover {
