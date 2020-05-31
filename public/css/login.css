@@ -10,8 +10,8 @@ main {
   background-color: var(--scnd-theme-color);
 }
 
-#banner > h1 { font-size: 1.75rem; }
-#banner > p { font-size: 1rem; }
+header > h1 { font-size: 1.75rem; }
+header > p { font-size: 1rem; }
 
 #floating-button {
   margin: 0 1rem;
@@ -20,7 +20,7 @@ main {
 }
 
 #floating-button > a {
-  transform: translateY(-50%);
+  transform: translateZ(0) translateY(-50%);
   padding: 0.5rem 0;
   border: 0.25rem solid currentcolor;
   border-radius: 1.25rem / 50%;
@@ -30,11 +30,11 @@ main {
   text-decoration: none;
   z-index: 2;
   box-shadow: var(--depth-1);
+  backface-visibility: hidden;
   transition: all 0.2s;
 }
 
 #floating-button > a:hover {
-  transform: translateY(-50%) scale(1.05);
-  background-color: #ccc;
+  transform: translateZ(0) translateY(-50%) scale(1.05);
   box-shadow: var(--depth-2);
 }
