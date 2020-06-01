@@ -21,7 +21,8 @@
   box-sizing: border-box;
   font-family: var(--ui-header-font), sans-serif;
 }
-html, body {
+body {
+  display: grid;
   margin: 0;
   padding: 0;
   cursor: default;

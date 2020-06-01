@@ -1,8 +1,3 @@
-body {
-  grid-template-rows: min-content;
-  grid-auto-rows: 1fr;
-}
-
 main {
   display: grid;
   margin: 0.75rem;
@@ -39,26 +34,27 @@ main {
   font-size: 0.75rem;
 }
 
-.icon {
+.card__icon {
   grid-area: icon;
   align-self: center;
   color: var(--ui-fade-font-color);
 }
 
-.details { grid-area: details; }
-.details > a {
+.card__details { grid-area: details; }
+.card__details > a {
   font-size: 0.75rem;
   color: var(--ui-main-font-color);
   text-decoration: none;
 }
+.card__details > a:hover { text-decoration: underline; }
 
-.date {
+.card__date {
   grid-area: date;
   align-self: end;
   color: var(--ui-fade-font-color)
 }
 
-.icon, .date { text-align: right; }
+.card__icon, .card__date { text-align: right; }
 
 @media only screen
   and (max-width: 435px) {
