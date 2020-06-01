@@ -1,8 +1,8 @@
 <!-- Render the release timeline -->
-<main class="grid">
+<main>
   {{#if releases}}
     {{#each releases}}
-      <div class="grid card">
+      <div class="card">
         {{responsiveImage this.title this.images}}
         <p class="icon">{{ this.albumType }}</p>
         <div class="details">

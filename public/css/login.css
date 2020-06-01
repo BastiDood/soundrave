@@ -1,8 +1,11 @@
 main {
+  display: grid;
   height: 50vh;
   grid-template-rows: 1fr;
   grid-auto-rows: min-content;
 }
+
+main > * { display: grid; }
 
 #banner {
   grid-row-gap: 1rem;

@@ -1,4 +1,5 @@
 nav {
+  display: grid;
   -webkit-position: sticky;
   position: sticky;
   top: 0;
