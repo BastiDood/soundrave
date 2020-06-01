@@ -11,6 +11,7 @@ nav {
 
 nav > div {
 	display: flex;
+  padding: 0 0.75rem;
 }
 
 nav > div:last-child {
@@ -26,6 +27,7 @@ nav a {
   transition: background-color 0.3s;
 }
 
-nav > div > a:hover {
-  color: #ccc;
-}
+nav > div > a:hover { color: var(--ui-fade-font-color); }
+nav > div > svg { cursor: pointer; }
+nav > div > svg > rect { transition: fill 0.3s; }
+nav > div > svg:hover > rect { fill: var(--ui-fade-font-color); }
