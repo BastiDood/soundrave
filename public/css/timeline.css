@@ -13,7 +13,7 @@ main {
 .card {
   display: grid;
   padding: 0.75rem;
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   background-color: var(--scnd-theme-color);
   grid-template-rows: max-content;
   grid-template-areas:
@@ -26,6 +26,7 @@ main {
 }
 
 .card > img {
+  display: block;
   width: 100%;
   border-radius: inherit;
   max-height: 100%;
