@@ -2,13 +2,22 @@ nav {
   -webkit-position: sticky;
   position: sticky;
   top: 0;
-  display: flex;
-  align-items: center;
+  grid-template-columns: min-content 1fr;
+  grid-auto-flow: column;
   background-color: var(--alt-theme-color);
   box-shadow: var(--depth-1);
 }
 
-nav > a {
+nav > div {
+	display: flex;
+}
+
+nav > div:last-child {
+  justify-self: end;
+}
+
+nav a {
+  display: block;
   padding: 0.75rem;
   color: var(--ui-main-font-color);
   font-size: 1.25rem;
@@ -16,6 +25,6 @@ nav > a {
   transition: background-color 0.3s;
 }
 
-nav > a:hover {
+nav > div > a:hover {
   color: #ccc;
 }

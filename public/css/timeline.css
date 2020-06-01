@@ -46,6 +46,7 @@ main {
 .details > a {
   font-size: 0.75rem;
   color: var(--ui-main-font-color);
+  text-decoration: none;
 }
 
 .date {
