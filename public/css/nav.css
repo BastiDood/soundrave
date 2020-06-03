@@ -10,9 +10,11 @@ nav {
 }
 
 nav > div {
-	display: flex;
+  display: flex;
   padding: 0 0.75rem;
 }
+
+nav > div > * { margin: auto; }
 
 nav > div:last-child {
   justify-self: end;
