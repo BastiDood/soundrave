@@ -15,10 +15,7 @@ nav > div {
 }
 
 nav > div > * { margin: auto; }
-
-nav > div:last-child {
-  justify-self: end;
-}
+nav > div:last-child { justify-self: end; }
 
 nav a {
   display: block;
