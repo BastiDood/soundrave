@@ -42,7 +42,7 @@ router
     // Deflect all users that have not been logged in
     if (!session || 'loginNonce' in session) {
       console.log('Received a user that is not logged in.');
-      res.redirect('/');
+      res.redirect('/login');
       return;
     }
 
