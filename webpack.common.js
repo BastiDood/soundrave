@@ -76,6 +76,7 @@ const node = {
       patterns: [
         { from: path.join(SRC_DIR, 'views'), to: path.join(OUTPUT_DIR, 'server/views') },
         { from: path.join(PUBLIC_DIR, 'css'), to: path.join(OUTPUT_DIR, 'public/css') },
+        { from: path.join(PUBLIC_DIR, 'svg'), to: path.join(OUTPUT_DIR, 'public/svg') },
       ],
     }),
   ],
