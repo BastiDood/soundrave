@@ -29,4 +29,5 @@ nav a {
 nav > div > img {
   height: 100%;
   width: auto;
+  color: var(--ui-main-font-color);
 }

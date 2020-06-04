@@ -1,10 +1,4 @@
-main {
-  display: grid;
-  margin: 0.75rem;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  grid-gap: 0.75rem;
-}
-
+/*
 .card {
   display: grid;
   padding: 0.75rem;
@@ -67,4 +61,37 @@ main {
         'image date';
       grid-column-gap: 0.75rem;
     }
+}
+*/
+main {
+  display: grid;
+  margin: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-gap: 0.75rem;
+}
+
+article.card {
+  display: grid;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background-color: var(--scnd-theme-color);
+}
+
+article.card > section {
+  position: relative;
+  display: grid;
+}
+
+section.card__preview > a > img {
+  width: 100%;
+  border-radius: 0.75rem;
+  object-fit: contain;
+}
+
+section.card__preview > a > img:first-child {
+  position: absolute;
+  top: 3%;
+  right: 3%;
+  width: 15%;
+  filter: drop-shadow(2px 2px 1px rgba(0, 0, 0, 0.75));
 }

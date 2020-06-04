@@ -17,18 +17,20 @@
 }
 
 /* Global Styles */
-* {
-  box-sizing: border-box;
-  font-family: var(--ui-header-font), sans-serif;
-}
+* { box-sizing: border-box; }
+
 body {
   display: grid;
-  margin: 0;
-  padding: 0;
   cursor: default;
+  padding: 0;
   background-color: var(--prim-theme-color);
 }
-h1, h2, h3, h4, h5, h6 {
+
+body, h1, h2, h3, h4, h5, h6, p, a {
+  display: block;
   margin: 0;
-  font-family: var(--ui-header-font);
+  color: var(--ui-main-font-color);
+  font-family: var(--ui-header-font), sans-serif;
+  text-decoration: none;
 }
+
