@@ -11,7 +11,10 @@ main {
   background-color: var(--scnd-theme-color);
   grid-template-columns: 1fr 3fr;
   grid-column-gap: 0.75rem;
+  align-items: center;
 }
+
+.card a, .card p { font-size: 1.25rem; }
 
 .card > section {
   position: relative;
@@ -24,19 +27,20 @@ main {
   border-radius: 0.75rem;
 }
 
-.card__preview img:first-child {
-  position: absolute;
-  top: 3%;
-  right: 3%;
-  width: 15%;
-  filter: drop-shadow(2px 2px 1px rgba(0, 0, 0, 0.75));
-}
+.card__preview img:first-child { display: none; }
 
 .card__details {
   justify-items: start;
   align-content: space-around;
   grid-row-gap: 0.5rem;
 }
+
+.card__details > img {
+  display: block;
+  height: 1.25rem;
+}
+
+.card__details > img, .card__details > p:last-child { justify-self: end; }
 
 .card__details a:hover { text-decoration: underline; }
 
@@ -52,4 +56,15 @@ main {
     }
     
     .card__details { align-content: space-between; }
+    
+    .card__details > img { display: none; }
+    
+    .card__preview img:first-child {
+      display: block;
+      position: absolute;
+      top: 3%;
+      right: 3%;
+      width: 15%;
+      filter: drop-shadow(2px 2px 1px rgba(0, 0, 0, 0.75));
+    }
 }

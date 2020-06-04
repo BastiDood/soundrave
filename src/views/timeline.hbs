@@ -10,6 +10,7 @@
           </a>
         </section>
         <section class="card__details">
+          <img src="svg/{{ this.albumType }}.svg" alt="{{ this.albumType }} icon" />
           {{spotifyLink 'album' this._id this.title}}
           {{#each artists}}
             {{spotifyLink 'artist' this._id this.name}}
