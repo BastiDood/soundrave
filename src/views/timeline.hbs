@@ -1,26 +1,4 @@
 <!-- Render the release timeline -->
-<!--
-<main>
-  {{#if releases}}
-    {{#each releases}}
-      <div class="card">
-        {{responsiveImage this.title this.images}}
-        <p class="card__icon">{{ this.albumType }}</p>
-        <div class="card__details">
-          {{spotifyLink 'album' this._id this.title}}
-          <br />
-          {{#each artists}}
-            {{spotifyLink 'artist' this._id this.name}}
-          {{/each}}
-        </div>
-        <p class="card__date">{{formatDate this.datePrecision this.releaseDate}}</p>
-      </div>
-    {{/each}}
-  {{else}}
-    No releases found. This is probably because you haven't followed any artist on Spotify yet.
-  {{/if}}
-</main>
--->
 <main>
   {{#if releases}}
     {{#each releases}}

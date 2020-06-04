@@ -1,73 +1,6 @@
-/*
-.card {
-  display: grid;
-  padding: 0.75rem;
-  border-radius: 0.75rem;
-  background-color: var(--scnd-theme-color);
-  grid-template-rows: max-content;
-  grid-template-areas:
-    'image'
-    'icon'
-    'details'
-    'date';
-  grid-row-gap: 0.5rem;
-  box-shadow: var(--depth-1);
-}
-
-.card > img {
-  display: block;
-  width: 100%;
-  border-radius: inherit;
-  max-height: 100%;
-  object-fit: cover;
-  grid-area: image;
-}
-
-.card > p {
-  margin: 0;
-  font-size: 0.75rem;
-}
-
-.card__icon {
-  grid-area: icon;
-  align-self: center;
-  color: var(--ui-fade-font-color);
-}
-
-.card__details { grid-area: details; }
-.card__details > a {
-  font-size: 0.75rem;
-  color: var(--ui-main-font-color);
-  text-decoration: none;
-}
-.card__details > a:hover { text-decoration: underline; }
-
-.card__date {
-  grid-area: date;
-  align-self: end;
-  color: var(--ui-fade-font-color)
-}
-
-.card__icon, .card__date { text-align: right; }
-
-@media only screen
-  and (max-width: 435px) {
-    .card {
-      grid-template-columns: 1fr 2fr;
-      align-items: center;
-      grid-template-areas:
-        'image icon'
-        'image details'
-        'image date';
-      grid-column-gap: 0.75rem;
-    }
-}
-*/
-
 main {
   display: grid;
   margin: 0.75rem;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   grid-gap: 0.75rem;
 }
 
@@ -76,8 +9,8 @@ main {
   padding: 0.75rem;
   border-radius: 0.75rem;
   background-color: var(--scnd-theme-color);
-  grid-template-rows: min-content 1fr;
-  grid-row-gap: 0.5rem;
+  grid-template-columns: 1fr 3fr;
+  grid-column-gap: 0.75rem;
 }
 
 .card > section {
@@ -85,13 +18,13 @@ main {
   display: grid;
 }
 
-.card__preview > a > img {
+.card__preview img {
   display: block;
   width: 100%;
   border-radius: 0.75rem;
 }
 
-.card__preview > a > img:first-child {
+.card__preview img:first-child {
   position: absolute;
   top: 3%;
   right: 3%;
@@ -101,6 +34,22 @@ main {
 
 .card__details {
   justify-items: start;
-  align-content: space-between;
+  align-content: space-around;
   grid-row-gap: 0.5rem;
+}
+
+.card__details a:hover { text-decoration: underline; }
+
+@media only screen
+  and (min-width: 435px) {
+    main { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+    
+    .card {
+      grid-template-columns: initial;
+      grid-column-gap: initial;
+      grid-template-rows: min-content 1fr;
+      grid-row-gap: 0.75rem;
+    }
+    
+    .card__details { align-content: space-between; }
 }
