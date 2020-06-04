@@ -24,7 +24,7 @@
 <main>
   {{#if releases}}
     {{#each releases}}
-      <article class="card">
+      <article class="card clickable">
         <section class="card__preview">
           <a href="https://open.spotify.com/album/{{ this._id }}" title="{{ this.title }}" rel="noreferrer" target="_blank">
             <img src="svg/{{ this.albumType }}.svg" alt="{{ this.albumType }} icon" />

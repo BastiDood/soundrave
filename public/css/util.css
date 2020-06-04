@@ -3,3 +3,25 @@
 
 /* Text Center */
 .txt-center { text-align: center; }
+
+/* Hoverables */
+.clickable {
+  box-shadow: var(--depth-1);
+  transition: all 0.2s;
+}
+
+.clickable:hover {
+  transform: scale(1.05);
+  box-shadow: var(--depth-2);
+}
+
+.clickable:active {
+  transform: scale(1);
+  box-shadow: var(--depth-1);
+}
+
+/* This is a hack to **reduce** blurriness when scaling text. */
+.clickable a, .clickable p {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}

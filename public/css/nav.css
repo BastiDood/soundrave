@@ -7,6 +7,7 @@ nav {
   grid-auto-flow: column;
   background-color: var(--alt-theme-color);
   box-shadow: var(--depth-1);
+  z-index: 1;
 }
 
 nav > div {
