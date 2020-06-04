@@ -41,8 +41,8 @@ main {
 .card__details a:hover { text-decoration: underline; }
 
 @media only screen
-  and (min-width: 435px) {
-    main { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  and (min-width: 450px) {
+    main { grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); }
     
     .card {
       grid-template-columns: initial;
