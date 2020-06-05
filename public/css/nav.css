@@ -13,7 +13,6 @@ nav {
 nav > div {
   display: flex;
   align-items: center;
-  padding: 0 0.75rem;
 }
 
 nav > div:last-child { justify-self: end; }
@@ -28,7 +27,13 @@ nav a {
 }
 
 nav > div > img {
+  display: block;
   height: 100%;
   width: auto;
   color: var(--ui-main-font-color);
+}
+
+@media only screen
+  and (min-width: 500px) {
+    nav > div > img { display: none; }
 }

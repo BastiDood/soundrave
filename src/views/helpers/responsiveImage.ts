@@ -13,9 +13,10 @@ export function responsiveImage(alt: string, images: SpotifyApi.ImageObject[]): 
   return new SafeString(`<img
     src="${fallback.url}"
     srcset="${srcSet.join(',')}"
-    sizes="(min-width: 500px) 300px,
-      (min-width: 5000px) 640px,
-      100px"
+    sizes="(min-width: 200px) 200px,
+      (min-width: 5000px) 600px,
+      60px"
     alt="${alt}"
+    loading="lazy"
   />`);
 }
