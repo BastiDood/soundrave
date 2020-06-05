@@ -28,7 +28,10 @@ main {
   border-radius: 0.75rem;
 }
 
-.card__preview img:first-child { display: none; }
+.card__preview img:first-child {
+  display: none;
+  filter: brightness(0.8);
+}
 
 .card__details {
   justify-items: start;
@@ -39,6 +42,7 @@ main {
 .card__details > img {
   display: block;
   height: 1.25rem;
+  filter: brightness(0.8);
 }
 
 .card__details > img, .card__details > p:last-child { justify-self: end; }
@@ -64,6 +68,7 @@ main {
     .card__details > img {
       display: none;
       font-size: 1rem;
+      filter: brightness(0.8) drop-shadow(2px 2px 1px rgba(0, 0, 0, 0.75));
     }
 
     .card__preview img:first-child {
@@ -72,6 +77,6 @@ main {
       top: 3%;
       right: 3%;
       width: 15%;
-      filter: drop-shadow(2px 2px 1px rgba(0, 0, 0, 0.75));
+      filter: brightness(0.8) drop-shadow(2px 2px 1px rgba(0, 0, 0, 0.75));
     }
 }
