@@ -15,7 +15,10 @@ nav > div {
   align-items: center;
 }
 
-nav > div:last-child { justify-self: end; }
+.profile-info {
+  display: none;
+  justify-self: end;
+}
 
 nav a {
   display: block;
@@ -26,15 +29,28 @@ nav a {
   transition: background-color 0.3s;
 }
 
-nav > div > img {
+.nav-links__hamburger {
   margin-left: 0.75rem;
   display: block;
-  height: 100%;
-  width: auto;
   color: var(--ui-main-font-color);
 }
 
+.profile-info__pic { display: none; }
+
 @media only screen
   and (min-width: 500px) {
-    nav > div > img { display: none; }
+    .profile-info {
+      display: grid;
+      grid-auto-flow: column;
+    }
+
+    .nav-links__hamburger { display: none; }
+
+    .profile-info__pic {
+      margin-right: 0.75rem;
+      border: 0.1rem solid var(--ui-fade-font-color);
+      border-radius: 50%;
+      height: 2rem;
+      display: block;
+    }
 }

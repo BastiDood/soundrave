@@ -1,9 +1,5 @@
 <!-- Render the release timeline -->
 <main>
-  <header class="user-info">
-    <img src="{{ user.profile.images.0.url }}"width="100" height="100" alt="Your Profile Picture" />
-    <p>Hello, {{ user.profile.name }}!</p>
-  </header>
   {{#if releases}}
     <div class="timeline">
       {{#each releases}}
