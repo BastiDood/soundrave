@@ -1,6 +1,15 @@
 main {
-  display: grid;
   margin: 0.75rem;
+  display: grid;
+  grid-row-gap: 0.75rem;
+}
+
+.user-info > img {
+  display: block;
+}
+
+.timeline {
+  display: grid;
   grid-gap: 0.75rem;
 }
 
@@ -51,7 +60,7 @@ main {
 
 @media only screen
   and (min-width: 500px) {
-    main { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+    div.timeline { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
 
     .card {
       grid-template-columns: initial;
