@@ -7,7 +7,7 @@
 /* Hoverables */
 .clickable {
   box-shadow: var(--depth-1);
-  transition: all 0.2s;
+  transition: transform 0.1s, box-shadow 0.1s;
 }
 
 .clickable:hover {
