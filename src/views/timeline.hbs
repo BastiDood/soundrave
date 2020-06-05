@@ -5,12 +5,12 @@
       <article class="card clickable">
         <section class="card__preview">
           <a href="https://open.spotify.com/album/{{ this._id }}" title="{{ this.title }}" rel="noreferrer" target="_blank">
-            <img src="svg/{{ this.albumType }}.svg" alt="{{ this.albumType }} icon" />
+            <img src="/svg/{{ this.albumType }}.svg" alt="{{ this.albumType }} icon" />
             {{responsiveImage this.title this.images}}
           </a>
         </section>
         <section class="card__details">
-          <img src="svg/{{ this.albumType }}.svg" alt="{{ this.albumType }} icon" />
+          <img src="/svg/{{ this.albumType }}.svg" alt="{{ this.albumType }} icon" />
           {{spotifyLink 'album' this._id this.title}}
           {{#each artists}}
             {{spotifyLink 'artist' this._id this.name}}
