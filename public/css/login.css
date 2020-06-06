@@ -11,6 +11,7 @@ main > * { display: grid; }
   grid-row-gap: 1rem;
   align-content: center;
   background-color: var(--scnd-theme-color);
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.5);
 }
 
 header > h1 { font-size: 1.75rem; }
@@ -22,7 +23,8 @@ header > p { font-size: 1rem; }
   justify-content: center;
 }
 
-#floating-button > a:link {
+#floating-button > a {
+  display: block;
   transform: translateZ(0) translateY(-50%);
   padding: 0.5rem 0;
   border: 0.25rem solid currentcolor;
@@ -46,3 +48,10 @@ header > p { font-size: 1rem; }
   transform: translateZ(0) translateY(-50%);
   box-shadow: var(--depth-1);
 }
+
+#beta-description { text-shadow: 0 2px 2px rgba(0, 0, 0, 0.5); }
+#beta-description > * { margin: 0.75rem; }
+#beta-description h1 { font-size: 2rem; }
+#beta-description p { font-size: 1.25rem; }
+#beta-description a { font-weight: bold; }
+#beta-description a:hover { text-decoration: underline; }
