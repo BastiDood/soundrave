@@ -31,10 +31,7 @@ nav a {
   transition: background-color 0.3s;
 }
 
-.nav-links__hamburger {
-  display: block;
-  height: 1.5rem;
-}
+.nav-links__hamburger { display: block; }
 .profile-info__pic { display: none; }
 
 @media only screen
