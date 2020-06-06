@@ -3,7 +3,7 @@ nav {
   -webkit-position: sticky;
   position: sticky;
   top: 0;
-  grid-template-columns: min-content 1fr min-content;
+  grid-template-columns: min-content 1fr max-content;
   grid-auto-flow: column;
   background-color: var(--alt-theme-color);
   box-shadow: var(--depth-1);
@@ -15,13 +15,6 @@ nav > div {
   align-items: center;
 }
 
-.nav-links { display: none; }
-
-.profile-info {
-  display: none;
-  justify-self: end;
-}
-
 nav a {
   display: block;
   padding: 0.75rem;
@@ -31,24 +24,28 @@ nav a {
   transition: background-color 0.3s;
 }
 
+.nav-links { display: none; }
 .nav-links__hamburger { display: block; }
-.profile-info__pic { display: none; }
+
+.profile-info { display: none; }
+.profile-info > a { padding: 0.75rem; }
+.profile-info__pic {
+  height: 100%;
+  border: 0.1rem solid var(--ui-fade-font-color);
+  border-radius: 50%;
+}
 
 @media only screen
   and (min-width: 825px) {
-    .profile-info {
+    .profile-info { display: block; }
+    .profile-info__pic { display: block; }
+
+    .profile-info > a {
       display: grid;
       grid-auto-flow: column;
-      align-items: center;
+      grid-column-gap: 0.75rem;
     }
 
     .nav-links { display: flex; }
     .nav-links__hamburger { display: none; }
-
-    .profile-info__pic {
-      border: 0.1rem solid var(--ui-fade-font-color);
-      border-radius: 50%;
-      height: 2rem;
-      display: block;
-    }
 }
