@@ -3,7 +3,7 @@ nav {
   -webkit-position: sticky;
   position: sticky;
   top: 0;
-  grid-template-columns: min-content 1fr;
+  grid-template-columns: min-content 1fr min-content;
   grid-auto-flow: column;
   background-color: var(--alt-theme-color);
   box-shadow: var(--depth-1);
@@ -14,6 +14,8 @@ nav > div {
   display: flex;
   align-items: center;
 }
+
+.nav-links { display: none; }
 
 .profile-info {
   display: none;
@@ -30,24 +32,23 @@ nav a {
 }
 
 .nav-links__hamburger {
-  margin-left: 0.75rem;
   display: block;
-  color: var(--ui-main-font-color);
+  height: 1.5rem;
 }
-
 .profile-info__pic { display: none; }
 
 @media only screen
-  and (min-width: 500px) {
+  and (min-width: 825px) {
     .profile-info {
       display: grid;
       grid-auto-flow: column;
+      align-items: center;
     }
 
+    .nav-links { display: flex; }
     .nav-links__hamburger { display: none; }
 
     .profile-info__pic {
-      margin-right: 0.75rem;
       border: 0.1rem solid var(--ui-fade-font-color);
       border-radius: 50%;
       height: 2rem;

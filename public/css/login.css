@@ -49,8 +49,16 @@ header > p { font-size: 1rem; }
   box-shadow: var(--depth-1);
 }
 
-#beta-description { text-shadow: 0 2px 2px rgba(0, 0, 0, 0.5); }
-#beta-description > * { margin: 0.75rem; }
+#beta-description {
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.5);
+  font-family: var(--ui-main-font);
+}
+
+#beta-description > * {
+  margin: 0.75rem;
+  font-family: inherit;
+}
+
 #beta-description h1 { font-size: 2rem; }
 #beta-description p { font-size: 1.25rem; }
 #beta-description a { font-weight: bold; }
