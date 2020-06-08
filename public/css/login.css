@@ -36,7 +36,7 @@ header > p { font-size: 1rem; }
   z-index: 2;
   box-shadow: var(--depth-1);
   backface-visibility: hidden;
-  transition: all 0.2s;
+  transition: all 0.1s;
 }
 
 #floating-button > a:hover {

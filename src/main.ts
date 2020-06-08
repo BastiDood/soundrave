@@ -113,4 +113,5 @@ async function init(): Promise<void> {
   console.log(`Server started at ${address}:${port}`);
 }
 
+console.log('Connecting to databases...');
 init().catch(console.error);

@@ -8,5 +8,5 @@ export function lerp(from: [ number, number ], to: [ number, number ]): (x: numb
   const fromRange = from[1] - from[0];
   const toRange = to[1] - to[0];
   const ratio = toRange / fromRange;
-  return x => (x - from[0]) * ratio + to[0];
+  return (x: number) => (x - from[0]) * ratio + to[0];
 }

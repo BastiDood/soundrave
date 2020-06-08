@@ -24,9 +24,12 @@ nav a {
   transition: background-color 0.3s;
 }
 
-.nav-links { display: none; }
-.nav-links__hamburger { display: block; }
+.nav-links {
+  position: static;
+  display: none;
+}
 
+.nav-links__hamburger { display: block; }
 .profile-info { display: none; }
 .profile-info > a { padding: 0.75rem; }
 .profile-info__pic {

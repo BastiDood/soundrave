@@ -13,7 +13,7 @@ const nodeModulesPattern = /node_modules/;
 
 const web = {
   context: PUBLIC_DIR,
-  entry: './js/login.ts',
+  entry: './js/nav.ts',
   target: 'web',
   module: {
     rules: [
@@ -25,9 +25,12 @@ const web = {
         exclude: nodeModulesPattern,
       },
       {
-        test: /(?<!\.test)\.ts$/,
+        test: /\.ts$/,
         use: 'ts-loader',
-        include: PUBLIC_DIR,
+        include: [
+          PUBLIC_DIR,
+          path.join(SRC_DIR, 'util'),
+        ],
         exclude: nodeModulesPattern,
       },
     ]
@@ -37,7 +40,7 @@ const web = {
     extensions: [ '.ts' ],
   },
   output: {
-    filename: 'login.js',
+    filename: 'nav.js',
     path: path.join(OUTPUT_DIR, 'public/js'),
   },
 };
@@ -61,7 +64,7 @@ const node = {
         exclude: nodeModulesPattern,
       },
       {
-        test: /(?<!\.test)\.ts$/,
+        test: /\.ts$/,
         use: 'ts-loader',
         include: SRC_DIR,
         exclude: nodeModulesPattern,
