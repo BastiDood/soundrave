@@ -25,9 +25,17 @@ nav a {
 }
 
 .nav-links {
-  position: static;
-  display: none;
+  position: fixed;
+  display: block;
+  width: 75vw;
+  height: 100vh;
+  left: -75vw;
+  background-color: var(--alt-theme-color);
+  box-shadow: var(--depth-1);
+  transition: left 0.1s;
 }
+
+.nav-links.visible { left: 0; }
 
 .nav-links__hamburger { display: block; }
 .profile-info { display: none; }
@@ -49,6 +57,13 @@ nav a {
       grid-column-gap: 0.75rem;
     }
 
-    .nav-links { display: flex; }
+    .nav-links {
+      position: static;
+      display: flex;
+      width: initial;
+      height: initial;
+      box-shadow: initial;
+    }
+
     .nav-links__hamburger { display: none; }
 }
