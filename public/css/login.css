@@ -33,7 +33,6 @@ header > p { font-size: 1rem; }
   color: var(--alt-theme-color);
   background-color: var(--ui-main-font-color);
   text-decoration: none;
-  z-index: 2;
   box-shadow: var(--depth-1);
   backface-visibility: hidden;
   transition: all 0.1s;

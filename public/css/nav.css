@@ -26,13 +26,15 @@ nav a {
 
 .nav-links {
   position: fixed;
-  display: block;
-  width: 75vw;
-  height: 100vh;
+  top: 0;
   left: -75vw;
+  display: block;
+  height: 100vh;
+  width: 75vw;
   background-color: var(--alt-theme-color);
   box-shadow: var(--depth-1);
   transition: left 0.1s;
+  z-index: 1;
 }
 
 .nav-links.visible { left: 0; }

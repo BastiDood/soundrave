@@ -88,6 +88,10 @@ class TouchState {
   touchEndHandler(event: TouchEvent) {
     event.stopPropagation();
 
+    // Skip processing taps
+    if (this.#initAngle === null)
+      return;
+
     // Skip processing vertical scrolls
     if (this.#isVerticalScroll)
       return;
