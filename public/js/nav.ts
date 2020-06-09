@@ -108,7 +108,7 @@ class TouchState {
 
 // DOM ELEMENT REFERENCES
 const { body } = document;
-const nav = document.getElementById('nav-drawer');
+const nav = document.getElementById('nav-drawer')!;
 
 // TOUCH EVENT HANDLERS
 const state = new TouchState(nav);
