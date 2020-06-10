@@ -47,13 +47,17 @@ class TouchState {
     event.stopPropagation();
 
     // Skip processing vertical scrolling
-    if (this.#isVerticalScroll)
+    if (this.#isVerticalScroll) {
+      if (this.#isDrawerVisible)
+        event.preventDefault();
       return;
+    }
 
-    // Disallow vertical scrolling since the user meant to swipe for the drawer
-    event.preventDefault();
+    // Disallow vertical scrolling when the drawer is visible
+    if (event.cancelable)
+      event.preventDefault();
 
-    // Calculate delta
+    // Calculate delta of first touch point
     const { clientX, clientY } = event.touches[0];
     this.#delta[0] = clientX - this.#initTouch[0];
     this.#delta[1] = clientY - this.#initTouch[1];
