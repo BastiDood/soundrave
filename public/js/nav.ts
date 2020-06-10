@@ -1,11 +1,11 @@
 // UTILITY FUNCTIONS
 import { lerp } from '../../src/util/math/lerp';
-const interpolateNormalizedViewport = lerp([ 0, 1 ], [ -75, 0 ]);
+const interpolateToViewport = lerp([ 0, 1 ], [ -75, 0 ]);
 
 /** Encapsulates the state for touch interactions with the navigation side drawer. */
 class TouchState {
   /** Threshold at which the delta must be in before it snaps to the next state. */
-  static readonly DELTA_THRESHOLD = 0.1;
+  static readonly DELTA_THRESHOLD = 0.2;
   /** Angle (in radians) with respect to the x-axis at which a `touchmove` is considered to be a horizontal swipe. */
   static readonly HORIZONTAL_ANGLE_THRESHOLD = Math.PI / 4;
 
@@ -19,6 +19,8 @@ class TouchState {
   #initAngle: number|null = null;
   /** Determines whether to ignore events if the user did not mean to swipe horizontally. */
   #isVerticalScroll = false;
+  /** Determines whether the drawer is currently visible. */
+  #isDrawerVisible = false;
   /** Determines whether it is necessary to schedule a draw call for updating the UI. */
   #hasPendingFrame = false;
 
@@ -35,6 +37,7 @@ class TouchState {
     this.#initTouch[1] = clientY;
 
     // Reset touch state
+    // this.#isDrawerVisible = this.#el_Nav.classList.contains('visible');
     this.#isVerticalScroll = false;
     this.#initAngle = null;
   }
@@ -64,8 +67,6 @@ class TouchState {
         this.#isVerticalScroll = true;
         return;
       }
-
-      // TODO: Detect left swipe and right swipe
     }
 
     // Conditionally queue draw calls.
@@ -77,7 +78,14 @@ class TouchState {
     if (!this.#hasPendingFrame) {
       window.requestAnimationFrame(() => {
         const normX = this.#delta[0] / document.body.clientWidth;
-        this.#el_Nav.style.left = `${interpolateNormalizedViewport(normX)}vw`;
+
+        if (this.#isDrawerVisible && normX < 0)
+          // Handle drawer close interaction
+          this.#el_Nav.style.left = `${normX * 75}vw`;
+        else if (!this.#isDrawerVisible && normX > 0)
+          // Handle drawer open interaction
+          this.#el_Nav.style.left = `${interpolateToViewport(normX)}vw`;
+
         this.#hasPendingFrame = false;
       });
       this.#hasPendingFrame = true;
@@ -96,12 +104,18 @@ class TouchState {
     if (this.#isVerticalScroll)
       return;
 
+    // Skip invalid swipes
+    if (!this.#el_Nav.style.left)
+      return;
+
     // Normalize the vectors
     window.requestAnimationFrame(() => {
       this.#el_Nav.removeAttribute('style');
       const normX = this.#delta[0] / document.body.clientWidth;
-      if (Math.abs(normX) > TouchState.DELTA_THRESHOLD)
-        this.#el_Nav.classList.toggle('visible');
+      if (Math.abs(normX) < TouchState.DELTA_THRESHOLD)
+        return;
+
+      this.#isDrawerVisible = this.#el_Nav.classList.toggle('visible', !this.#isDrawerVisible);
     });
   }
 }
