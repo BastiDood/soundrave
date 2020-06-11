@@ -5,7 +5,7 @@ const interpolateToViewport = lerp([ 0, 1 ], [ -75, 0 ]);
 /** Encapsulates the state for touch interactions with the navigation side drawer. */
 class TouchState {
   /** Threshold at which the delta must be in before it snaps to the next state. */
-  static readonly DELTA_THRESHOLD = 0.3;
+  static readonly DELTA_THRESHOLD = 0.2;
   /** Angle (in radians) with respect to the x-axis at which a `touchmove` is considered to be a horizontal swipe. */
   static readonly HORIZONTAL_ANGLE_THRESHOLD = Math.PI / 4;
 
@@ -48,12 +48,11 @@ class TouchState {
 
     // Skip processing vertical scrolling
     if (this.#isVerticalScroll) {
-      if (this.#isDrawerVisible)
+      if (event.cancelable && this.#isDrawerVisible)
         event.preventDefault();
       return;
     }
 
-    // Disallow vertical scrolling when the drawer is visible
     if (event.cancelable)
       event.preventDefault();
 
