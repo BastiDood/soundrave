@@ -11,7 +11,7 @@ import { env } from '../globals/env';
 // CONTROLLERS
 import { DataController, SpotifyJob } from '../controllers';
 
-// CACHE
+// DATABASE
 import { Cache } from '../db/Cache';
 import { Session } from '../db/Session';
 

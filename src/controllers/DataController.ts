@@ -7,7 +7,7 @@ import { env } from '../globals/env';
 // FETCHERS
 import { SpotifyAPI } from '../fetchers/Spotify';
 
-// CACHE
+// DATABASE
 import { Cache } from '../db/Cache';
 import { Session } from '../db/Session';
 
