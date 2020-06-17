@@ -62,6 +62,8 @@ main {
 
 .card__details a:hover { text-decoration: underline; }
 
+.card__details > a:last-of-type { color: #ccc; }
+
 .error-popup {
   display: grid;
   grid-row-gap: 0.5rem;
