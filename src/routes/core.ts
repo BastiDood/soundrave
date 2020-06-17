@@ -73,7 +73,7 @@ router
         -env.MAX_RELEASES,
       );
       // TODO: Render a message indicating a stalling/ongoing process
-      res.render('timeline', { releases: cachedData, user } as Render.TimelineContext);
+      res.render('timeline', { layout: 'timeline', releases: cachedData, user } as Render.TimelineContext);
       return;
     }
 
@@ -91,7 +91,7 @@ router
 
     // In the best-case scenario when there are no errors,
     // respond to the user as soon as possible.
-    res.render('timeline', { releases: retrieval.releases, user } as Render.TimelineContext);
+    res.render('timeline', { layout: 'timeline', releases: retrieval.releases, user } as Render.TimelineContext);
     console.log('Sent the response to the user.');
   })
   .get('/logout', async (req, res) => {
@@ -245,6 +245,7 @@ router
     const { type } = req.query;
     const hasTimeline = Boolean(parseInt(req.query.hasTimeline));
     const renderContext: Render.TimelineContext = {
+      layout: 'timeline',
       user,
       releases: await Cache.retrieveReleasesFromArtists(
         user.followedArtists.ids,
@@ -289,7 +290,7 @@ router
     if (hasTimeline)
       res.render('timeline', renderContext);
     else
-      res.render('error', { error: renderContext.highestSeverityError } as Render.ErrorContext);
+      res.render('error', { layout: 'error', error: renderContext.highestSeverityError } as Render.ErrorContext);
   });
 
 export { router as coreHandler };

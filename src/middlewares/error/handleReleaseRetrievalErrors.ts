@@ -14,7 +14,7 @@ export const handleReleaseRetrievalErrors = (error: ReleasesRetrieval|Error, req
   assert(user);
   const { releases, errors } = error;
   assert(errors.length > 0);
-  const context: Render.TimelineContext = { releases, user };
+  const context: Render.TimelineContext = { layout: 'timeline', releases, user };
 
   // Find the highest severity error
   // eslint-disable-next-line no-extra-parens

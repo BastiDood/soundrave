@@ -16,12 +16,14 @@ declare global {
     }
 
     interface TimelineContext {
+      layout: 'timeline';
       releases: PopulatedReleaseObject[];
       user: UserObject;
       highestSeverityError?: OAuthError|SpotifyAPIError;
     }
 
     interface ErrorContext {
+      layout: 'error';
       error: OAuthError|SpotifyAPIError;
     }
   }

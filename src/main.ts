@@ -38,7 +38,6 @@ const app = express();
 const engine = exphbs({
   handlebars: Handlebars,
   extname: '.hbs',
-  defaultLayout: 'main',
   helpers,
 });
 app
