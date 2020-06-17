@@ -24,7 +24,7 @@ nav a {
   transition: background-color 0.3s;
 }
 
-.nav-links {
+#nav-drawer {
   position: fixed;
   top: 0;
   left: -75vw;
@@ -37,9 +37,9 @@ nav a {
   z-index: 1;
 }
 
-.nav-links.visible { left: 0; }
+#nav-drawer.visible { left: 0; }
 
-.nav-links__hamburger { display: block; }
+.brand-links__hamburger { display: block; }
 .profile-info { display: none; }
 .profile-info > a { padding: 0.75rem; }
 .profile-info__pic {
@@ -59,7 +59,7 @@ nav a {
       grid-column-gap: 0.75rem;
     }
 
-    .nav-links {
+    #nav-drawer {
       position: static;
       display: flex;
       width: initial;
@@ -67,5 +67,5 @@ nav a {
       box-shadow: initial;
     }
 
-    .nav-links__hamburger { display: none; }
+    #nav-drawer__hamburger { display: none; }
 }
