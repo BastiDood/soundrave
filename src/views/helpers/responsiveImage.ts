@@ -19,6 +19,5 @@ export function responsiveImage(alt: string, images: SpotifyApi.ImageObject[]): 
     alt="${alt}"
     loading="lazy"
     width="100"
-    height="100"
   />`);
 }
