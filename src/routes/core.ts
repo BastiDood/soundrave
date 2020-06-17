@@ -159,7 +159,10 @@ router
     // Handle the authorization error elsewhere
     if ('error' in authorization || 'error_description' in authorization) {
       console.log('Errors were found in the callback query parameters.');
-      next(new OAuthError(401, authorization, API_ERROR_TYPES.ACCESS_DENIED));
+      if (authorization.error === 'access_denied')
+        res.redirect('/');
+      else
+        next(new OAuthError(401, authorization));
       return;
     }
 
