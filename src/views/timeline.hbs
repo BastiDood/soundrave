@@ -28,5 +28,11 @@
 
 <!-- Render any of the possible errors as a modal or pop-up -->
 {{#if highestSeverityError}}
-<p>{{ highestSeverityError.description }}</p>
+<div class="error-popup">
+  <header>
+    <h1>{{ highestSeverityError.status }}</h1>
+    <p class="error-popup__close-button">[&times;]</p>
+  </header>
+  <p>{{ presentErrorDescription highestSeverityError }}</p>
+</div>
 {{/if}}
