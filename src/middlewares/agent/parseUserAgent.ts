@@ -56,7 +56,10 @@ const BROWSER_MIN: Record<string, number[]|undefined> = {
 // @ts-expect-error
 export const parseUserAgent = (req: Request, res: Response, next: NextFunction): void => {
   // Set default experience
-  req.agent.isBrowserSupported = true;
+  req.agent = {
+    isBrowserSupported: true,
+    device: 'other',
+  };
 
   const agent = useragent.parse(req.headers['user-agent']);
   const parsed = { browser: agent.family, version: [ Number(agent.major), Number(agent.minor) ], os: agent.os.family };
@@ -66,8 +69,6 @@ export const parseUserAgent = (req: Request, res: Response, next: NextFunction):
     req.agent.device = 'mobile';
   else if (OS.DESKTOP.includes(parsed.os))
     req.agent.device = 'desktop';
-  else
-    req.agent.device = 'other';
 
   // Block **explicitly** unsupported browsers
   const minimumBrowserVersion = BROWSER_MIN[parsed.browser];
