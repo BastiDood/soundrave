@@ -63,7 +63,7 @@ nav a {
       position: static;
       display: flex;
       width: initial;
-      height: initial;
+      min-height: initial;
       box-shadow: initial;
     }
 
