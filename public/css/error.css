@@ -1,17 +1,21 @@
 body {
   display: grid;
-  height: 100vh;
+  min-height: 100vh;
   grid-template-rows: min-content 1fr;
   align-items: center;
 }
 
 main {
+  display: grid;
+  max-width: 800px;
   margin: 1.5rem;
   padding: 2rem;
   border-radius: 0.75rem;
   background-color: var(--scnd-theme-color);
   box-shadow: var(--depth-1);
   justify-self: center;
+  grid-row-gap: 1.5rem;
 }
 
-main a { font-weight: bold; }
+main > a { font-weight: bold; }
+main > a:hover { text-decoration: underline; }
