@@ -14,6 +14,7 @@ main > * { display: grid; }
   text-shadow: 0 2px 2px rgba(0, 0, 0, 0.5);
 }
 
+header > h1, header > p { margin: 0 1rem; }
 header > h1 { font-size: 1.75rem; }
 header > p { font-size: 1rem; }
 
