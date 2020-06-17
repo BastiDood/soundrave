@@ -59,9 +59,7 @@ main {
 }
 
 .card__details > img, .card__details > p:last-child { justify-self: end; }
-
 .card__details a:hover { text-decoration: underline; }
-
 .card__details > a:last-of-type { color: #ccc; }
 
 .error-popup {
