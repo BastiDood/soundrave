@@ -4,7 +4,7 @@ import { SafeString } from 'handlebars';
 // ERRORS
 import { OAuthError, SpotifyAPIError, API_ERROR_TYPES } from '../../errors';
 
-export function presentError(error: OAuthError|SpotifyAPIError): SafeString {
+export function presentErrorDescription(error: OAuthError|SpotifyAPIError): SafeString {
   let description: SafeString;
 
   switch (error.type) {
