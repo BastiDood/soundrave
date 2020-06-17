@@ -19,7 +19,7 @@ import { Session } from '../db/Session';
 import { SpotifyAPI } from '../fetchers/Spotify';
 
 // ERRORS
-import { OAuthError, API_ERROR_TYPES } from '../errors';
+import { SpotifyAPIError, OAuthError, API_ERROR_TYPES } from '../errors';
 
 // GLOBAL VARIABLES
 const router = express.Router();
@@ -230,6 +230,62 @@ router
     res.cookie('sid', newSession._id, options);
     res.cookie('mode', 'session', options);
     res.redirect('/timeline');
+  })
+  .get('/error', async (req: express.Request<Record<string, string>, unknown, unknown, { type: string; hasTimeline: string }>, res) => {
+    const { user } = req;
+    if (!user) {
+      res.redirect('/');
+      return;
+    }
+
+    const { type } = req.query;
+    const hasTimeline = Boolean(parseInt(req.query.hasTimeline));
+    const renderContext: Render.TimelineContext = {
+      user,
+      releases: await Cache.retrieveReleasesFromArtists(
+        user.followedArtists.ids,
+        user.profile.country,
+        -env.MAX_RELEASES,
+      ),
+    };
+
+    switch (type) {
+      case 'ACCESS_DENIED':
+        renderContext.highestSeverityError = new OAuthError(401, { error: 'access_denied', error_description: 'Test' }, API_ERROR_TYPES.ACCESS_DENIED);
+        break;
+      case 'NOT_FOUND':
+        renderContext.highestSeverityError = new SpotifyAPIError({ status: 404, message: 'Not found.' }, 0);
+        break;
+      case 'FORBIDDEN':
+        renderContext.highestSeverityError = new OAuthError(403, { error: 'forbidden', error_description: 'Request rejected.' }, API_ERROR_TYPES.FORBIDDEN);
+        break;
+      case 'UNAUTHORIZED':
+        renderContext.highestSeverityError = new OAuthError(401, { error: 'unauthorized', error_description: 'Lacking permissions.' }, API_ERROR_TYPES.UNAUTHORIZED);
+        break;
+      case 'NO_PERMISSION':
+        renderContext.highestSeverityError = new OAuthError(401, { error: 'unauthorized', error_description: 'Lacking permissions.' }, API_ERROR_TYPES.NO_PERMISSION);
+        break;
+      case 'REFRESH_FAILED':
+        renderContext.highestSeverityError = new OAuthError(400, { error: 'refresh_failed', error_description: 'Unexpected refresh failure.' }, API_ERROR_TYPES.REFRESH_FAILED);
+        break;
+      case 'INIT_FAILED':
+        renderContext.highestSeverityError = new OAuthError(400, { error: 'init_failed', error_description: 'Unexpected init failure.' }, API_ERROR_TYPES.INIT_FAILED);
+        break;
+      case 'RATE_LIMIT':
+        renderContext.highestSeverityError = new SpotifyAPIError({ status: 429, message: 'Too many requests.' }, 300);
+        break;
+      case 'EXTERNAL_ERROR':
+        renderContext.highestSeverityError = new SpotifyAPIError({ status: 500, message: 'Server error.' }, 60);
+        break;
+      default:
+        renderContext.highestSeverityError = new SpotifyAPIError({ status: 200, message: 'Unknown error?' }, 1000);
+        break;
+    }
+
+    if (hasTimeline)
+      res.render('timeline', renderContext);
+    else
+      res.render('error', { error: renderContext.highestSeverityError } as Render.ErrorContext);
   });
 
 export { router as coreHandler };
