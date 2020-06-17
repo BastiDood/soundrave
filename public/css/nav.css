@@ -67,5 +67,5 @@ nav a {
       box-shadow: initial;
     }
 
-    #nav-drawer__hamburger { display: none; }
+    .brand-links__hamburger { display: none; }
 }
