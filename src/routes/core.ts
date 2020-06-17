@@ -162,6 +162,7 @@ router
       if (authorization.error === 'access_denied')
         res.redirect('/');
       else
+        // eslint-disable-next-line node/callback-return
         next(new OAuthError(401, authorization));
       return;
     }
