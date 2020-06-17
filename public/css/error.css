@@ -1,0 +1,17 @@
+body {
+  display: grid;
+  height: 100vh;
+  grid-template-rows: min-content 1fr;
+  align-items: center;
+}
+
+main {
+  margin: 1.5rem;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  background-color: var(--scnd-theme-color);
+  box-shadow: var(--depth-1);
+  justify-self: center;
+}
+
+main a { font-weight: bold; }
