@@ -24,6 +24,8 @@ nav a {
   transition: background-color 0.3s;
 }
 
+nav a:hover { background-color: var(--acc-theme-color); }
+
 #nav-drawer {
   position: fixed;
   top: 0;
@@ -47,12 +49,14 @@ nav a {
 }
 
 .profile-dropdown {
+  overflow: hidden;
   display: none;
   position: absolute;
   bottom: -100%;
   right: -250px;
   margin: 0;
   padding: 0;
+  border-bottom-left-radius: 0.75rem;
   width: 250px;
   background-color: var(--alt-theme-color);
   list-style-type: none;
