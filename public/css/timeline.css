@@ -93,10 +93,10 @@ main {
   font-weight: bold;
 }
 
-.error-popup__close-button:hover { text-decoration: underline }
+.error-popup__close-button:hover { text-decoration: underline; }
 
 @media only screen
-  and (min-width: 500px) {
+  and (min-width: 515px) {
     .timeline { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
 
     .card {
