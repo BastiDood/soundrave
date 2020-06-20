@@ -45,6 +45,7 @@ nav a {
 }
 
 #nav-drawer.visible { left: 0; }
+.brand-links { margin-left: 0.75rem; }
 .brand-links__hamburger { display: block; }
 
 .profile-info {
