@@ -10,9 +10,13 @@ nav {
   z-index: 2;
 }
 
-nav > div {
+nav ul {
   display: flex;
+  margin: 0;
+  padding: 0;
   align-items: center;
+  background-color: var(--alt-theme-color);
+  list-style-type: none;
 }
 
 nav a {
@@ -41,7 +45,6 @@ nav a:hover { background-color: var(--acc-theme-color); }
 #nav-drawer.visible { left: 0; }
 .brand-links__hamburger { display: block; }
 .profile-info { display: none; }
-.profile-info > a { padding: 0.75rem; }
 .profile-info__pic {
   height: 100%;
   border: 0.1rem solid var(--ui-fade-font-color);
@@ -54,12 +57,8 @@ nav a:hover { background-color: var(--acc-theme-color); }
   position: absolute;
   bottom: -100%;
   right: -250px;
-  margin: 0;
-  padding: 0;
   border-bottom-left-radius: 0.75rem;
   width: 250px;
-  background-color: var(--alt-theme-color);
-  list-style-type: none;
   box-shadow: var(--depth-1);
   transition: right 0.2s;
 }
@@ -74,7 +73,7 @@ nav a:hover { background-color: var(--acc-theme-color); }
     .profile-info { display: block; }
     .profile-info__pic { display: block; }
 
-    .profile-info > a {
+    .profile-info {
       display: grid;
       grid-auto-flow: column;
       grid-column-gap: 0.75rem;
