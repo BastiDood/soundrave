@@ -16,7 +16,7 @@ nav > ul, nav > a {
   transition: background-color 0.3s;
 }
 
-nav > ul:hover, nav > a:hover { background-color: var(--acc-theme-color); }
+nav > ul > li:hover, nav > a:hover { background-color: var(--acc-theme-color); }
 
 nav ul {
   display: flex;
@@ -45,8 +45,15 @@ nav a {
 }
 
 #nav-drawer.visible { left: 0; }
-.brand-links { margin-left: 0.75rem; }
-.brand-links__hamburger { display: block; }
+
+.brand-links__hamburger {
+  display: block;
+  margin-left: 0.75rem;
+  filter: brightness(0) invert(1);
+  transition: filter 0.3s;
+}
+
+.brand-links__hamburger:hover { filter: brightness(1); }
 
 .profile-info {
   display: none;
