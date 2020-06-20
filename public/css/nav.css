@@ -7,7 +7,7 @@ nav {
   grid-auto-flow: column;
   background-color: var(--alt-theme-color);
   box-shadow: var(--depth-1);
-  z-index: 1;
+  z-index: 2;
 }
 
 nav > div {
@@ -34,11 +34,9 @@ nav a {
   background-color: var(--alt-theme-color);
   box-shadow: var(--depth-1);
   transition: left 0.1s;
-  z-index: 1;
 }
 
 #nav-drawer.visible { left: 0; }
-
 .brand-links__hamburger { display: block; }
 .profile-info { display: none; }
 .profile-info > a { padding: 0.75rem; }
@@ -46,6 +44,25 @@ nav a {
   height: 100%;
   border: 0.1rem solid var(--ui-fade-font-color);
   border-radius: 50%;
+}
+
+.profile-dropdown {
+  display: none;
+  position: absolute;
+  bottom: -100%;
+  right: -250px;
+  margin: 0;
+  padding: 0;
+  width: 250px;
+  background-color: var(--alt-theme-color);
+  list-style-type: none;
+  box-shadow: var(--depth-1);
+  transition: right 0.2s;
+}
+
+.profile-dropdown:hover,
+.profile-info:hover + .profile-dropdown {
+  right: 0;
 }
 
 @media only screen
@@ -68,4 +85,6 @@ nav a {
     }
 
     .brand-links__hamburger { display: none; }
+    
+    .profile-dropdown { display: block; }
 }

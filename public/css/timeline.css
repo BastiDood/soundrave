@@ -1,6 +1,7 @@
 main {
   margin: 0.75rem;
   display: grid;
+  z-index: 1;
 }
 
 .user-info > img {

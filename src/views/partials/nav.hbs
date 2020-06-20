@@ -4,9 +4,6 @@
     <a href="/">SoundRave</a>
   </div>
   <div id="nav-drawer">
-    <!-- <a href="/premium">Premium</a> -->
-    <!-- <a href="/blog">Blog</a> -->
-    <!-- <a href="/privacy">Privacy</a> -->
     <a href="/about">About</a>
   </div>
   {{#if user}}
@@ -16,6 +13,9 @@
         <img src="{{ user.profile.images.0.url }}" alt="Your Profile Picture" width="25" height="25" class="profile-info__pic" loading="lazy" />
       </a>
     </div>
+    <ul class="profile-dropdown">
+      <li><a href="/logout">Logout</a></li>
+    </ul>
   {{/if}}
   </div>
 </nav>
