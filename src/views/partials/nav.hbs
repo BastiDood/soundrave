@@ -6,6 +6,7 @@
   <ul id="nav-drawer">
     <li><a href="/about">About</a></li>
   </ul>
+  <div></div>
   {{#if user}}
     <a href="https://open.spotify.com/user/{{ user._id }}" title="{{ user.profile.name }}" rel="noreferrer" target="_blank" class="profile-info">
       <p>{{ user.profile.name }}</p>
@@ -15,5 +16,4 @@
       <li><a href="/logout">Logout</a></li>
     </ul>
   {{/if}}
-  </div>
 </nav>
