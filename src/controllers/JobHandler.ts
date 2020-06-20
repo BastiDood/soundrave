@@ -31,6 +31,7 @@ export class JobHandler extends EventEmitter {
     this.#jobQueue.push(job);
     if (!this.#isBusy)
       this.emit('__process__');
+    // eslint-disable-next-line no-promise-executor-return
     return new Promise(resolve => job.once('first-run', resolve));
   }
 

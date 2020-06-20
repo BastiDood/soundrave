@@ -92,6 +92,7 @@ app
 const server = createServer(app);
 function startServer(port: number, hostname: string): Promise<void> {
   return new Promise(
+    // eslint-disable-next-line no-promise-executor-return
     resolve => server.listen(port, hostname, resolve),
   );
 }
