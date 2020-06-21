@@ -119,9 +119,11 @@ export class TouchState {
     if (Math.abs(normX) < TouchState.DELTA_THRESHOLD)
       return;
 
-    this.#isDrawerVisible = this.#el_Nav.classList.toggle('visible', !this.#isDrawerVisible);
+    this.toggleDrawerVisibility();
   }
 
-  /** Manually poll for the drawer visibility. */
-  pollDrawerVisibility(): void { this.#isDrawerVisible = this.#el_Nav.classList.contains('visible'); }
+  /** Control drawer visibility. */
+  toggleDrawerVisibility(): void {
+    this.#isDrawerVisible = this.#el_Nav.classList.toggle('visible', !this.#isDrawerVisible);
+  }
 }

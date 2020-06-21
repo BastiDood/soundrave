@@ -15,7 +15,7 @@ const touchEndHandler = touchState.touchEndHandler.bind(touchState);
 const hamburgerClickHandler = (event: MouseEvent): void => {
   event.stopPropagation();
   el_Nav.classList.add('visible');
-  touchState.pollDrawerVisibility();
+  touchState.toggleDrawerVisibility();
 };
 
 // EVENT BINDINGS
