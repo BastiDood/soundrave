@@ -65,7 +65,10 @@ nav a {
 
 #nav-drawer.visible { left: 0; }
 
-#nav-drawer__profile { text-align: center; }
+#nav-drawer__profile {
+  display: block;
+  text-align: center;
+}
 
 #nav-drawer__profile > img {
   max-width: 50%;
@@ -122,6 +125,8 @@ nav a {
       min-height: initial;
       box-shadow: initial;
     }
+
+    #nav-drawer__profile { display: none; }
 
     .brand-links__hamburger { display: none; }
     .profile-dropdown { display: block; }
