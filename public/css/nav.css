@@ -17,12 +17,12 @@ nav > ul {
   list-style-type: none;
 }
 
-nav > ul, nav > a {
+.root-nav-item {
   margin: 0;
   background-color: inherit;
+  transition: background-color 0.1s;
 }
 
-nav > ul > li, nav > a { transition: background-color 0.1s; }
 nav > ul > li:hover, nav > a:hover { background-color: var(--acc-theme-color); }
 
 nav a {

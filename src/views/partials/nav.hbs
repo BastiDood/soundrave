@@ -1,18 +1,18 @@
 <nav>
-  <ul class="brand-links">
+  <ul class="root-nav-item brand-links">
     <img src="/svg/hamburger.svg" alt="Hamburger Icon" class="brand-links__hamburger" />
     <li><a href="/">SoundRave</a></li>
   </ul>
-  <ul id="nav-drawer">
+  <ul class="root-nav-item" id="nav-drawer">
     <li><a href="/about">About</a></li>
   </ul>
-  <div></div>
+  <div class="root-nav-item"></div>
   {{#if user}}
-    <a href="https://open.spotify.com/user/{{ user._id }}" title="{{ user.profile.name }}" rel="noreferrer" target="_blank" class="profile-info">
+    <a href="https://open.spotify.com/user/{{ user._id }}" title="{{ user.profile.name }}" rel="noreferrer" target="_blank" class="root-nav-item profile-info">
       <p>{{ user.profile.name }}</p>
       <img src="{{ user.profile.images.0.url }}" alt="Your Profile Picture" width="25" height="25" class="profile-info__pic" loading="lazy" />
     </a>
-    <ul class="profile-dropdown">
+    <ul class="root-nav-item profile-dropdown">
       <li><a href="/logout">Logout</a></li>
     </ul>
   {{/if}}
