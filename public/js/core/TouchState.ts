@@ -129,6 +129,9 @@ export class TouchState {
 
     // Normalize the vectors
     const normX = this.#delta[0] / document.body.clientWidth;
+
+    // Ensure that the drag threshold (in either direction)
+    // is enough to break the snap
     if (Math.abs(normX) < TouchState.DELTA_THRESHOLD)
       return;
 
