@@ -3,10 +3,11 @@ import { TouchState } from './core/TouchState';
 // DOM ELEMENT REFERENCES
 const { body: el_Body } = document;
 const el_Nav = document.getElementById('nav-drawer')! as HTMLUListElement;
+const el_Backdrop = document.getElementById('nav-backdrop')! as HTMLDivElement;
 const el_HamburgerIcon = document.getElementsByClassName('brand-links__hamburger')[0]! as HTMLImageElement;
 
 // TOUCH EVENT HANDLERS
-const touchState = new TouchState(el_Nav);
+const touchState = new TouchState(el_Nav, el_Backdrop);
 const touchStartHandler = touchState.touchStartHandler.bind(touchState);
 const touchMoveHandler = touchState.touchMoveHandler.bind(touchState);
 const touchEndHandler = touchState.touchEndHandler.bind(touchState);

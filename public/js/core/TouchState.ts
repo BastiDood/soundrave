@@ -1,6 +1,7 @@
 // UTILITY FUNCTIONS
 import { lerp } from '../../../src/util/math/lerp';
 const interpolateToViewport = lerp([ 0, 1 ], [ -75, 0 ]);
+const interpolateOpacity = lerp([ 0, 1 ], [ 0, 0.5 ]);
 
 /** Encapsulates the state for touch interactions with the navigation side drawer. */
 export class TouchState {
@@ -11,6 +12,8 @@ export class TouchState {
 
   /** Reference to the `nav` menu DOM element. */
   #el_Nav: HTMLElement;
+  /**  Reference to the element which serves as the backdrop when the drawer is visible. */
+  #el_Backdrop: HTMLElement;
   /** Initial point of contact in relation to the client area (excluding scrollbars and browser UI). */
   #initTouch: [ number, number ] = [ 0, 0 ];
   /** Determines the direction of the `touchmove`. */
@@ -24,7 +27,10 @@ export class TouchState {
   /** Determines whether it is necessary to schedule a draw call for updating the UI. */
   #hasPendingFrame = false;
 
-  constructor(el_Nav: HTMLElement) { this.#el_Nav = el_Nav; }
+  constructor(el_Nav: HTMLElement, el_Backdrop: HTMLElement) {
+    this.#el_Nav = el_Nav;
+    this.#el_Backdrop = el_Backdrop;
+  }
 
   /** Resets touch state after every new touch. */
   touchStartHandler(event: TouchEvent): void {
@@ -70,6 +76,8 @@ export class TouchState {
         this.#isVerticalScroll = true;
         return;
       }
+
+      this.#el_Backdrop.style.zIndex = '1';
     }
 
     // Conditionally queue draw calls.
@@ -82,12 +90,16 @@ export class TouchState {
       window.requestAnimationFrame(() => {
         const normX = this.#delta[0] / document.body.clientWidth;
 
-        if (this.#isDrawerVisible && normX < 0)
+        if (this.#isDrawerVisible && normX < 0) {
           // Handle drawer close interaction
+          const complementX = 1 + normX;
           this.#el_Nav.style.left = `${normX * 75}vw`;
-        else if (!this.#isDrawerVisible && normX > 0)
+          this.#el_Backdrop.style.opacity = (complementX * 0.25).toString();
+        } else if (!this.#isDrawerVisible && normX > 0) {
           // Handle drawer open interaction
           this.#el_Nav.style.left = `${interpolateToViewport(normX)}vw`;
+          this.#el_Backdrop.style.opacity = interpolateOpacity(normX).toString();
+        }
 
         this.#hasPendingFrame = false;
       });
@@ -113,6 +125,7 @@ export class TouchState {
 
     // Reset styles to allow snapping
     this.#el_Nav.removeAttribute('style');
+    this.#el_Backdrop.removeAttribute('style');
 
     // Normalize the vectors
     const normX = this.#delta[0] / document.body.clientWidth;
@@ -124,6 +137,7 @@ export class TouchState {
 
   /** Control drawer visibility. */
   toggleDrawerVisibility(): void {
-    this.#isDrawerVisible = this.#el_Nav.classList.toggle('visible', !this.#isDrawerVisible);
+    this.#el_Nav.classList.toggle('visible', !this.#isDrawerVisible);
+    this.#isDrawerVisible = this.#el_Backdrop.classList.toggle('visible', !this.#isDrawerVisible);
   }
 }

@@ -36,6 +36,21 @@ nav a {
   text-decoration: none;
 }
 
+#nav-backdrop {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.1s;
+}
+
+#nav-backdrop.visible {
+  z-index: 1;
+  opacity: 0.25;
+}
+
 #nav-drawer {
   position: fixed;
   top: 0;
