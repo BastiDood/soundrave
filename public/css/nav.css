@@ -10,20 +10,17 @@ nav {
   z-index: 2;
 }
 
-nav > ul, nav > a {
-  margin: 0;
-  background-color: var(--alt-theme-color);
-}
-
-nav > ul > li, nav > a { transition: background-color 0.1s; }
-nav > ul > li:hover, nav > a:hover { background-color: var(--acc-theme-color); }
-
-nav ul {
+nav > ul {
   display: flex;
   padding: 0;
   align-items: center;
   list-style-type: none;
 }
+
+nav > ul, nav > a { margin: 0; }
+
+nav > ul > li, nav > a { transition: background-color 0.1s; }
+nav > ul > li:hover, nav > a:hover { background-color: var(--acc-theme-color); }
 
 nav a {
   display: block;
@@ -70,14 +67,13 @@ nav a {
   right: -250px;
   border-bottom-left-radius: 0.75rem;
   width: 250px;
+  background-color: var(--alt-theme-color);
   box-shadow: var(--depth-1);
   transition: right 0.2s;
 }
 
 .profile-dropdown:hover,
-.profile-info:hover + .profile-dropdown {
-  right: 0;
-}
+.profile-info:hover + .profile-dropdown { right: 0; }
 
 @media only screen
   and (min-width: 825px) {
