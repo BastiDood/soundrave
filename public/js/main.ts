@@ -18,6 +18,11 @@ const hamburgerClickHandler = (event: MouseEvent): void => {
   el_Nav.classList.add('visible');
   touchState.toggleDrawerVisibility();
 };
+const backdropClickHandler = (event: MouseEvent): void => {
+  event.stopPropagation();
+  el_Nav.classList.remove('visible');
+  touchState.toggleDrawerVisibility();
+};
 
 // EVENT BINDINGS
 const options = { capture: true, passive: true };
@@ -26,3 +31,4 @@ el_Body.addEventListener('touchmove', touchMoveHandler, { ...options, passive: f
 el_Body.addEventListener('touchend', touchEndHandler, options);
 el_Body.addEventListener('touchcancel', touchEndHandler, options);
 el_HamburgerIcon.addEventListener('click', hamburgerClickHandler, options);
+el_Backdrop.addEventListener('click', backdropClickHandler, options);
