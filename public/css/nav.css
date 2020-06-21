@@ -10,20 +10,23 @@ nav {
   z-index: 2;
 }
 
+nav ul {
+  margin: 0;
+  padding: 0;
+}
+
 nav > ul {
   display: flex;
-  padding: 0;
   align-items: center;
   list-style-type: none;
 }
 
-.root-nav-item {
-  margin: 0;
+.nav-item {
   background-color: inherit;
   transition: background-color 0.1s;
 }
 
-nav > ul > li:hover, nav > a:hover { background-color: var(--acc-theme-color); }
+.nav-item__link:hover { background-color: var(--acc-theme-color); }
 
 nav a {
   display: block;
