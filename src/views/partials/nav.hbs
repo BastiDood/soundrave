@@ -7,12 +7,17 @@
     <ul>
       <li class="nav-item__link"><a href="/about">About</a></li>
     </ul>
+    <div id="nav-drawer__profile">
+      <img src="{{ user.profile.images.0.url }}" alt="{{ user.profile.name }}" loading="lazy" />
+      <p>{{ user.profile.name }}</p>
+      <a href="/logout" class="nav-item__link">Log Out</a>
+    </div>
   </div>
   <div class="nav-item"></div>
   {{#if user}}
     <a href="https://open.spotify.com/user/{{ user._id }}" title="{{ user.profile.name }}" rel="noreferrer" target="_blank" class="nav-item nav-item__link profile-info">
       <p>{{ user.profile.name }}</p>
-      <img src="{{ user.profile.images.0.url }}" alt="{{ user.profile.name }}" width="25" height="25" class="profile-info__pic" loading="lazy" />
+      <img src="{{ user.profile.images.0.url }}" alt="{{ user.profile.name }}" class="profile-info__pic" loading="lazy" />
     </a>
     <ul class="nav-item profile-dropdown">
       <li class="nav-item__link"><a href="/logout">Logout</a></li>
