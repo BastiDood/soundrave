@@ -13,7 +13,7 @@ const nodeModulesPattern = /node_modules/;
 
 const web = {
   context: PUBLIC_DIR,
-  entry: './js/nav.ts',
+  entry: './js/main.ts',
   target: 'web',
   module: {
     rules: [
@@ -40,7 +40,7 @@ const web = {
     extensions: [ '.ts' ],
   },
   output: {
-    filename: 'nav.js',
+    filename: 'main.js',
     path: path.join(OUTPUT_DIR, 'public/js'),
   },
 };

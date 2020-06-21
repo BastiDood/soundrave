@@ -1,9 +1,9 @@
 // UTILITY FUNCTIONS
-import { lerp } from '../../src/util/math/lerp';
+import { lerp } from '../../../src/util/math/lerp';
 const interpolateToViewport = lerp([ 0, 1 ], [ -75, 0 ]);
 
 /** Encapsulates the state for touch interactions with the navigation side drawer. */
-class TouchState {
+export class TouchState {
   /** Threshold at which the delta must be in before it snaps to the next state. */
   static readonly DELTA_THRESHOLD = 0.2;
   /** Angle (in radians) with respect to the x-axis at which a `touchmove` is considered to be a horizontal swipe. */
@@ -27,7 +27,7 @@ class TouchState {
   constructor(el_Nav: HTMLElement) { this.#el_Nav = el_Nav; }
 
   /** Resets touch state after every new touch. */
-  touchStartHandler(event: TouchEvent) {
+  touchStartHandler(event: TouchEvent): void {
     event.stopPropagation();
 
     // Mutate the tuple in order to avoid generating a whole new array for each touch.
@@ -43,7 +43,7 @@ class TouchState {
   }
 
   /** Calculates deltas and animates the UI on `touchmove`. */
-  touchMoveHandler(event: TouchEvent) {
+  touchMoveHandler(event: TouchEvent): void {
     event.stopPropagation();
 
     // Skip processing vertical scrolling
@@ -96,7 +96,7 @@ class TouchState {
   }
 
   /** Concludes up the touch interaction by snapping the drawer to the appropriate state. */
-  touchEndHandler(event: TouchEvent) {
+  touchEndHandler(event: TouchEvent): void {
     event.stopPropagation();
 
     // Skip processing taps
@@ -111,31 +111,17 @@ class TouchState {
     if (!this.#el_Nav.style.left)
       return;
 
+    // Reset styles to allow snapping
+    this.#el_Nav.removeAttribute('style');
+
     // Normalize the vectors
-    window.requestAnimationFrame(() => {
-      this.#el_Nav.removeAttribute('style');
-      const normX = this.#delta[0] / document.body.clientWidth;
-      if (Math.abs(normX) < TouchState.DELTA_THRESHOLD)
-        return;
+    const normX = this.#delta[0] / document.body.clientWidth;
+    if (Math.abs(normX) < TouchState.DELTA_THRESHOLD)
+      return;
 
-      this.#isDrawerVisible = this.#el_Nav.classList.toggle('visible', !this.#isDrawerVisible);
-    });
+    this.#isDrawerVisible = this.#el_Nav.classList.toggle('visible', !this.#isDrawerVisible);
   }
+
+  /** Manually poll for the drawer visibility. */
+  pollDrawerVisibility(): void { this.#isDrawerVisible = this.#el_Nav.classList.contains('visible'); }
 }
-
-// DOM ELEMENT REFERENCES
-const { body } = document;
-const nav = document.getElementById('nav-drawer')!;
-
-// TOUCH EVENT HANDLERS
-const state = new TouchState(nav);
-const touchStartHandler = state.touchStartHandler.bind(state);
-const touchMoveHandler = state.touchMoveHandler.bind(state);
-const touchEndHandler = state.touchEndHandler.bind(state);
-
-// EVENT BINDINGS
-const options = { capture: true, passive: true };
-body.addEventListener('touchstart', touchStartHandler, options);
-body.addEventListener('touchmove', touchMoveHandler, { ...options, passive: false });
-body.addEventListener('touchend', touchEndHandler, options);
-body.addEventListener('touchcancel', touchEndHandler, options);
