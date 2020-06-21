@@ -13,8 +13,9 @@ nav {
 nav > ul, nav > a {
   margin: 0;
   background-color: var(--alt-theme-color);
-  transition: background-color 0.3s;
 }
+
+nav > ul > li, nav > a { transition: background-color 0.1s; }
 
 nav > ul > li:hover, nav > a:hover { background-color: var(--acc-theme-color); }
 
