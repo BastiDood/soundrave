@@ -18,11 +18,12 @@ import { cacheDB, sessionDB } from './globals/db';
 import { env } from './globals/env';
 
 // ROUTES
-import { coreHandler, errorHandler } from './routes';
+import { coreHandler } from './routes';
 
 // MIDDLEWARES
 import { parseUserAgent } from './middlewares/agent';
 import { populateSessionData, populateUserData } from './middlewares/session';
+import { handleReleaseRetrievalErrors, handleFirstPullErrors, handleNonExistentRoute } from './middlewares/error';
 
 // HELPERS
 import * as helpers from './views/helpers';
@@ -86,7 +87,9 @@ app
   .use(populateSessionData)
   .use(populateUserData)
   .use('/', coreHandler)
-  .use('/', errorHandler);
+  .use(handleReleaseRetrievalErrors)
+  .use(handleFirstPullErrors)
+  .use(handleNonExistentRoute);
 
 // Initialize server
 const server = createServer(app);
