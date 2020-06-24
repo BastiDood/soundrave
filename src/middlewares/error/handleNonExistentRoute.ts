@@ -2,9 +2,13 @@
 import { NavigationError } from '../../errors';
 
 // TYPES
-import type { Request, Response } from 'express';
+import type { RequestHandler } from 'express';
 
 // @ts-expect-error
-export const handleNonExistentRoute = (req: Request, res: Response): void => {
-  res.status(404).render('error', { layout: 'error', error: new NavigationError() });
+export const handleNonExistentRoute: RequestHandler = (req, res): void => {
+  res.status(404)
+    .render('error', {
+      layout: 'error',
+      error: new NavigationError(),
+    } as Render.ErrorContext);
 };

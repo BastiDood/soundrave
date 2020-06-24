@@ -45,5 +45,6 @@ export const handleFirstPullErrors = async (error: OAuthError|SpotifyAPIError|Er
   if (error.type === API_ERROR_TYPES.NOT_FOUND)
     await Cache.deleteUserObject(user);
 
-  res.status(error.status).render('error', { layout: 'error', error } as Render.ErrorContext);
+  res.status(error.status)
+    .render('error', { layout: 'error', error } as Render.ErrorContext);
 };

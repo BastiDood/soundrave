@@ -1,4 +1,4 @@
-import 'express';
+import { Request } from 'express';
 
 type OAuthError = import('../src/errors/OAuthError').OAuthError;
 type SpotifyAPIError = import('../src/errors/SpotifyAPIError').SpotifyAPIError;
@@ -9,33 +9,17 @@ interface AgentInfo {
   device: 'desktop'|'mobile'|'other';
 }
 
+interface CookieInfo {
+  sid?: string;
+  mode?: string;
+}
+
 declare global {
-  namespace Render {
-    interface HomeContext {
-      layout: 'home';
-    }
-
-    interface TimelineContext {
-      layout: 'timeline';
-      releases: PopulatedReleaseObject[];
-      user: UserObject;
-      highestSeverityError?: OAuthError|SpotifyAPIError;
-    }
-
-    interface ErrorContext {
-      layout: 'error';
-      error: OAuthError|SpotifyAPIError;
-    }
-  }
-
   namespace Express {
     interface Request {
       agent: AgentInfo;
       session: ValidSessionObject|LoginSessionObject|null;
-      signedCookies: {
-        sid?: string;
-        mode?: string;
-      };
+      signedCookies: CookieInfo;
       user: UserObject|null;
     }
   }

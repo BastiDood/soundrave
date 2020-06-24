@@ -1,11 +1,11 @@
 type MongoKeys = Exclude<keyof MongoDocument, '_id'>;
 
 // Cache
-declare interface UserObject extends Omit<MongoUserObject, MongoKeys> { }
-declare interface ArtistObject extends Omit<MongoArtistObject, MongoKeys> { }
-declare interface NonPopulatedReleaseObject extends Omit<MongoNonPopulatedReleaseObject, MongoKeys> { }
-declare interface PopulatedReleaseObject extends Omit<MongoPopulatedReleaseObject, MongoKeys> { }
+interface UserObject extends Omit<MongoUserObject, MongoKeys> { }
+interface ArtistObject extends Omit<MongoArtistObject, MongoKeys> { }
+interface NonPopulatedReleaseObject extends Omit<MongoNonPopulatedReleaseObject, MongoKeys> { }
+interface PopulatedReleaseObject extends Omit<MongoPopulatedReleaseObject, MongoKeys> { }
 
 // Session
-declare interface ValidSessionObject extends Omit<MongoValidSession, MongoKeys> { }
-declare interface LoginSessionObject extends Omit<MongoLoginSession, MongoKeys> { }
+interface ValidSessionObject extends Omit<MongoValidSession, MongoKeys> { }
+interface LoginSessionObject extends Omit<MongoLoginSession, MongoKeys> { }

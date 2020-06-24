@@ -48,7 +48,7 @@ interface JobStatusInfo {
   dateLastDone: number;
 }
 
-declare interface MongoUserObject extends MongoDocument {
+interface MongoUserObject extends MongoDocument {
   /** Spotify ID of the user */
   _id: string;
   profile: UserProfileInfo;
@@ -56,14 +56,14 @@ declare interface MongoUserObject extends MongoDocument {
   job: JobStatusInfo;
 }
 
-declare interface MongoArtistObject extends MongoDocument, Cacheable {
+interface MongoArtistObject extends MongoDocument, Cacheable {
   /** Spotify ID of the artist */
   _id: string;
   name: string;
   images: SpotifyApi.ImageObject[];
 }
 
-declare interface MongoReleaseObject extends MongoDocument {
+interface MongoReleaseObject extends MongoDocument {
   /** Spotify ID of the release */
   _id: string;
   title: string;
@@ -77,12 +77,12 @@ declare interface MongoReleaseObject extends MongoDocument {
   images: SpotifyApi.ImageObject[];
 }
 
-declare interface MongoNonPopulatedReleaseObject extends MongoReleaseObject {
+interface MongoNonPopulatedReleaseObject extends MongoReleaseObject {
   /** Spotify IDs of artists */
   artists: string[];
 }
 
-declare interface MongoPopulatedReleaseObject extends MongoReleaseObject {
+interface MongoPopulatedReleaseObject extends MongoReleaseObject {
   /** Spotify object representation of artists */
   artists: ArtistObject[];
 }

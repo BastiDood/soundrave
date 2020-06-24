@@ -2,7 +2,7 @@
 import useragent from 'useragent';
 
 // TYPES
-import type { Request, Response, NextFunction } from 'express';
+import type { RequestHandler } from 'express';
 
 // GLOBAL VARIABLES
 const OS = {
@@ -54,7 +54,7 @@ const BROWSER_MIN: Record<string, number[]|undefined> = {
 };
 
 // @ts-expect-error
-export const parseUserAgent = (req: Request, res: Response, next: NextFunction): void => {
+export const parseUserAgent: RequestHandler = (req, res, next) => {
   // Set default experience
   req.agent = {
     isBrowserSupported: true,

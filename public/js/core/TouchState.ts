@@ -1,5 +1,5 @@
 // UTILITY FUNCTIONS
-import { lerp } from '../../../src/util/math/lerp';
+import { lerp } from '../util/lerp';
 const interpolateToViewport = lerp([ 0, 1 ], [ -75, 0 ]);
 const interpolateOpacity = lerp([ 0, 1 ], [ 0, 0.5 ]);
 
