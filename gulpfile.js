@@ -41,29 +41,30 @@ function client() {
   const entry = path.join(PUBLIC_DIR, 'js/main.ts');
   const config = {
     basedir: '.',
-    cache: {},
-    packageCache: {},
-    entries: [ entry ],
     debug: true,
+    entries: [ entry ],
+    cache: {},
+    packageCache: {}
   };
-  return browserify(config)
+  return browserify()
     .plugin(tsify)
+    .add(entry)
     .bundle()
     .pipe(vSource('main.js'))
     .pipe(vBuffer())
-    .pipe(plumber())
     .pipe(sourcemaps.init())
     .pipe(sourcemaps.write('.'))
-    .pipe(plumber.stop())
     .pipe(gulp.dest(CLIENT_OUT));
 }
 
 // Compile server-side TypeScript
 function server() {
   return tsProject.src()
+    .pipe(plumber())
     .pipe(sourcemaps.init())
     .pipe(tsProject()).js
     .pipe(sourcemaps.write('.'))
+    .pipe(plumber.stop())
     .pipe(gulp.dest(SERVER_OUT));
 }
 
@@ -95,4 +96,5 @@ function svg() {
     .pipe(gulp.dest(SVG_OUT));
 }
 
-module.exports.default = gulp.parallel(css, svg, hbs, client, server);
+// module.exports.default = gulp.parallel(css, svg, hbs, client, server);
+module.exports.default = client;
