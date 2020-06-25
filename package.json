@@ -15,7 +15,7 @@
     "url": "https://github.com/Some-Dood/spotify-timeline/issues"
   },
   "scripts": {
-    "build": "gulp",
+    "build:dev": "gulp dev",
     "lint": "eslint src/**/*.ts tests/**/*.test.ts",
     "lint:fix": "eslint --fix src/**/*.ts tests/**/*.test.ts",
     "start": "node . --tls-min-v1.3",

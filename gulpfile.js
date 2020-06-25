@@ -37,23 +37,13 @@ const SVG_OUT = path.join(OUTPUT_DIR, 'public/svg');
 const tsProject = ts.createProject('tsconfig.json', { typescript });
 
 // Compile client-side TypeScript
-function client() {
+function clientDev() {
   const entry = path.join(PUBLIC_DIR, 'js/main.ts');
-  const config = {
-    basedir: '.',
-    debug: true,
-    entries: [ entry ],
-    cache: {},
-    packageCache: {}
-  };
   return browserify()
-    .plugin(tsify)
     .add(entry)
+    .plugin(tsify)
     .bundle()
     .pipe(vSource('main.js'))
-    .pipe(vBuffer())
-    .pipe(sourcemaps.init())
-    .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest(CLIENT_OUT));
 }
 
@@ -69,7 +59,7 @@ function server() {
 }
 
 // Minify Handlebars templates
-function hbs() {
+function hbsDev() {
   const viewsPath = path.join(SRC_DIR, 'views');
   const glob = path.join(viewsPath, '**/*.hbs');
   return gulp.src(glob)
@@ -77,7 +67,7 @@ function hbs() {
 }
 
 // Bundle CSS together
-function css() {
+function cssDev() {
   const entries = [
     path.join(PUBLIC_DIR, 'css/main.css'),
     path.join(PUBLIC_DIR, 'css/pages/*.css'),
@@ -90,11 +80,12 @@ function css() {
 }
 
 // Compile other client-side assets
-function svg() {
+function svgDev() {
   const glob = path.join(PUBLIC_DIR, 'svg/*.svg');
   return gulp.src(glob)
     .pipe(gulp.dest(SVG_OUT));
 }
 
-// module.exports.default = gulp.parallel(css, svg, hbs, client, server);
-module.exports.default = client;
+module.exports = {
+  dev: gulp.parallel(cssDev, svgDev, hbsDev, clientDev, server),
+};

@@ -70,5 +70,5 @@
     "forceConsistentCasingInFileNames": true  /* Disallow inconsistently-cased references to the same file. */
   },
   "typeAcquisition": { "enable": true },
-  "exclude": [ "node_modules", "build", "tests" ]
+  "exclude": [ "node_modules", "build", "tests", "public" ]
 }
