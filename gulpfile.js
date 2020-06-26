@@ -16,6 +16,7 @@ const tsify = require('tsify');
 const gulp = require('gulp');
 const changed = require('gulp-changed');
 const gulpIf = require('gulp-if');
+const gZip = require('gulp-gzip');
 const plumber = require('gulp-plumber');
 const postcss = require('gulp-postcss');
 const sourcemaps = require('gulp-sourcemaps');
@@ -47,6 +48,15 @@ const tsProject = ts.createProject('tsconfig.json', { typescript });
 const optimizeSVG = lazypipe()
   .pipe(changed, SVG_OUT)
   .pipe(svgo);
+const optimizeClientJS = lazypipe()
+  .pipe(uglify)
+  .pipe(gulp.dest, CLIENT_OUT)
+  .pipe(gZip, {
+    threshold: '2kb',
+    deleteMode: CLIENT_OUT,
+    skipGrowingFiles : true,
+    gzipOptions: { level: 9 },
+  });
 
 // Compile client-side TypeScript
 function initClient(isProd) {
@@ -62,7 +72,7 @@ function initClient(isProd) {
     .pipe(vSource('main.js'))
     .pipe(vBuffer())
     .pipe(plumber())
-    .pipe(gulpIf(isProd, uglify()))
+    .pipe(gulpIf(isProd, optimizeClientJS()))
     .pipe(plumber.stop())
     .pipe(gulp.dest(CLIENT_OUT));
   return client;
