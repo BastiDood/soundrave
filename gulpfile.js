@@ -4,9 +4,7 @@ const zlib = require('zlib');
 
 // DEPENDENCIES
 const lazypipe = require('lazypipe');
-const mergeStream = require('merge-stream');
 const typescript = require('typescript');
-const ReadableStreamClone = require('readable-stream-clone');
 const vBuffer = require('vinyl-buffer');
 const vSource = require('vinyl-source-stream');
 
@@ -64,11 +62,14 @@ const brotliOptions = {
 const optimizeSVG = lazypipe()
   .pipe(changed, SVG_OUT)
   .pipe(svgo);
+const minifyJS = lazypipe()
+  .pipe(vBuffer)
+  .pipe(uglify);
 
 // Compile client-side TypeScript as `main.js`
 function initClient(isProd) {
   const entry = path.join(PUBLIC_DIR, 'js/main.ts');
-  const bundle = browserify()
+  const client = () => browserify()
     .add(entry)
     .plugin(tsify)
     .transform(babelify, {
@@ -77,31 +78,8 @@ function initClient(isProd) {
     })
     .bundle()
     .pipe(vSource('main.js'))
+    .pipe(gulpIf(isProd, minifyJS()))
     .pipe(gulp.dest(CLIENT_OUT));
-
-  let client = () => bundle;
-  if (isProd)
-    client = () => {
-      const uglified = bundle
-        .pipe(vBuffer())
-        .pipe(uglify());
-      return uglified
-        .pipe(brotli(brotliOptions))
-        .pipe(gulp.dest(CLIENT_OUT));
-      /*
-      const gzipStream = new ReadableStreamClone(uglified);
-      const brotliStream = new ReadableStreamClone(uglified);
-      return mergeStream(
-        gzipStream
-          .pipe(gZip(gZipOptions))
-          .pipe(gulp.dest(CLIENT_OUT)),
-        brotliStream
-          .pipe(brotli(brotliOptions))
-          .pipe(gulp.dest(CLIENT_OUT)),
-      );
-      */
-    };
-
   return client;
 }
 
@@ -161,13 +139,36 @@ function robots() {
     .pipe(gulp.dest(out));
 }
 
+// Compress assets via Gzip
+function initGzip(srcs) {
+  const compressGzip = () => gulp.src(srcs)
+    .pipe(gZip(gZipOptions))
+    .pipe(gulp.dest(CLIENT_OUT));
+  return compressGzip;
+}
+
+// Compress assets via Brotli
+function initBrotli(srcs) {
+  const compressBrotli = () => gulp.src(srcs)
+    .pipe(brotli(brotliOptions))
+    .pipe(gulp.dest(CLIENT_OUT));
+  return compressBrotli;
+}
+
 // Convenience function for task execution
 function execTasks(isProd) {
+  const js = path.join(OUTPUT_DIR, 'public/js/main.js');
+  const jsTranspile = initClient(isProd);
+  const jsCompress = gulp.parallel(initGzip(js), initBrotli(js));
+  const clientJS = gulp.series(
+    jsTranspile,
+    jsCompress,
+  );
   return gulp.parallel(
     initCSS(isProd),
     initSVG(isProd),
     hbsDev,
-    initClient(isProd),
+    clientJS,
     server,
     robots,
   );
