@@ -1,9 +1,12 @@
 // NODE CORE IMPORTS
 const path = require('path');
+const zlib = require('zlib');
 
 // DEPENDENCIES
 const lazypipe = require('lazypipe');
+const mergeStream = require('merge-stream');
 const typescript = require('typescript');
+const ReadableStreamClone = require('readable-stream-clone');
 const vBuffer = require('vinyl-buffer');
 const vSource = require('vinyl-source-stream');
 
@@ -13,6 +16,7 @@ const browserify = require('browserify');
 const tsify = require('tsify');
 
 // GULP PLUGINS
+const brotli = require('gulp-brotli');
 const gulp = require('gulp');
 const changed = require('gulp-changed');
 const gulpIf = require('gulp-if');
@@ -44,37 +48,60 @@ const SVG_OUT = path.join(OUTPUT_DIR, 'public/svg');
 // TYPESCRIPT PROJECT
 const tsProject = ts.createProject('tsconfig.json', { typescript });
 
+// COMPRESSION OPTIONS
+const gZipOptions = {
+  threshold: '2kb',
+  deleteMode: CLIENT_OUT,
+  skipGrowingFiles : true,
+  gzipOptions: { level: zlib.constants.BEST_COMPRESSION },
+};
+const brotliOptions = {
+  skipLarger: true,
+  params: { [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY },
+}
+
 // CONVENIENCE CHANNELS
 const optimizeSVG = lazypipe()
   .pipe(changed, SVG_OUT)
   .pipe(svgo);
-const optimizeClientJS = lazypipe()
-  .pipe(uglify)
-  .pipe(gulp.dest, CLIENT_OUT)
-  .pipe(gZip, {
-    threshold: '2kb',
-    deleteMode: CLIENT_OUT,
-    skipGrowingFiles : true,
-    gzipOptions: { level: 9 },
-  });
 
-// Compile client-side TypeScript
+// Compile client-side TypeScript as `main.js`
 function initClient(isProd) {
   const entry = path.join(PUBLIC_DIR, 'js/main.ts');
-  const b = browserify()
+  const bundle = browserify()
     .add(entry)
     .plugin(tsify)
     .transform(babelify, {
       presets: [ '@babel/preset-env' ],
       extensions: [ '.ts' ],
-    });
-  const client = () => b.bundle()
+    })
+    .bundle()
     .pipe(vSource('main.js'))
-    .pipe(vBuffer())
-    .pipe(plumber())
-    .pipe(gulpIf(isProd, optimizeClientJS()))
-    .pipe(plumber.stop())
     .pipe(gulp.dest(CLIENT_OUT));
+
+  let client = () => bundle;
+  if (isProd)
+    client = () => {
+      const uglified = bundle
+        .pipe(vBuffer())
+        .pipe(uglify());
+      return uglified
+        .pipe(brotli(brotliOptions))
+        .pipe(gulp.dest(CLIENT_OUT));
+      /*
+      const gzipStream = new ReadableStreamClone(uglified);
+      const brotliStream = new ReadableStreamClone(uglified);
+      return mergeStream(
+        gzipStream
+          .pipe(gZip(gZipOptions))
+          .pipe(gulp.dest(CLIENT_OUT)),
+        brotliStream
+          .pipe(brotli(brotliOptions))
+          .pipe(gulp.dest(CLIENT_OUT)),
+      );
+      */
+    };
+
   return client;
 }
 
@@ -93,7 +120,7 @@ function server() {
 function hbsDev() {
   const viewsPath = path.join(SRC_DIR, 'views');
   const glob = path.join(viewsPath, '**/*.hbs');
-  return gulp.src(glob)
+  return gulp.src(glob, { buffer: false })
     .pipe(gulp.dest(HBS_OUT));
 }
 
@@ -120,7 +147,7 @@ function initCSS(isProd) {
 // Optimize SVG files
 function initSVG(isProd) {
   const glob = path.join(PUBLIC_DIR, 'svg/*.svg');
-  const svg = () => gulp.src(glob)
+  const svg = () => gulp.src(glob, { buffer: isProd })
     .pipe(gulpIf(isProd, optimizeSVG()))
     .pipe(gulp.dest(SVG_OUT));
   return svg;
@@ -130,7 +157,7 @@ function initSVG(isProd) {
 function robots() {
   const textPath = path.join(PUBLIC_DIR, 'robots.txt');
   const out = path.join(OUTPUT_DIR, 'public');
-  return gulp.src(textPath)
+  return gulp.src(textPath, { buffer: false })
     .pipe(gulp.dest(out));
 }
 
