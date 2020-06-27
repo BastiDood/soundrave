@@ -156,23 +156,25 @@ function initBrotli(srcs, out) {
 }
 
 // Convenience function for task execution
-function execTasks(isProd) {
-  const js = path.join(OUTPUT_DIR, 'public/js/main.js');
-  const jsArgs = [ js, CLIENT_OUT ];
+function execBuild(isProd) {
+  const clientSteps [ initClient(isProd) ];
+  if (isProd) {
+    const js = path.join(OUTPUT_DIR, 'public/js/main.js');
+    const jsArgs = [ js, CLIENT_OUT ];
+    clientSteps.push(gulp.parallel(initGzip(...jsArgs), initBrotli(...jsArgs)));
+  }
+
   return gulp.parallel(
     initCSS(isProd),
     initSVG(isProd),
     hbsDev,
-    gulp.series(
-      initClient(isProd),
-      gulp.parallel(initGzip(...jsArgs), initBrotli(...jsArgs)),
-    ),
+    gulp.series(clientSteps),
     server,
     robots,
   );
 }
 
 module.exports = {
-  dev: execTasks(false),
-  prod: execTasks(true),
+  dev: execBuild(false),
+  prod: execBuild(true),
 };
