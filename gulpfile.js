@@ -159,17 +159,14 @@ function initBrotli(srcs, out) {
 function execTasks(isProd) {
   const js = path.join(OUTPUT_DIR, 'public/js/main.js');
   const jsArgs = [ js, CLIENT_OUT ];
-  const jsTranspile = initClient(isProd);
-  const jsCompress = gulp.parallel(initGzip(...jsArgs), initBrotli(...jsArgs));
-  const clientJS = gulp.series(
-    jsTranspile,
-    jsCompress,
-  );
   return gulp.parallel(
     initCSS(isProd),
     initSVG(isProd),
     hbsDev,
-    clientJS,
+    gulp.series(
+      initClient(isProd),
+      gulp.parallel(initGzip(...jsArgs), initBrotli(...jsArgs)),
+    ),
     server,
     robots,
   );
