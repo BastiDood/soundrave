@@ -30,18 +30,21 @@ const uglify = require('gulp-uglify');
 const cssImport = require('postcss-import');
 const cssNano = require('cssnano');
 
-// MAIN DIRECTORIES
-const OUTPUT_DIR = path.resolve(__dirname, 'build');
+// MAIN INPUT DIRECTORIES
 const PUBLIC_DIR = path.resolve(__dirname, 'public');
 const SRC_DIR = path.resolve(__dirname, 'src');
 
-// OUTPUT DIRECTORIES
+// MAIN OUTPUT DIRECTORIES
+const OUTPUT_DIR = path.resolve(__dirname, 'build');
+const PUBLIC_OUT = path.join(OUTPUT_DIR, 'public');
 const SERVER_OUT = path.join(OUTPUT_DIR, 'server');
-const HBS_OUT = path.join(SERVER_OUT, 'views');
-const CLIENT_OUT = path.join(OUTPUT_DIR, 'public/js');
-const CSS_OUT = path.join(OUTPUT_DIR, 'public/css');
+
+// RESOURCE OUTPUT DIRECTORIES
+const CLIENT_OUT = path.join(PUBLIC_OUT, 'js');
+const CSS_OUT = path.join(PUBLIC_OUT, 'css');
 const CSS_PAGES_OUT = path.join(CSS_OUT, 'pages');
-const SVG_OUT = path.join(OUTPUT_DIR, 'public/svg');
+const HBS_OUT = path.join(SERVER_OUT, 'views');
+const SVG_OUT = path.join(PUBLIC_OUT, 'svg');
 
 // TYPESCRIPT PROJECT
 const tsProject = ts.createProject('tsconfig.json', { typescript });
@@ -49,7 +52,6 @@ const tsProject = ts.createProject('tsconfig.json', { typescript });
 // COMPRESSION OPTIONS
 const gZipOptions = {
   threshold: '2kb',
-  deleteMode: CLIENT_OUT,
   skipGrowingFiles : true,
   gzipOptions: { level: zlib.constants.BEST_COMPRESSION },
 };
@@ -69,7 +71,7 @@ const minifyJS = lazypipe()
 // Compile client-side TypeScript as `main.js`
 function initClient(isProd) {
   const entry = path.join(PUBLIC_DIR, 'js/main.ts');
-  const client = () => browserify()
+  const client = () => browserify({ debug: false })
     .add(entry)
     .plugin(tsify)
     .transform(babelify, {
@@ -156,16 +158,24 @@ function initBrotli(srcs, out) {
 }
 
 // Convenience function for task execution
+// TODO: delete stale builds before production
 function execBuild(isProd) {
-  const clientSteps [ initClient(isProd) ];
+  const clientSteps = [ initClient(isProd) ];
+  const cssSteps = [ initCSS(isProd) ];
+
+  // Production-specific optimizations
   if (isProd) {
-    const js = path.join(OUTPUT_DIR, 'public/js/main.js');
-    const jsArgs = [ js, CLIENT_OUT ];
+    // JavaScript compression
+    const jsArgs = [ path.join(PUBLIC_OUT, 'js/main.js'), CLIENT_OUT ];
     clientSteps.push(gulp.parallel(initGzip(...jsArgs), initBrotli(...jsArgs)));
+
+    // CSS Compression
+    const cssArgs = [ path.join(CSS_OUT, '**/*.css'), CSS_OUT ];
+    cssSteps.push(gulp.parallel(initGzip(...cssArgs), initBrotli(...cssArgs)));
   }
 
   return gulp.parallel(
-    initCSS(isProd),
+    gulp.series(cssSteps),
     initSVG(isProd),
     hbsDev,
     gulp.series(clientSteps),
