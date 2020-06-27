@@ -140,26 +140,27 @@ function robots() {
 }
 
 // Compress assets via Gzip
-function initGzip(srcs) {
+function initGzip(srcs, out) {
   const compressGzip = () => gulp.src(srcs)
     .pipe(gZip(gZipOptions))
-    .pipe(gulp.dest(CLIENT_OUT));
+    .pipe(gulp.dest(out));
   return compressGzip;
 }
 
 // Compress assets via Brotli
-function initBrotli(srcs) {
+function initBrotli(srcs, out) {
   const compressBrotli = () => gulp.src(srcs)
     .pipe(brotli(brotliOptions))
-    .pipe(gulp.dest(CLIENT_OUT));
+    .pipe(gulp.dest(out));
   return compressBrotli;
 }
 
 // Convenience function for task execution
 function execTasks(isProd) {
   const js = path.join(OUTPUT_DIR, 'public/js/main.js');
+  const jsArgs = [ js, CLIENT_OUT ];
   const jsTranspile = initClient(isProd);
-  const jsCompress = gulp.parallel(initGzip(js), initBrotli(js));
+  const jsCompress = gulp.parallel(initGzip(...jsArgs), initBrotli(...jsArgs));
   const clientJS = gulp.series(
     jsTranspile,
     jsCompress,
