@@ -12,6 +12,7 @@ import exphbs from 'express-handlebars';
 import Handlebars from 'handlebars';
 import helmet from 'helmet';
 import noCache from 'nocache';
+import staticGzip from 'express-static-gzip';
 
 // GLOBALS
 import { cacheDB, sessionDB } from './globals/db';
@@ -46,9 +47,6 @@ app
   .set('view engine', 'hbs')
   .set('views', path.join(__dirname, 'views'));
 
-// Compress responses
-app.use(compression({ level: 9 }));
-
 // Parse signed cookies
 app.use(cookieParser(env.COOKIE_SECRET));
 
@@ -75,11 +73,19 @@ app
   .use(cors({ methods: 'GET' }));
 
 // Set public files directory
-app.use(express.static(PUBLIC_DIRECTORY, {
-  cacheControl: false,
-  dotfiles: 'ignore',
+app.use(staticGzip(PUBLIC_DIRECTORY, {
+  enableBrotli: true,
   index: false,
+  orderPreference: [ 'br', 'gzip' ],
+  serveStatic: {
+    cacheControl: false,
+    dotfiles: 'ignore',
+    index: false,
+  }
 }));
+
+// Compress dynamic responses
+app.use(compression({ level: 9 }));
 
 // Delegate endpoint logic to `Router` controllers
 app
