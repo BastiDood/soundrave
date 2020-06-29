@@ -69,6 +69,7 @@
     "gulp-brotli": "^3.0.0",
     "gulp-changed": "^4.0.2",
     "gulp-gzip": "^1.4.2",
+    "gulp-htmlmin": "^5.0.1",
     "gulp-if": "^3.0.0",
     "gulp-plumber": "^1.2.1",
     "gulp-postcss": "^8.0.0",

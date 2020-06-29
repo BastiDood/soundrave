@@ -19,6 +19,7 @@ const gulp = require('gulp');
 const changed = require('gulp-changed');
 const gulpIf = require('gulp-if');
 const gZip = require('gulp-gzip');
+// const htmlMin = require('gulp-htmlmin');
 const plumber = require('gulp-plumber');
 const postcss = require('gulp-postcss');
 const sourcemaps = require('gulp-sourcemaps');
@@ -63,10 +64,14 @@ const brotliOptions = {
 // CONVENIENCE CHANNELS
 const optimizeSVG = lazypipe()
   .pipe(changed, SVG_OUT)
-  .pipe(svgo);
+  .pipe(plumber)
+  .pipe(svgo)
+  .pipe(plumber.stop);
 const minifyJS = lazypipe()
   .pipe(vBuffer)
-  .pipe(uglify);
+  .pipe(plumber)
+  .pipe(uglify)
+  .pipe(plumber.stop);
 
 // Compile client-side TypeScript as `main.js`
 function initClient(isProd) {
