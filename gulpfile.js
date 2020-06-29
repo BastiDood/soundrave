@@ -102,11 +102,13 @@ function server() {
 }
 
 // Minify Handlebars templates
-function hbsDev() {
+function initHBS(isProd) {
   const viewsPath = path.join(SRC_DIR, 'views');
   const glob = path.join(viewsPath, '**/*.hbs');
-  return gulp.src(glob, { buffer: false })
+  const hbs = () => gulp.src(glob)
+    .pipe(gulpIf(isProd, htmlMin()))
     .pipe(gulp.dest(HBS_OUT));
+  return hbs;
 }
 
 // Bundle CSS together
@@ -170,7 +172,7 @@ function execBuild(isProd) {
 
   // Production-specific optimizations
   if (isProd) {
-    // JavaScript compression
+    // JavaScript Compression
     const jsArgs = [ path.join(PUBLIC_OUT, 'js/main.js'), CLIENT_OUT ];
     clientSteps.push(gulp.parallel(initGzip(...jsArgs), initBrotli(...jsArgs)));
 
@@ -182,7 +184,7 @@ function execBuild(isProd) {
   return gulp.parallel(
     gulp.series(cssSteps),
     initSVG(isProd),
-    hbsDev,
+    initHBS(isProd),
     gulp.series(clientSteps),
     server,
     robots,
