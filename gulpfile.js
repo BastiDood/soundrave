@@ -109,7 +109,6 @@ function initHBS(isProd) {
     .pipe(gulpIf(isProd, htmlMin({
       html5: true,
       collapseBooleanAttributes: true,
-      collapseInlineTagWhitespace: true,
       collapseWhitespace: true,
       ignoreCustomFragments: [ /{{[{]?(.*?)[}]?}}/ ],
       quoteCharacter: '\"',
