@@ -106,7 +106,9 @@ function initHBS(isProd) {
   const viewsPath = path.join(SRC_DIR, 'views');
   const glob = path.join(viewsPath, '**/*.hbs');
   const hbs = () => gulp.src(glob)
-    .pipe(gulpIf(isProd, htmlMin()))
+    .pipe(gulpIf(isProd, htmlMin({
+      html5: true,
+    })))
     .pipe(gulp.dest(HBS_OUT));
   return hbs;
 }
@@ -194,4 +196,5 @@ function execBuild(isProd) {
 module.exports = {
   dev: execBuild(false),
   prod: execBuild(true),
+  test: initHBS(true),
 };
