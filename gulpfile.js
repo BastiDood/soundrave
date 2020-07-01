@@ -108,6 +108,18 @@ function initHBS(isProd) {
   const hbs = () => gulp.src(glob)
     .pipe(gulpIf(isProd, htmlMin({
       html5: true,
+      collapseBooleanAttributes: true,
+      collapseInlineTagWhitespace: true,
+      collapseWhitespace: true,
+      ignoreCustomFragments: [ /{{[{]?(.*?)[}]?}}/ ],
+      quoteCharacter: '\"',
+      removeAttributeQuotes: true,
+      removeComments: true,
+      removeEmptyAttributes: true,
+      removeRedundantAttributes: true,
+      removeStyleLinkTypeAttributes: true,
+      useShortDoctype: true,
+      trimCustomFragments: true,
     })))
     .pipe(gulp.dest(HBS_OUT));
   return hbs;
@@ -196,5 +208,4 @@ function execBuild(isProd) {
 module.exports = {
   dev: execBuild(false),
   prod: execBuild(true),
-  test: initHBS(true),
 };
