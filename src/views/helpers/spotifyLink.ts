@@ -17,9 +17,10 @@ const toArtistLink = transformLinkByType('artist');
 const toReleaseLink = transformLinkByType('album');
 
 export function spotifyLink(type: ResourceType, id: string, name: string): SafeString {
+  const title = name.indexOf(' ') === -1 ? name : `"${name}"`;
   const generateAnchorTag = (link: string): SafeString =>
-    new SafeString(`<a href="${link}" title="${name}" rel="noreferrer" target="_blank">${name}</a>`);
-  if (type === 'artist')
-    return generateAnchorTag(toArtistLink(id));
-  return generateAnchorTag(toReleaseLink(id));
+    new SafeString(`<a href=${link} title=${title} rel=noreferrer target=_blank>${name}</a>`);
+  return type === 'artist'
+    ? generateAnchorTag(toArtistLink(id))
+    : generateAnchorTag(toReleaseLink(id));
 }
