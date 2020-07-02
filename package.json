@@ -37,7 +37,7 @@
     "express-static-gzip": "^2.0.7",
     "handlebars": "^4.7.6",
     "helmet": "^3.23.3",
-    "mongoose": "^5.9.20",
+    "mongoose": "^5.9.21",
     "nocache": "^2.1.0",
     "node-fetch": "^2.6.0",
     "useragent": "^2.3.0",
@@ -82,7 +82,7 @@
     "lazypipe": "^1.0.2",
     "postcss-import": "^12.0.1",
     "tsify": "^4.0.2",
-    "typescript": "^3.9.5",
+    "typescript": "^3.9.6",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"
   }
