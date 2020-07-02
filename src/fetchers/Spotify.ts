@@ -32,7 +32,9 @@ interface ETagBasedResource<ResourceType> {
  * request for the next step.
  */
 export class SpotifyAPI extends EventEmitter {
-  static readonly REDIRECT_URI = 'http://localhost:3000/callback';
+  static readonly REDIRECT_URI = env.NODE_ENV === 'production'
+    ? 'https://soundrave.herokuapp.com/callback'
+    : 'http://localhost:3000/callback';
   static readonly API_VERSION = 'v1';
   static readonly BASE_ENDPOINT = 'https://api.spotify.com';
   static readonly MAIN_API_ENDPOINT = formatEndpoint(SpotifyAPI.BASE_ENDPOINT, SpotifyAPI.API_VERSION);
