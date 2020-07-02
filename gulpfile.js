@@ -233,8 +233,6 @@ function watch() {
   gulp.watch(path.join(SRC_DIR, 'views/**/*.hbs'), options, initHBS(false));
 }
 
-module.exports = {
-  watch,
-  dev: execBuild(false),
-  prod: execBuild(true),
-};
+const dev = execBuild(false);
+const prod = execBuild(true);
+module.exports = { watch, dev, prod, default: prod };
