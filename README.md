@@ -9,11 +9,8 @@ git clone https://github.com/Some-Dood/spotify-timeline.git
 npm i
 
 # Production Build
-npm run build
+npm run build:prod
 
 # Run Server
-node .
-
-# Development Build (Optional)
 npm start
 ```
