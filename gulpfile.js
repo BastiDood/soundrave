@@ -9,7 +9,6 @@ const vBuffer = require('vinyl-buffer');
 const vSource = require('vinyl-source-stream');
 
 // BROWSERIFY PLUGINS
-const babelify = require('babelify');
 const browserify = require('browserify');
 const tsify = require('tsify');
 
@@ -24,8 +23,8 @@ const plumber = require('gulp-plumber');
 const postcss = require('gulp-postcss');
 const sourcemaps = require('gulp-sourcemaps');
 const svgo = require('gulp-svgo');
+const terser = require('gulp-terser');
 const ts = require('gulp-typescript');
-const uglify = require('gulp-uglify');
 
 // POST-CSS PLUGINS
 const cssImport = require('postcss-import');
@@ -70,19 +69,17 @@ const optimizeSVG = lazypipe()
 const minifyJS = lazypipe()
   .pipe(vBuffer)
   .pipe(plumber)
-  .pipe(uglify)
+  .pipe(terser)
   .pipe(plumber.stop);
 
 // Compile client-side TypeScript as `main.js`
 function initClient(isProd) {
   const entry = path.join(PUBLIC_DIR, 'js/main.ts');
-  const client = () => browserify({ debug: false })
-    .add(entry)
-    .plugin(tsify)
-    .transform(babelify, {
-      presets: [ '@babel/preset-env' ],
-      extensions: [ '.ts' ],
+  const client = () => browserify({
+      debug: false,
+      entries: entry,
     })
+    .plugin(tsify, { target: 'ES6' })
     .bundle()
     .pipe(vSource('main.js'))
     .pipe(gulpIf(isProd, minifyJS()))
