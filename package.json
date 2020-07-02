@@ -15,13 +15,13 @@
     "url": "https://github.com/Some-Dood/spotify-timeline/issues"
   },
   "scripts": {
-    "build": "gulp test",
     "build:dev": "gulp dev",
     "build:prod": "gulp prod",
     "lint": "eslint src/**/*.ts tests/**/*.test.ts",
     "lint:fix": "eslint --fix src/**/*.ts tests/**/*.test.ts",
     "start": "node . --tls-min-v1.3",
-    "test": "tsc --build tests/tsconfig.json && jest build/jest/tests"
+    "test": "tsc --build tests/tsconfig.json && jest build/jest/tests",
+    "watch": "gulp watch"
   },
   "engines": {
     "node": ">=12.16",

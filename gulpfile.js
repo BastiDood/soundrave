@@ -1,5 +1,6 @@
+// TODO: delete stale builds before production
 // NODE CORE IMPORTS
-const path = require('path');
+const path = require('path').posix;
 const zlib = require('zlib');
 
 // DEPENDENCIES
@@ -31,11 +32,12 @@ const cssImport = require('postcss-import');
 const cssNano = require('cssnano');
 
 // MAIN INPUT DIRECTORIES
-const PUBLIC_DIR = path.resolve(__dirname, 'public');
-const SRC_DIR = path.resolve(__dirname, 'src');
+const PUBLIC_DIR = './public';
+const SRC_DIR = './src';
+const TYPINGS_DIR = './typings';
 
 // MAIN OUTPUT DIRECTORIES
-const OUTPUT_DIR = path.resolve(__dirname, 'build');
+const OUTPUT_DIR = './build';
 const PUBLIC_OUT = path.join(OUTPUT_DIR, 'public');
 const SERVER_OUT = path.join(OUTPUT_DIR, 'server');
 
@@ -77,6 +79,8 @@ function initClient(isProd) {
   const entry = path.join(PUBLIC_DIR, 'js/main.ts');
   const client = () => browserify({
       debug: false,
+      cache: Object.create(null),
+      packageCache: Object.create(null),
       entries: entry,
     })
     .plugin(tsify, { target: 'ES6' })
@@ -175,10 +179,10 @@ function initBrotli(srcs, out) {
 }
 
 // Convenience function for task execution
-// TODO: delete stale builds before production
 function execBuild(isProd) {
   const clientSteps = [ initClient(isProd) ];
   const cssSteps = [ initCSS(isProd) ];
+  const svgSteps = [ initSVG(isProd) ];
 
   // Production-specific optimizations
   if (isProd) {
@@ -189,19 +193,48 @@ function execBuild(isProd) {
     // CSS Compression
     const cssArgs = [ path.join(CSS_OUT, '**/*.css'), CSS_OUT ];
     cssSteps.push(gulp.parallel(initGzip(...cssArgs), initBrotli(...cssArgs)));
+
+    // SVG Compression
+    const svgArgs = [ path.join(SVG_OUT, '**/*.svg'), SVG_OUT ];
+    cssSteps.push(gulp.parallel(initGzip(...svgArgs), initBrotli(...svgArgs)));
   }
 
   return gulp.parallel(
-    gulp.series(cssSteps),
-    initSVG(isProd),
-    initHBS(isProd),
-    gulp.series(clientSteps),
-    server,
     robots,
+    server,
+    initHBS(isProd),
+    gulp.series(cssSteps),
+    gulp.series(svgSteps),
+    gulp.series(clientSteps),
   );
 }
 
+function watch() {
+  // Watch Options
+  const options = { ignoreInitial: false };
+
+  // Server-side JS watch
+  gulp.watch([
+    path.join(SRC_DIR, '**/*.ts'),
+    path.join(TYPINGS_DIR, '**/*.d.ts'),
+  ], options, server);
+
+  // Client-side JS watch
+  // TODO: use Watchify for this
+  gulp.watch(path.join(PUBLIC_DIR, 'js/**/*.ts'), options, initClient(false));
+
+  // Client-side CSS watch
+  gulp.watch(path.join(PUBLIC_DIR, 'css/**/*.css'), options, initCSS(false));
+
+  // Client-side SVG watch
+  gulp.watch(path.join(PUBLIC_DIR, 'svg/**/*.svg'), options, initSVG(false));
+
+  // Handlebars watch
+  gulp.watch(path.join(SRC_DIR, 'views/**/*.hbs'), options, initHBS(false));
+}
+
 module.exports = {
+  watch,
   dev: execBuild(false),
   prod: execBuild(true),
 };
