@@ -53,7 +53,7 @@
     "@types/helmet": "0.0.47",
     "@types/jest": "^26.0.4",
     "@types/mongoose": "^5.7.30",
-    "@types/node": "^14.0.19",
+    "@types/node": "^14.0.20",
     "@types/node-fetch": "^2.5.7",
     "@types/spotify-api": "0.0.3",
     "@types/useragent": "^2.1.1",
