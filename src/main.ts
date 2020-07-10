@@ -81,7 +81,7 @@ app.use(staticGzip(PUBLIC_DIRECTORY, {
     cacheControl: false,
     dotfiles: 'ignore',
     index: false,
-  }
+  },
 }));
 
 // Compress dynamic responses

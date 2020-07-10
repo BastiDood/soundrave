@@ -18,8 +18,8 @@
     "build": "gulp",
     "build:dev": "gulp dev",
     "build:prod": "gulp prod",
-    "lint": "eslint src/**/*.ts tests/**/*.test.ts",
-    "lint:fix": "eslint --fix src/**/*.ts tests/**/*.test.ts",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint --fix src/**/*.ts",
     "start": "node . --tls-min-v1.3",
     "test": "tsc --build tests/tsconfig.json && jest build/jest/tests",
     "watch": "gulp watch"
@@ -67,6 +67,7 @@
     "gulp": "^4.0.2",
     "gulp-brotli": "^3.0.0",
     "gulp-changed": "^4.0.2",
+    "gulp-eslint": "^6.0.0",
     "gulp-gzip": "^1.4.2",
     "gulp-htmlmin": "^5.0.1",
     "gulp-if": "^3.0.0",

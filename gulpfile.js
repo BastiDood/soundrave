@@ -15,6 +15,7 @@ const tsify = require('tsify');
 
 // GULP PLUGINS
 const brotli = require('gulp-brotli');
+// const eslint = require('gulp-eslint');
 const gulp = require('gulp');
 const changed = require('gulp-changed');
 const gulpIf = require('gulp-if');
@@ -68,9 +69,13 @@ const optimizeSVG = lazypipe()
   .pipe(plumber)
   .pipe(svgo)
   .pipe(plumber.stop);
+// const lintJS = lazypipe()
+//   .pipe(eslint)
+//   .pipe(eslint.failOnError);
 const minifyJS = lazypipe()
   .pipe(vBuffer)
   .pipe(plumber)
+  // .pipe(lintJS)
   .pipe(terser)
   .pipe(plumber.stop);
 
@@ -92,14 +97,16 @@ function initClient(isProd) {
 }
 
 // Compile server-side TypeScript
-function server() {
-  return tsProject.src()
+function initServer(isProd) {
+  const server = () => tsProject.src()
     .pipe(plumber())
+    // .pipe(gulpIf(isProd, lintJS()))
     .pipe(sourcemaps.init())
     .pipe(tsProject()).js
     .pipe(sourcemaps.write('.'))
     .pipe(plumber.stop())
     .pipe(gulp.dest(SERVER_OUT));
+  return server;
 }
 
 // Minify Handlebars templates
@@ -201,7 +208,7 @@ function execBuild(isProd) {
 
   return gulp.parallel(
     robots,
-    server,
+    initServer(isProd),
     initHBS(isProd),
     gulp.series(cssSteps),
     gulp.series(svgSteps),
