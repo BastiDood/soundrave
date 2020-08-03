@@ -22,7 +22,6 @@ import { env } from './globals/env';
 import { coreHandler } from './routes';
 
 // MIDDLEWARES
-import { parseUserAgent } from './middlewares/agent';
 import { populateSessionData, populateUserData } from './middlewares/session';
 import { handleReleaseRetrievalErrors, handleFirstPullErrors, handleNonExistentRoute } from './middlewares/error';
 
@@ -89,7 +88,6 @@ app.use(compression({ level: 9 }));
 
 // Delegate endpoint logic to `Router` controllers
 app
-  .use(parseUserAgent)
   .use(populateSessionData)
   .use(populateUserData)
   .use('/', coreHandler)

@@ -41,7 +41,6 @@
     "mongoose": "^5.9.27",
     "nocache": "^2.1.0",
     "node-fetch": "^2.6.0",
-    "useragent": "^2.3.0",
     "uuid": "^8.3.0"
   },
   "devDependencies": {

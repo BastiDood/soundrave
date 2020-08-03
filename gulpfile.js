@@ -224,7 +224,7 @@ function watch() {
   gulp.watch([
     path.join(SRC_DIR, '**/*.ts'),
     path.join(TYPINGS_DIR, '**/*.d.ts'),
-  ], options, server);
+  ], options, initServer(false));
 
   // Client-side JS watch
   // TODO: use Watchify for this
