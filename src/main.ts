@@ -56,12 +56,11 @@ app
   .use(helmet.permittedCrossDomainPolicies())
   .use(helmet.contentSecurityPolicy({
     directives: {
-      formAction: [ '\'self\'' ],
-      defaultSrc: [ '\'self\'' ],
+      defaultSrc: [ '\'none\'' ],
       imgSrc: [ '\'self\'', 'https://i.scdn.co' ],
+      scriptSrc: [ '\'self\'' ],
       styleSrc: [ '\'self\'', 'https://fonts.googleapis.com/css2' ],
       fontSrc: [ 'https://fonts.googleapis.com/css2', 'https://fonts.gstatic.com' ],
-      frameAncestors: [ '\'none\'' ],
     },
   }))
   .use(helmet.referrerPolicy({ policy: 'no-referrer' }))
