@@ -3,6 +3,10 @@ declare namespace Render {
     layout: 'home';
   }
 
+  interface AboutContext {
+    layout: 'about';
+  }
+
   interface TimelineContext {
     layout: 'timeline';
     releases: PopulatedReleaseObject[];

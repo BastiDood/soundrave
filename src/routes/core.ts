@@ -34,6 +34,8 @@ const defaultCookieOptions: express.CookieOptions = {
 router
   // @ts-expect-error
   .get('/', (req, res) => res.render('index', { layout: 'home' } as Render.HomeContext))
+  // @ts-expect-error
+  .get('/about', (req, res) => res.render('about', { layout: 'about' } as Render.AboutContext))
   // TODO: Set a timeout for stalling requests
   .get('/timeline', async (req, res, next) => {
     // Shorthand for session object
