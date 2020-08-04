@@ -45,7 +45,6 @@ const SERVER_OUT = path.join(OUTPUT_DIR, 'server');
 // RESOURCE OUTPUT DIRECTORIES
 const CLIENT_OUT = path.join(PUBLIC_OUT, 'js');
 const CSS_OUT = path.join(PUBLIC_OUT, 'css');
-const CSS_PAGES_OUT = path.join(CSS_OUT, 'pages');
 const HBS_OUT = path.join(SERVER_OUT, 'views');
 const SVG_OUT = path.join(PUBLIC_OUT, 'svg');
 
@@ -134,20 +133,21 @@ function initHBS(isProd) {
 
 // Bundle CSS together
 function initCSS(isProd) {
+  const INPUT_DIR = path.join(PUBLIC_DIR, 'css');
   const entries = [
-    path.join(PUBLIC_DIR, 'css/main.css'),
-    path.join(PUBLIC_DIR, 'css/pages/*.css'),
+    path.join(INPUT_DIR, '*.css'),
+    path.join(INPUT_DIR, 'pages/*.css'),
   ];
   const postcssPlugins = [ cssImport ];
 
   if (isProd)
     postcssPlugins.push(cssNano);
 
-  const css = () => gulp.src(entries)
+  const css = () => gulp.src(entries, { base: INPUT_DIR })
     .pipe(plumber())
     .pipe(postcss(postcssPlugins))
     .pipe(plumber.stop())
-    .pipe(gulp.dest(file => file.stem === 'main' ? CSS_OUT : CSS_PAGES_OUT));
+    .pipe(gulp.dest(CSS_OUT));
 
   return css;
 }
