@@ -19,7 +19,7 @@ import { cacheDB, sessionDB } from './globals/db';
 import { env } from './globals/env';
 
 // ROUTES
-import { coreHandler } from './routes';
+import { coreHandler } from './routes/core';
 
 // MIDDLEWARES
 import { populateSessionData, populateUserData } from './middlewares/session';
