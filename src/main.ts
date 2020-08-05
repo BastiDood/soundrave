@@ -53,6 +53,10 @@ app.use(cookieParser(env.COOKIE_SECRET));
 app
   .disable('x-powered-by')
   .use(helmet())
+  .use(helmet.hsts({
+    includeSubDomains: true,
+    preload: true,
+  }))
   .use(helmet.permittedCrossDomainPolicies())
   .use(helmet.contentSecurityPolicy({
     directives: {
