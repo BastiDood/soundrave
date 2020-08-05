@@ -47,6 +47,7 @@ const CLIENT_OUT = path.join(PUBLIC_OUT, 'js');
 const CSS_OUT = path.join(PUBLIC_OUT, 'css');
 const HBS_OUT = path.join(SERVER_OUT, 'views');
 const SVG_OUT = path.join(PUBLIC_OUT, 'svg');
+const IMG_OUT = path.join(PUBLIC_OUT, 'img');
 
 // TYPESCRIPT PROJECT
 const tsProject = ts.createProject('tsconfig.json', { typescript });
@@ -154,11 +155,26 @@ function initCSS(isProd) {
 
 // Optimize SVG files
 function initSVG(isProd) {
-  const glob = path.join(PUBLIC_DIR, 'svg/*.svg');
-  const svg = () => gulp.src(glob, { buffer: isProd })
+  const INPUT_DIR = path.join(PUBLIC_DIR, 'svg');
+  const glob = path.join(INPUT_DIR, '**/*.svg');
+  const svg = () => gulp.src(glob, {
+      buffer: isProd,
+      base: INPUT_DIR,
+    })
     .pipe(gulpIf(isProd, optimizeSVG()))
     .pipe(gulp.dest(SVG_OUT));
   return svg;
+}
+
+// Copy PNG image files
+function images() {
+  const INPUT_DIR = path.join(PUBLIC_DIR, 'img');
+  const glob = path.join(INPUT_DIR, '**/*.png');
+  return gulp.src(glob, {
+    buffer: false,
+    base: INPUT_DIR,
+  })
+    .pipe(gulp.dest(IMG_OUT));
 }
 
 // Copy `robots.txt`
@@ -190,6 +206,7 @@ function execBuild(isProd) {
   const clientSteps = [ initClient(isProd) ];
   const cssSteps = [ initCSS(isProd) ];
   const svgSteps = [ initSVG(isProd) ];
+  const imgSteps = [ images ];
 
   // Production-specific optimizations
   if (isProd) {
@@ -204,6 +221,10 @@ function execBuild(isProd) {
     // SVG Compression
     const svgArgs = [ path.join(SVG_OUT, '**/*.svg'), SVG_OUT ];
     cssSteps.push(gulp.parallel(initGzip(...svgArgs), initBrotli(...svgArgs)));
+
+    // Image Compression
+    const imgArgs = [ path.join(IMG_OUT, '**/*.png'), IMG_OUT ];
+    imgSteps.push(gulp.parallel(initGzip(...imgArgs), initBrotli(...imgArgs)));
   }
 
   return gulp.parallel(
@@ -212,6 +233,7 @@ function execBuild(isProd) {
     initHBS(isProd),
     gulp.series(cssSteps),
     gulp.series(svgSteps),
+    gulp.series(imgSteps),
     gulp.series(clientSteps),
   );
 }
