@@ -61,7 +61,7 @@ app
   .use(helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: [ '\'none\'' ],
-      imgSrc: [ '\'self\'', 'https://i.scdn.co' ],
+      imgSrc: [ '\'self\'', 'https:' ],
       scriptSrc: [ '\'self\'' ],
       styleSrc: [ '\'self\'', 'https://fonts.googleapis.com/css2' ],
       fontSrc: [ 'https://fonts.googleapis.com/css2', 'https://fonts.gstatic.com' ],
