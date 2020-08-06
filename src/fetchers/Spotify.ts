@@ -76,6 +76,7 @@ export class SpotifyAPI extends EventEmitter {
    * Initialize API by exchanging an authorization code for
    * an access token.
    * @param code - Valid authorization code sent to the callback URI
+   * @param codeVerifier - PKCE code verifier string used during authorization step
    */
   static async init(code: string, codeVerifier: string): Promise<Result<SpotifyAPI, OAuthError>> {
     const response = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
