@@ -14,5 +14,6 @@ export const ValidSessionSchema = new Schema({
 export const LoginSessionSchema = new Schema({
   _id: { type: String, required: true },
   loginNonce: { type: String, required: true },
+  codeVerifier: { type: String, required: true },
   createdAt: { type: Date, default: Date.now, expires: '5m' },
 });

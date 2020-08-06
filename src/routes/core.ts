@@ -122,6 +122,7 @@ router
     const newSession = await Session.initialize();
     console.log(`Login Attempt: ${newSession._id}`);
     console.log(`State Hash: ${newSession.loginNonce}`);
+    console.log(`Code Verifier: ${newSession.codeVerifier}`);
 
     // Only keep uninitialized log-in sessions for five minutes
     const options = { ...defaultCookieOptions, maxAge: ONE_MINUTE * 5 };
@@ -129,7 +130,7 @@ router
     res.cookie('mode', 'login', options);
     console.log('Temporary session cookie set.');
 
-    res.redirect(SpotifyAPI.generateAuthEndpoint(newSession.loginNonce));
+    res.redirect(SpotifyAPI.generateAuthEndpoint(newSession.loginNonce, newSession.codeVerifier));
   })
   .get('/callback', async (req: express.Request<Record<string, string>, unknown, unknown, AuthorizationResult>, res, next) => {
     const { session: oldSession } = req;
@@ -170,7 +171,7 @@ router
     }
 
     // Exchange the authorization code for an access token
-    const tokenResult = await SpotifyAPI.init(authorization.code);
+    const tokenResult = await SpotifyAPI.init(authorization.code, oldSession.codeVerifier);
 
     // Handle any initialization errors elsewhere
     if (!tokenResult.ok) {

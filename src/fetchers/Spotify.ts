@@ -1,10 +1,12 @@
 // NODE CORE IMPORTS
 import { Buffer } from 'buffer';
+import { createHash } from 'crypto';
 import { EventEmitter } from 'events';
 import { strict as assert } from 'assert';
 import { URLSearchParams } from 'url';
 
 // DEPENDENCIES
+import base64url from 'base64url';
 import fetch from 'node-fetch';
 
 // GLOBALS
@@ -54,9 +56,15 @@ export class SpotifyAPI extends EventEmitter {
     this.#token = token;
   }
 
-  static generateAuthEndpoint(state: string): string {
+  static generateAuthEndpoint(state: string, codeVerifier: string): string {
+    const challengeBuffer = createHash('sha256')
+      .update(codeVerifier)
+      .digest();
+    const code_challenge = base64url.encode(challengeBuffer);
     return formatEndpoint(SpotifyAPI.ACCOUNTS_ENDPOINT, '/authorize', {
       state,
+      code_challenge,
+      code_challenge_method: 'S256',
       client_id: env.CLIENT_ID,
       response_type: 'code',
       redirect_uri: SpotifyAPI.REDIRECT_URI,
@@ -69,12 +77,13 @@ export class SpotifyAPI extends EventEmitter {
    * an access token.
    * @param code - Valid authorization code sent to the callback URI
    */
-  static async init(code: string): Promise<Result<SpotifyAPI, OAuthError>> {
+  static async init(code: string, codeVerifier: string): Promise<Result<SpotifyAPI, OAuthError>> {
     const response = await fetch(SpotifyAPI.TOKEN_ENDPOINT, {
       compress: true,
       method: 'POST',
       body: new URLSearchParams({
         code,
+        code_verifier: codeVerifier,
         grant_type: 'authorization_code',
         redirect_uri: SpotifyAPI.REDIRECT_URI,
         client_id: env.CLIENT_ID,

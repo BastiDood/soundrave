@@ -19,6 +19,8 @@ interface MongoValidSession extends MongoBaseSession {
 interface MongoLoginSession extends MongoBaseSession {
   /** Nonce to be used during first log in. This is to be disposed of after logging in. */
   loginNonce: string;
+  /** Nonce to be used for OAuth 2.0 PKCE verification. */
+  codeVerifier: string;
 }
 
 interface Cacheable {

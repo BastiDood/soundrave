@@ -10,7 +10,8 @@ import { v4 as uuid } from 'uuid';
 import { ValidSession, LoginSession } from './models';
 
 // UTILITY FUNCTIONS
-const generate28RandomBytes = promisify(randomBytes.bind(null, 28));
+import { generateRandomCodeVerifierChars } from '../util';
+const generateRandomBytes = promisify(randomBytes);
 
 export class Session {
   /** Begin a session by providing the minimal amount of data required to log in. */
@@ -18,9 +19,10 @@ export class Session {
     const _id = uuid();
     const loginNonce = createHash('md5')
       .update(_id)
-      .update(await generate28RandomBytes())
+      .update(await generateRandomBytes(28))
       .digest('hex');
-    return LoginSession.create({ _id, loginNonce });
+    const codeVerifier = Array.from(generateRandomCodeVerifierChars()).join('');
+    return LoginSession.create({ _id, loginNonce, codeVerifier });
   }
 
   static check(mode: string, id: string): Promise<ValidSessionObject|LoginSessionObject|null> {
