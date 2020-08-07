@@ -119,8 +119,8 @@ async function init(): Promise<void> {
   await startServer(Number(PORT), '0.0.0.0');
 
   // Log server information
-  const addressInfo = server.address()!;
-  assert(typeof addressInfo !== 'string');
+  const addressInfo = server.address();
+  assert(addressInfo && typeof addressInfo !== 'string');
   const { address, port } = addressInfo;
   console.log(`Server started at ${address}:${port}`);
 }
