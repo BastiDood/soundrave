@@ -39,7 +39,7 @@
     "express-static-gzip": "^2.0.7",
     "handlebars": "^4.7.6",
     "helmet": "^4.0.0",
-    "mongoose": "^5.9.28",
+    "mongoose": "^5.9.29",
     "nocache": "^2.1.0",
     "node-fetch": "^2.6.0",
     "uuid": "^8.3.0"
