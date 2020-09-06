@@ -41,7 +41,7 @@
     "helmet": "^4.1.0",
     "mongoose": "^5.10.3",
     "nocache": "^2.1.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "uuid": "^8.3.0"
   },
   "devDependencies": {
