@@ -42,7 +42,7 @@
     "mongoose": "^5.10.7",
     "nocache": "^2.1.0",
     "node-fetch": "^2.6.1",
-    "uuid": "^8.3.0"
+    "uuid": "^8.3.1"
   },
   "devDependencies": {
     "@types/compression": "^1.7.0",
