@@ -216,7 +216,7 @@ export class SpotifyAPI extends EventEmitter {
     if (etag)
       fetchOpts.headers['If-None-Match'] = etag;
 
-    let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/me/following', {
+    let next: string|null = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, '/me/following', {
       type: 'artist',
       limit: '50',
     });
@@ -278,7 +278,7 @@ export class SpotifyAPI extends EventEmitter {
    * @param id - Spotify ID of artist
    * */
   async *fetchReleasesByArtistID(id: string): AsyncGenerator<NonPopulatedReleaseObject[], OAuthError|SpotifyAPIError|undefined> {
-    let next = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
+    let next: string|null = formatEndpoint(SpotifyAPI.MAIN_API_ENDPOINT, `/artists/${id}/albums`, {
       include_groups: 'album,single',
       limit: '50',
     });
