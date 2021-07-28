@@ -1,16 +1,2 @@
-This is an app that plops down recent releases from your followed artists.
-
-# Installation
-```bash
-# Download Repository
-git clone https://github.com/Some-Dood/spotify-timeline.git
-
-# Instal Dependencies
-npm i
-
-# Production Build
-npm run build:prod
-
-# Run Server
-npm start
-```
+# Spotify Timeline
+Currently being rewritten using the [Deno](https://deno.land/) runtime for [TypeScript](https://www.typescriptlang.org/).
