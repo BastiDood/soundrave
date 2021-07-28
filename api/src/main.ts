@@ -1,17 +1,12 @@
 import { ConnectOptions, MongoClient } from 'mongo';
 import { Application } from 'oak';
-import {
-    MONGO_USER,
-    MONGO_PASS,
-    MONGO_HOST,
-    MONGO_PORT,
-    HOST,
-    PORT,
-} from 'env';
+import { env } from 'env';
+
+import { auth } from './routes/auth.ts';
 
 // Initialize MongoDB connection
 const mongo = new MongoClient();
-const dbAddress = { host: MONGO_HOST, port: MONGO_PORT };
+const dbAddress = { host: env.MONGO_HOST, port: env.MONGO_PORT };
 const connOptions: ConnectOptions = {
     compression: ['zlib', 'snappy', 'none'],
     db: 'soundrave-api',
@@ -19,10 +14,10 @@ const connOptions: ConnectOptions = {
 };
 
 // Add credentials if necessary
-if (MONGO_USER && MONGO_PASS)
+if (env.MONGO_USER && env.MONGO_PASS)
     connOptions.credential = {
-        username: MONGO_USER,
-        password: MONGO_PASS,
+        username: env.MONGO_USER,
+        password: env.MONGO_PASS,
     };
 
 // Initialize Oak application
@@ -34,4 +29,4 @@ const app = new Application({
 
 // Set up middlewares
 console.info('App listening...');
-await app.listen({ hostname: HOST, port: PORT });
+await app.use(auth.allowedMethods(), auth.routes()).listen({ hostname: env.HOST, port: env.PORT });
