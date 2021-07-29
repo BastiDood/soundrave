@@ -8,10 +8,20 @@ export const enum JobType {
     GetAlbums,
 }
 
-export interface Job {
-    query: JobType;
+export interface GetFollowedArtists {
+    query: JobType.GetFollowedArtists;
     sessionId: string;
     userId: string;
     token?: SessionToken;
     url: string;
 }
+
+export interface GetAlbums {
+    query: JobType.GetAlbums;
+    artistId: string;
+    sessionId: string;
+    userId: string;
+    token?: SessionToken;
+}
+
+export type Job = GetFollowedArtists | GetAlbums;

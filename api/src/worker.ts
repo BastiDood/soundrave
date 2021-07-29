@@ -4,66 +4,112 @@ import { assert } from 'std/assert';
 import { Bson } from 'mongo';
 import { db } from 'db';
 
-import { FollowedArtists } from './model/spotify.ts';
+import { ArtistAlbums, FollowedArtists } from './model/spotify.ts';
 import { Job, JobType, SessionToken } from './types/jobs.ts';
 
 const sessionCache = new Map<string, SessionToken>();
 
-async function processJob({ url, query, sessionId, userId, token }: Job) {
+async function processJob(job: Job) {
     // TODO: Handle case when access token expires
-    const session = token ?? sessionCache.get(sessionId);
+    const session = job.token ?? sessionCache.get(job.sessionId);
     assert(session, 'No session provided.');
 
-    // Fetch user's followed artists
-    const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${session.accessToken}` },
-    });
-    const maybeResponse = await response.json();
-
-    switch (query) {
+    switch (job.query) {
         case JobType.GetFollowedArtists: {
-            const { next, items } = FollowedArtists.parse(maybeResponse);
+            // Fetch user's followed artists
+            const response = await fetch(job.url, {
+                headers: { Authorization: `Bearer ${session.accessToken}` },
+            });
+            const maybeFollowedArtists = await response.json();
+            const { next, items } = FollowedArtists.parse(maybeFollowedArtists);
 
             // FIXME: use bulk update for upserts
             // Cache the artists to the database
             const ids: string[] = [];
             const artists = items.map(artist => {
                 setTimeout(processJob, 0, {
-                    url: `https://api.spotify.com/v1/artists/${artist.id}/albums`,
                     query: JobType.GetAlbums,
-                    sessionId,
-                    userId,
+                    artistId: artist.id,
+                    sessionId: job.sessionId,
+                    userId: job.userId,
                 });
                 ids.push(artist.id);
                 return {
                     _id: artist.id,
                     name: artist.name,
                     images: artist.images,
+                    albums: [],
                 };
             });
 
             // Cache the artists and update the user's profile
             const insertFuture = db.collection('artists').insertMany(artists, { ordered: false });
-            const updateFuture = db.collection('users').findAndModify(
-                {
-                    _id: Bson.ObjectId.createFromHexString(userId),
-                },
-                { upsert: false, update: { $addToSet: { followedArtists: { $each: ids } } } }
-            );
+            const updateFuture = db
+                .collection('users')
+                .findAndModify(
+                    { _id: Bson.ObjectId.createFromHexString(job.userId) },
+                    { upsert: false, update: { $addToSet: { followedArtists: { $each: ids } } } }
+                );
+            await Promise.all([insertFuture, updateFuture]);
 
             // Create new followed artists job
             if (next)
                 setTimeout(processJob, 0, {
                     url: next,
                     query: JobType.GetFollowedArtists,
-                    sessionId,
-                    userId,
+                    sessionId: job.sessionId,
+                    userId: job.userId,
                 });
 
-            await Promise.all([insertFuture, updateFuture]);
             break;
         }
         case JobType.GetAlbums: {
+            const response = await fetch(
+                `https://api.spotify.com/v1/artists/${job.artistId}/albums`
+            );
+            const maybeAlbums = await response.json();
+            const { next, items } = ArtistAlbums.parse(maybeAlbums);
+
+            const ids: string[] = [];
+            const albums = items.map(album => {
+                ids.push(album.id);
+
+                const [year, month, day] = album.release_date.split('-').map(Number);
+                const releaseDate: Bson.Document = {
+                    precision: album.release_date_precision,
+                };
+                if (year !== undefined) releaseDate.year = year;
+                if (month !== undefined) releaseDate.month = month;
+                if (day !== undefined) releaseDate.day = day;
+
+                return {
+                    _id: album.id,
+                    name: album.name,
+                    images: album.images,
+                    albumType: album.album_type,
+                    releaseDate: releaseDate,
+                };
+            });
+
+            // Cache the albums and update the artist's profile
+            const insertFuture = db.collection('albums').insertMany(albums, { ordered: false });
+            const updateFuture = db
+                .collection('artists')
+                .findAndModify(
+                    { _id: Bson.ObjectId.createFromHexString(job.artistId) },
+                    { upsert: false, update: { $addToSet: { albums: { $each: ids } } } }
+                );
+            await Promise.all([insertFuture, updateFuture]);
+
+            // Create new job for next page
+            if (next)
+                setTimeout(processJob, 0, {
+                    url: next,
+                    query: JobType.GetAlbums,
+                    sessionId: job.sessionId,
+                    userId: job.userId,
+                });
+
             break;
         }
     }
