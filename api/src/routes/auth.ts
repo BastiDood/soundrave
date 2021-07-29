@@ -1,5 +1,6 @@
+import { db } from 'db';
 import { env } from 'env';
-import { Bson, Database } from 'mongo';
+import { Bson } from 'mongo';
 import { Router, RouterContext, RouteParams, Status } from 'oak';
 import { z } from 'zod';
 import { encode } from 'std/encoding/base64';
@@ -10,7 +11,7 @@ import { FollowedArtists, User } from '../model/spotify.ts';
 import { RawPendingSession, RawValidSession } from '../model/session.ts';
 
 export const auth = new Router({ prefix: '/auth' })
-    .get('/login', async (ctx: RouterContext<RouteParams, Database>) => {
+    .get('/login', async (ctx: RouterContext<RouteParams, Record<string, unknown>>) => {
         // TODO: Allow users with partially verified sessions.
         ctx.assert(
             ctx.cookies.get('sid', { signed: true }) === undefined,
@@ -34,7 +35,7 @@ export const auth = new Router({ prefix: '/auth' })
         };
 
         // Send session to database
-        const { insertedId } = await ctx.state.collection('collection').insertOne(session);
+        const { insertedId } = await db.collection('collection').insertOne(session);
         ctx.assert(
             insertedId instanceof Bson.ObjectId,
             Status.InternalServerError,
@@ -61,7 +62,7 @@ export const auth = new Router({ prefix: '/auth' })
         });
         ctx.response.redirect('https://accounts.spotify.com/authorize?' + params.toString());
     })
-    .get('/callback', async (ctx: RouterContext<RouteParams, Database>) => {
+    .get('/callback', async (ctx: RouterContext<RouteParams, unknown>) => {
         // Disallow users without ID
         const sessionId = ctx.cookies.get('sid', { signed: true });
         ctx.assert(sessionId, Status.Forbidden, 'no session ID provided');
@@ -71,7 +72,7 @@ export const auth = new Router({ prefix: '/auth' })
             _id: Bson.ObjectId.createFromHexString(sessionId),
             verified: false,
         };
-        const maybeNonce = await ctx.state.collection('sessions').findOne(
+        const maybeNonce = await db.collection('sessions').findOne(
             {
                 _id: Bson.ObjectId.createFromHexString(sessionId),
                 verified: false,
@@ -135,7 +136,7 @@ export const auth = new Router({ prefix: '/auth' })
             });
 
             // Inform MongoDB about new artists
-            await ctx.state.collection('artists').insertMany(artists);
+            await db.collection('artists').insertMany(artists);
             next = followedArtistsCursor.next;
         }
 
@@ -151,7 +152,7 @@ export const auth = new Router({ prefix: '/auth' })
         };
 
         // Submit new user
-        await ctx.state.collection('users').insertOne(user);
+        await db.collection('users').insertOne(user);
 
         // Construct new session
         const newSession: z.infer<typeof RawValidSession> = {
@@ -165,7 +166,7 @@ export const auth = new Router({ prefix: '/auth' })
         };
 
         // Submit new session to MongoDB
-        await ctx.state
+        await db
             .collection('sessions')
             .updateOne(
                 sessionQuery,
