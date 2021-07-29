@@ -125,12 +125,17 @@ export const auth = new Router({ prefix: '/auth' })
             const followedArtistsCursor = FollowedArtists.parse(maybeFollowedArtists);
 
             // Push artist IDs
-            const ids = followedArtistsCursor.items.map(artist => artist.id);
-            followedArtists.push(...ids);
+            const artists = followedArtistsCursor.items.map(artist => {
+                followedArtists.push(artist.id);
+                return {
+                    _id: artist.id,
+                    name: artist.name,
+                    images: artist.images,
+                };
+            });
 
             // Inform MongoDB about new artists
-            // FIXME: Rename `id` to `_id`
-            await ctx.state.collection('artists').insertMany(followedArtistsCursor.items);
+            await ctx.state.collection('artists').insertMany(artists);
             next = followedArtistsCursor.next;
         }
 

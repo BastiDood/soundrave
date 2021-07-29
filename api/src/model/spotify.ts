@@ -21,7 +21,7 @@ export const User = z.object({
     type: z.literal('user'),
 });
 
-const Artist = z.object({
+export const Artist = z.object({
     id: z.string().nonempty(),
     name: z.string().nonempty(),
     images: Image.array(),

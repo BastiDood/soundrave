@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { User } from './spotify.ts';
+import { Artist as SpotifyArtist, User } from './spotify.ts';
 
 export const Profile = z.object({
     _id: User.shape.id,
