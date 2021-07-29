@@ -62,7 +62,7 @@ export const auth = new Router({ prefix: '/auth' })
         });
         ctx.response.redirect('https://accounts.spotify.com/authorize?' + params.toString());
     })
-    .get('/callback', async (ctx: RouterContext<RouteParams, unknown>) => {
+    .get('/callback', async (ctx: RouterContext<RouteParams, Record<string, unknown>>) => {
         // Disallow users without ID
         const sessionId = ctx.cookies.get('sid', { signed: true });
         ctx.assert(sessionId, Status.Forbidden, 'no session ID provided');

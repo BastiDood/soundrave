@@ -1,3 +1,9 @@
+export interface SessionToken {
+    _id: string;
+    accessToken: string;
+    refreshToken: string;
+}
+
 export const enum JobType {
     GetFollowedArtists = 0,
     GetAlbums = 1,
@@ -5,6 +11,6 @@ export const enum JobType {
 
 export interface Job {
     query: JobType;
-    sessionId: string;
+    session: SessionToken;
     url: string;
 }
