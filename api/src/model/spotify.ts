@@ -18,7 +18,7 @@ const Image = z.object({
     url: z.string().url(),
 });
 
-const User = z.object({
+export const User = z.object({
     id: z.string().nonempty(),
     country: z.string().nonempty(),
     display_name: z.string().nonempty(),

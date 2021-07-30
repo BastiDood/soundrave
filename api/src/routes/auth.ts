@@ -5,9 +5,9 @@ import { Router, RouterContext, RouteParams, Status } from 'oak';
 import { z } from 'zod';
 import { encode } from 'std/encoding/base64';
 
-import { AuthorizationResponse, TokenResponse, OAUTH_SCOPE } from '../model/oauth.ts';
+import { SpotifyApiClient } from '../spotify.ts';
+import { AuthorizationResponse, OAUTH_SCOPE } from '../model/oauth.ts';
 import { Profile } from '../model/profile.ts';
-import { FollowedArtists, User } from '../model/spotify.ts';
 import { RawPendingSession, RawValidSession } from '../model/session.ts';
 
 export const auth = new Router({ prefix: '/auth' })
@@ -96,59 +96,23 @@ export const auth = new Router({ prefix: '/auth' })
         if ('error' in authResponse) ctx.throw(Status.InternalServerError, authResponse.error);
 
         // Exchange authorization code for access token
-        const { code } = authResponse;
-        const accessTokenResponse = await fetch('https://accounts.spotify.com/api/token', {
-            method: 'POST',
-            body: new URLSearchParams({
-                grant_type: 'authorization_code',
-                redirect_uri: env.OAUTH_REDIRECT,
-                client_id: env.SPOTIFY_ID,
-                client_secret: env.SPOTIFY_SECRET,
-                code,
-            }),
-        });
-        const maybeToken = await accessTokenResponse.json();
-        const token = TokenResponse.parse(maybeToken);
-
-        // Retrieve user information
-        const userProfileResponse = await fetch('https://api.spotify.com/v1/me');
-        const maybeProfile = await userProfileResponse.json();
-        const profile = User.parse(maybeProfile);
-
-        // Retrieve user's followed artists
-        // FIXME: This is extremely inefficient. Outsource this to background job.
-        // Follow the cursor until there are no more followed artists
-        const followedArtists: string[] = [];
-        let next: string | null = 'https://api.spotify.com/v1/me/following';
-        while (next) {
-            const followedArtistsResponse = await fetch(next);
-            const maybeFollowedArtists = await followedArtistsResponse.json();
-            const followedArtistsCursor = FollowedArtists.parse(maybeFollowedArtists);
-
-            // Push artist IDs
-            const artists = followedArtistsCursor.items.map(artist => {
-                followedArtists.push(artist.id);
-                return {
-                    _id: artist.id,
-                    name: artist.name,
-                    images: artist.images,
-                };
-            });
-
-            // Inform MongoDB about new artists
-            await db.collection('artists').insertMany(artists);
-            next = followedArtistsCursor.next;
+        const { token, client } = await SpotifyApiClient.initialize(authResponse.code);
+        const profileResult = await client.fetchUserProfile();
+        if (!profileResult.ok) {
+            const { error } = profileResult;
+            const message =
+                typeof error === 'number' ? `retry after ${error} seconds` : error.message;
+            ctx.throw(Status.InternalServerError, message);
         }
 
-        // TODO: Explore all tracks of each artist
-
         // Create new user
+        const profile = profileResult.data;
         const user: z.infer<typeof Profile> = {
             _id: profile.id,
             country: profile.country,
             displayName: profile.display_name,
             images: profile.images,
-            followedArtists,
+            followedArtists: [],
         };
 
         // Submit new user

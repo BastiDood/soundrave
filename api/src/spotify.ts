@@ -2,11 +2,11 @@ import { Status } from 'oak';
 import { env } from 'env';
 import type { z } from 'zod';
 
-import { ApiError, ArtistAlbums, FollowedArtists, UserInfo } from './model/spotify.ts';
+import { ApiError, ArtistAlbums, FollowedArtists, User, UserInfo } from './model/spotify.ts';
 import { AuthenticationResponse } from './model/oauth.ts';
 import { Result } from './types/result.d.ts';
 
-type UserInfoType = z.infer<typeof UserInfo>;
+type UserType = z.infer<typeof User>;
 type ApiErrorType = z.infer<typeof ApiError>;
 
 // FIXME: At the moment, the client does not handle rate limiting.
@@ -36,13 +36,12 @@ export class SpotifyApiClient {
         if ('error' in maybeToken) throw new Error(maybeToken.error);
 
         return {
-            refreshToken: maybeToken.refresh_token,
-            expiresIn: maybeToken.expires_in,
+            token: maybeToken,
             client: new SpotifyApiClient(maybeToken.access_token),
         };
     }
 
-    async fetchUserProfile(): Promise<Result<UserInfoType, ApiErrorType | number>> {
+    async fetchUserProfile(): Promise<Result<UserType, ApiErrorType | number>> {
         const response = await fetch('https://api.spotify.com/v1/me', this.#requestInit);
         if (response.status === Status.TooManyRequests) {
             const timeout = Number(response.headers.get('Retry-After') ?? 0);
