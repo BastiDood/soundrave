@@ -1,5 +1,5 @@
 import { Application } from 'oak';
-import { env } from 'env';
+import { env } from './env.ts';
 import { auth } from './routes/auth.ts';
 
 // Set up middlewares

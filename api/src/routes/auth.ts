@@ -1,9 +1,9 @@
-import { db } from 'db';
-import { env } from 'env';
+import { db } from '../db.ts';
+import { env } from '../env.ts';
 import { Bson } from 'mongo';
 import { Router, RouterContext, RouteParams, Status } from 'oak';
 import { z } from 'zod';
-import { encode } from 'std/encoding/base64';
+import { encode } from 'std/encoding/base64.ts';
 
 import { SpotifyApiClient } from '../spotify.ts';
 import { AuthorizationResponse, OAUTH_SCOPE } from '../model/oauth.ts';
@@ -14,7 +14,7 @@ export const auth = new Router({ prefix: '/auth' })
     .get('/login', async (ctx: RouterContext<RouteParams, Record<string, unknown>>) => {
         // TODO: Allow users with partially verified sessions.
         ctx.assert(
-            ctx.cookies.get('sid', { signed: true }) === undefined,
+            (await ctx.cookies.get('sid', { signed: true })) === undefined,
             Status.Forbidden,
             'session IDs not allowed'
         );
@@ -43,7 +43,7 @@ export const auth = new Router({ prefix: '/auth' })
         );
 
         // Send session ID to user
-        ctx.cookies.set('sid', insertedId.toHexString(), {
+        await ctx.cookies.set('sid', insertedId.toHexString(), {
             signed: true,
             httpOnly: true,
             sameSite: 'lax',
@@ -64,7 +64,7 @@ export const auth = new Router({ prefix: '/auth' })
     })
     .get('/callback', async (ctx: RouterContext<RouteParams, Record<string, unknown>>) => {
         // Disallow users without ID
-        const sessionId = ctx.cookies.get('sid', { signed: true });
+        const sessionId = await ctx.cookies.get('sid', { signed: true });
         ctx.assert(sessionId, Status.Forbidden, 'no session ID provided');
 
         // Retrieve session nonce

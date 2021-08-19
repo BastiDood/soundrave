@@ -1,11 +1,8 @@
 {
     "imports": {
-        "db": "./src/db.ts",
-        "env": "./src/env.ts",
-        "mongo": "https://deno.land/x/mongo@v0.24.0/mod.ts",
-        "oak": "https://deno.land/x/oak@v8.0.0/mod.ts",
-        "std/assert": "https://deno.land/std@0.103.0/testing/asserts.ts",
-        "std/encoding/base64": "https://deno.land/std@0.103.0/encoding/base64.ts",
-        "zod": "https://deno.land/x/zod@v3.5.1/index.ts"
+        "mongo": "https://deno.land/x/mongo@v0.25.0/mod.ts",
+        "oak": "https://deno.land/x/oak@v9.0.0/mod.ts",
+        "std/": "https://deno.land/std@0.105.0/",
+        "zod": "https://deno.land/x/zod@v3.7.0/index.ts"
     }
 }

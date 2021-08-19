@@ -1,4 +1,4 @@
-import { assert } from 'std/assert';
+import { assert } from 'std/testing/asserts.ts';
 
 const HOST = Deno.env.get('HOST') ?? 'localhost';
 const PORT = Number(Deno.env.get('PORT') ?? 8080);

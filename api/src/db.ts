@@ -1,5 +1,7 @@
-import { env } from 'env';
-import { ConnectOptions, MongoClient } from 'mongo';
+import type { ConnectOptions } from 'mongo';
+
+import { env } from './env.ts';
+import { MongoClient } from 'mongo';
 
 // Initialize MongoDB connection
 const mongo = new MongoClient();

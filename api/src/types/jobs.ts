@@ -1,6 +1,7 @@
 export interface SessionToken {
     accessToken: string;
     refreshToken: string;
+    expiresAt: number;
 }
 
 export const enum JobType {
@@ -18,9 +19,8 @@ export interface GetFollowedArtists {
 
 export interface GetAlbums {
     query: JobType.GetAlbums;
-    artistId: string;
+    url: string;
     sessionId: string;
-    userId: string;
     token?: SessionToken;
 }
 

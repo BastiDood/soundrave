@@ -1,10 +1,11 @@
-import { Status } from 'oak';
-import { env } from 'env';
 import type { z } from 'zod';
+import type { Result } from './types/result.d.ts';
 
+import { Status } from 'oak';
+
+import { env } from './env.ts';
 import { ApiError, ArtistAlbums, FollowedArtists, User, UserInfo } from './model/spotify.ts';
 import { AuthenticationResponse } from './model/oauth.ts';
-import { Result } from './types/result.d.ts';
 
 type UserType = z.infer<typeof User>;
 type ApiErrorType = z.infer<typeof ApiError>;
