@@ -3,6 +3,6 @@
         "mongo": "https://deno.land/x/mongo@v0.25.0/mod.ts",
         "oak": "https://deno.land/x/oak@v9.0.0/mod.ts",
         "std/": "https://deno.land/std@0.105.0/",
-        "zod": "https://deno.land/x/zod@v3.7.0/index.ts"
+        "zod": "https://deno.land/x/zod@v3.7.3/index.ts"
     }
 }
