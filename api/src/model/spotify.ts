@@ -20,13 +20,15 @@ const ImageSchema = z.object({
     url: z.string().url(),
 });
 
-const UserSchema = z.object({
+export const UserSchema = z.object({
     id: z.string().nonempty(),
     country: z.string().nonempty(),
     display_name: z.string().nonempty(),
     images: ImageSchema.array(),
     type: z.literal('user'),
 });
+
+export type User = z.infer<typeof UserSchema>;
 
 const ArtistSchema = z.object({
     id: z.string().nonempty(),

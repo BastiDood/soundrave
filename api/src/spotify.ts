@@ -1,8 +1,8 @@
-import type { ApiError, UserInfo } from './model/spotify.ts';
-import type { Result } from './types/result.d.ts';
-
 import { Status } from 'oak';
+
 import { env } from './env.ts';
+import { FetchError, RateLimitError, TokenExchangeError } from './error.ts';
+
 import { AuthenticationResponseSchema } from './model/oauth.ts';
 import { ArtistAlbumsSchema, FollowedArtistsSchema, UserInfoSchema } from './model/spotify.ts';
 
@@ -30,7 +30,7 @@ export class SpotifyApiClient {
         });
 
         const maybeToken = AuthenticationResponseSchema.parse(await response.json());
-        if ('error' in maybeToken) throw new Error(maybeToken.error);
+        if ('error' in maybeToken) throw new TokenExchangeError(maybeToken.error);
 
         return {
             token: maybeToken,
@@ -38,25 +38,29 @@ export class SpotifyApiClient {
         };
     }
 
-    async fetchUserProfile(): Promise<Result<UserInfo, ApiError | number>> {
+    async fetchUserProfile() {
         const response = await fetch('https://api.spotify.com/v1/me', this.#requestInit);
         if (response.status === Status.TooManyRequests) {
             const timeout = Number(response.headers.get('Retry-After') ?? 0);
-            return { ok: false, error: timeout };
+            throw new RateLimitError(timeout);
         }
 
         const maybeUserInfo = UserInfoSchema.parse(await response.json());
-        return 'type' in maybeUserInfo
-            ? { ok: true, data: maybeUserInfo }
-            : { ok: false, error: maybeUserInfo };
+        if ('message' in maybeUserInfo) throw new FetchError(maybeUserInfo.message);
+        return maybeUserInfo;
     }
 
     async *fetchFollowedArtists() {
         let next: string | null = 'https://api.spotify.com/v1/me/following?type=artist&limit=50';
         while (next) {
             const response = await fetch(next, this.#requestInit);
+            if (response.status === Status.TooManyRequests) {
+                const timeout = Number(response.headers.get('Retry-After') ?? 0);
+                throw new RateLimitError(timeout);
+            }
+
             const maybeArtists = FollowedArtistsSchema.parse(await response.json());
-            if ('message' in maybeArtists) throw new Error(maybeArtists.message);
+            if ('message' in maybeArtists) throw new FetchError(maybeArtists.message);
             yield maybeArtists.items;
             next = maybeArtists.next;
         }
@@ -68,8 +72,13 @@ export class SpotifyApiClient {
             | null = `https://api.spotify.com/v1/artists/${id}/albums?limit=50&include_groups=album,single&market=${country}`;
         while (next) {
             const response = await fetch(next, this.#requestInit);
+            if (response.status === Status.TooManyRequests) {
+                const timeout = Number(response.headers.get('Retry-After') ?? 0);
+                throw new RateLimitError(timeout);
+            }
+
             const maybeAlbums = ArtistAlbumsSchema.parse(await response.json());
-            if ('message' in maybeAlbums) throw new Error(maybeAlbums.message);
+            if ('message' in maybeAlbums) throw new FetchError(maybeAlbums.message);
             yield maybeAlbums.items;
             next = maybeAlbums.next;
         }
