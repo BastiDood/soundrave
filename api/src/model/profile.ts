@@ -1,10 +1,12 @@
 import { z } from 'zod';
-import { User } from './spotify.ts';
+import { UserSchema } from './spotify.ts';
 
-export const Profile = z.object({
-    _id: User.shape.id,
-    country: User.shape.country,
-    displayName: User.shape.display_name,
-    images: User.shape.images,
+export const ProfileSchema = z.object({
+    _id: UserSchema.shape.id,
+    country: UserSchema.shape.country,
+    displayName: UserSchema.shape.display_name,
+    images: UserSchema.shape.images,
     followedArtists: z.string().nonempty().array(),
 });
+
+export type Profile = z.infer<typeof ProfileSchema>;

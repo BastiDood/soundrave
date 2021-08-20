@@ -1,6 +1,6 @@
 import { Application } from 'oak';
 import { env } from './env.ts';
-import { auth } from './routes/auth.ts';
+import { auth } from './routes/mod.ts';
 
 // Set up middlewares
 console.info('App listening...');

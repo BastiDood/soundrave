@@ -1,14 +1,10 @@
-import type { z } from 'zod';
+import type { ApiError, UserInfo } from './model/spotify.ts';
 import type { Result } from './types/result.d.ts';
 
 import { Status } from 'oak';
-
 import { env } from './env.ts';
-import { ApiError, ArtistAlbums, FollowedArtists, User, UserInfo } from './model/spotify.ts';
-import { AuthenticationResponse } from './model/oauth.ts';
-
-type UserType = z.infer<typeof User>;
-type ApiErrorType = z.infer<typeof ApiError>;
+import { AuthenticationResponseSchema } from './model/oauth.ts';
+import { ArtistAlbumsSchema, FollowedArtistsSchema, UserInfoSchema } from './model/spotify.ts';
 
 // FIXME: At the moment, the client does not handle rate limiting.
 export class SpotifyApiClient {
@@ -33,7 +29,7 @@ export class SpotifyApiClient {
             }),
         });
 
-        const maybeToken = AuthenticationResponse.parse(await response.json());
+        const maybeToken = AuthenticationResponseSchema.parse(await response.json());
         if ('error' in maybeToken) throw new Error(maybeToken.error);
 
         return {
@@ -42,23 +38,24 @@ export class SpotifyApiClient {
         };
     }
 
-    async fetchUserProfile(): Promise<Result<UserType, ApiErrorType | number>> {
+    async fetchUserProfile(): Promise<Result<UserInfo, ApiError | number>> {
         const response = await fetch('https://api.spotify.com/v1/me', this.#requestInit);
         if (response.status === Status.TooManyRequests) {
             const timeout = Number(response.headers.get('Retry-After') ?? 0);
             return { ok: false, error: timeout };
         }
 
-        const maybeUserInfo = UserInfo.parse(await response.json());
-        if ('type' in maybeUserInfo) return { ok: true, data: maybeUserInfo };
-        return { ok: false, error: maybeUserInfo };
+        const maybeUserInfo = UserInfoSchema.parse(await response.json());
+        return 'type' in maybeUserInfo
+            ? { ok: true, data: maybeUserInfo }
+            : { ok: false, error: maybeUserInfo };
     }
 
     async *fetchFollowedArtists() {
         let next: string | null = 'https://api.spotify.com/v1/me/following?type=artist&limit=50';
         while (next) {
             const response = await fetch(next, this.#requestInit);
-            const maybeArtists = FollowedArtists.parse(await response.json());
+            const maybeArtists = FollowedArtistsSchema.parse(await response.json());
             if ('message' in maybeArtists) throw new Error(maybeArtists.message);
             yield maybeArtists.items;
             next = maybeArtists.next;
@@ -71,7 +68,7 @@ export class SpotifyApiClient {
             | null = `https://api.spotify.com/v1/artists/${id}/albums?limit=50&include_groups=album,single&market=${country}`;
         while (next) {
             const response = await fetch(next, this.#requestInit);
-            const maybeAlbums = ArtistAlbums.parse(await response.json());
+            const maybeAlbums = ArtistAlbumsSchema.parse(await response.json());
             if ('message' in maybeAlbums) throw new Error(maybeAlbums.message);
             yield maybeAlbums.items;
             next = maybeAlbums.next;

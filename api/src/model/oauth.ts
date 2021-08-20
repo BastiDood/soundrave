@@ -1,18 +1,19 @@
 import { z } from 'zod';
+import { OAUTH_SCOPE } from '../constants.ts';
 
-export const OAUTH_SCOPE = 'user-follow-modify user-read-private';
-
-const AuthorizationCode = z.object({
+const AuthorizationCodeSchema = z.object({
     code: z.string(),
     state: z.string(),
 });
 
-const AuthorizationError = z.object({
+const AuthorizationErrorSchema = z.object({
     error: z.string(),
     state: z.string(),
 });
 
-export const AuthorizationResponse = AuthorizationCode.or(AuthorizationError);
+export const AuthorizationResponseSchema = AuthorizationCodeSchema.or(AuthorizationErrorSchema);
+
+export type AuthorizationResponse = z.infer<typeof AuthorizationResponseSchema>;
 
 const AuthenticationSuccess = z.object({
     access_token: z.string().nonempty(),
@@ -33,4 +34,6 @@ const AuthenticationError = z.object({
     error_description: z.literal('invalid_request'),
 });
 
-export const AuthenticationResponse = AuthenticationSuccess.or(AuthenticationError);
+export const AuthenticationResponseSchema = AuthenticationSuccess.or(AuthenticationError);
+
+export type AuthenticationResponse = z.infer<typeof AuthorizationResponseSchema>;
