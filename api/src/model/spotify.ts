@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-function createCursorPagingObject<T>(schema: z.ZodSchema<T>) {
+function createCursorPagingObject<T>(schema: z.Schema<T>) {
     return z.object({
         next: z.string().url().nullable(),
         items: schema.array(),
