@@ -18,13 +18,15 @@ const ApiErrorSchema = z
 
 export type ApiError = z.infer<typeof ApiErrorSchema>;
 
-const ImageSchema = z
+export const ImageSchema = z
     .object({
         height: z.number().positive().int().nullable(),
         width: z.number().positive().int().nullable(),
         url: z.string().url(),
     })
     .strict();
+
+export type Image = z.infer<typeof ImageSchema>;
 
 export const UserSchema = z.object({
     id: z.string().nonempty(),
