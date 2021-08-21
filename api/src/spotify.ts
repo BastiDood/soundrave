@@ -90,8 +90,10 @@ export class SpotifyApiClient {
         return maybeUserInfo;
     }
 
-    async *fetchFollowedArtists() {
+    async *fetchFollowedArtists(after?: string) {
         let next: string | null = 'https://api.spotify.com/v1/me/following?type=artist&limit=50';
+        if (after) next += `&after=${after}`;
+
         while (next) {
             const response = await fetch(next, this.#requestInit);
             if (response.status === Status.TooManyRequests) {
@@ -106,10 +108,11 @@ export class SpotifyApiClient {
         }
     }
 
-    async *fetchAlbums(id: string, country: string) {
+    async *fetchAlbums(id: string, country: string, offset = 0) {
         let next:
             | string
-            | null = `https://api.spotify.com/v1/artists/${id}/albums?limit=50&include_groups=album,single&market=${country}`;
+            | null = `https://api.spotify.com/v1/artists/${id}/albums?limit=50&include_groups=album,single&market=${country}&offset=${offset}`;
+
         while (next) {
             const response = await fetch(next, this.#requestInit);
             if (response.status === Status.TooManyRequests) {
