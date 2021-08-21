@@ -1,24 +1,30 @@
 import { z } from 'zod';
 
 function createCursorPagingObject<T>(schema: z.Schema<T>) {
-    return z.object({
-        next: z.string().url().nullable(),
-        items: schema.array(),
-    });
+    return z
+        .object({
+            next: z.string().url().nullable(),
+            items: schema.array(),
+        })
+        .strict();
 }
 
-const ApiErrorSchema = z.object({
-    status: z.number().positive().int(),
-    message: z.string(),
-});
+const ApiErrorSchema = z
+    .object({
+        status: z.number().positive().int(),
+        message: z.string(),
+    })
+    .strict();
 
 export type ApiError = z.infer<typeof ApiErrorSchema>;
 
-const ImageSchema = z.object({
-    height: z.number().positive().int().nullable(),
-    width: z.number().positive().int().nullable(),
-    url: z.string().url(),
-});
+const ImageSchema = z
+    .object({
+        height: z.number().positive().int().nullable(),
+        width: z.number().positive().int().nullable(),
+        url: z.string().url(),
+    })
+    .strict();
 
 export const UserSchema = z.object({
     id: z.string().nonempty(),
