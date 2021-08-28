@@ -76,4 +76,8 @@ export class Database {
             Omit<Session, '_id'>
         >;
     }
+
+    insertUser(profile: Profile) {
+        return this.#users.insertOne(profile);
+    }
 }
