@@ -1,8 +1,8 @@
 {
     "imports": {
-        "mongo": "https://deno.land/x/mongo@v0.25.0/mod.ts",
+        "mongo": "https://raw.githubusercontent.com/denodrivers/deno_mongo/bbc5fa8134c77957265a13d83c773f401ff23fac/mod.ts",
         "oak": "https://deno.land/x/oak@v9.0.0/mod.ts",
-        "std/": "https://deno.land/std@0.105.0/",
-        "zod": "https://deno.land/x/zod@v3.7.3/index.ts"
+        "std/": "https://deno.land/std@0.106.0/",
+        "zod": "https://deno.land/x/zod@v3.8.0/index.ts"
     }
 }
